@@ -1,0 +1,3 @@
+[submodule "build/npgsqlrest.github.io"]
+	path = build/npgsqlrest.github.io
+	url = git@github.com:NpgsqlRest/npgsqlrest.github.io.git

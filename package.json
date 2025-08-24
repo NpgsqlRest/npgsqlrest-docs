@@ -1,0 +1,28 @@
+{
+  "name": "npgsqlrest-docs",
+  "version": "1.0.0",
+  "description": "Technical documentation for NpgsqlRest",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "publish": "npm run build && git add . && git commit --amend --no-edit && git push origin main --force && cd build/npgsqlrest.github.io && git add . && git commit --amend --no-edit && git push origin main --force"
+  },
+  "devDependencies": {
+    "vitepress": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vb-consulting/NpgsqlRest.git"
+  },
+  "keywords": [
+    "postgresql",
+    "rest-api",
+    "npgsql",
+    "dotnet",
+    "documentation"
+  ],
+  "author": "VB Consulting",
+  "license": "MIT"
+}

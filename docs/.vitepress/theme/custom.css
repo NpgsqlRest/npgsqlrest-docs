@@ -1,0 +1,74 @@
+/* Custom CSS Variables for Logo Theming */
+:root {
+  /* Light theme logo colors */
+  --logo-elephant-color: #3b4db8;
+  --logo-network-color: #6c7cb8;
+  --logo-network-nodes: #4fc3c8;
+  --logo-background: transparent;
+
+  --vp-c-bg: #dbdbe7;
+  --vp-sidebar-bg-color: #9baecc;
+
+  --vp-local-search-bg: #9baecc;
+  --vp-local-search-result-bg: #9baecc;
+
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
+ font-size: 1.15rem;
+}
+
+.dark {
+  /* Dark theme logo colors */
+  --logo-elephant-color: #8b9cf0;
+  --logo-network-color: #9caaf0;
+  --logo-network-nodes: #7fecf1;
+  --logo-background: transparent;
+
+  /* background color */
+  --vp-c-bg: #131129;
+  --vp-sidebar-bg-color: #010103;
+
+  /* search background color */
+  --vp-local-search-bg: #130e52; /*#1b183e;*/
+  --vp-local-search-result-bg: #130e52;
+}
+
+.dark .VPFeature{
+  background-color: #1b183e;;
+}
+
+.DocSearch-Button, .DocSearch-Button:hover {
+  /*background-color: #a3b7d8;*/
+  background-color: #dddded;
+  border: 1px solid #3b4db8;
+}
+
+.dark .DocSearch-Button, .dark .DocSearch-Button:hover {
+  background-color: #1b183e;
+  border: 1px solid #3b4db8;
+}
+
+.dark .shiki, .dark .line-numbers-wrapper {
+  background-color: #010103 !important;
+}
+
+.bottom {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.bottom > *:first-child {
+    height: 100px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.bottom > *:last-child {
+  display: flex;
+  justify-content: center;
+  column-gap: 1rem;
+  flex-wrap: wrap;
+}

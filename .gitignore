@@ -1,0 +1,6 @@
+node_modules/
+package-lock.json
+docs/.vitepress/cache/
+.DS_Store
+build/
+build/npgsqlrest.github.io
