@@ -1,0 +1,54 @@
+{
+  "ApplicationName": "3_security_and_auth",
+
+  "ConnectionStrings": {
+    // Override the default user with application-specific user
+    "Default": "Host={PGHOST};Port={PGPORT};Database={PGDATABASE};Username={APP_USER};Password={APP_PASSWORD}"
+  },
+
+  "StaticFiles": {
+    // Root path to the static files for this example
+    "RootPath": "./3_security_and_auth/public"
+  },
+
+  // see https://npgsqlrest.github.io/config/auth.html#cookie-authentication
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_3_auth"
+  },
+
+  "NpgsqlRest": {
+    // Include only the example_3_public schema in the generated endpoints
+    // functions in example_3 are only for internal use
+    "IncludeSchemas": [ "example_3_public" ],
+    // We will require authorization for this example
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_3",
+      //
+      // Map claims to function parameters
+      // see https://npgsqlrest.github.io/config/authentication-options.html#user-parameters-settings
+      //
+      "UseUserParameters": true,
+      // "parameter name" : "claim name"
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_username": "username",
+        "_email": "email"
+      }
+    },
+
+    "HttpFileOptions": {
+      // Pattern output the generated HTTP files {1} placeholder is schema name
+      "NamePattern": "./3_security_and_auth/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      // Output path for the generated client code file
+      "FilePath": "./3_security_and_auth/src/{0}Api.ts"
+    }
+  }
+}

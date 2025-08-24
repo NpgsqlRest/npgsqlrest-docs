@@ -1,0 +1,71 @@
+@host=http://127.0.0.1:8080
+
+// function example_8.get_messages()
+// returns table(
+//     message_id integer,
+//     user_id integer,
+//     username text,
+//     message_text text,
+//     created_at timestamp with time zone
+// )
+//
+// comment on function example_8.get_messages is 'HTTP GET
+// authorize';
+GET {{host}}/api/example-8/get-messages
+
+###
+
+// function example_8.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     user_name text
+// )
+//
+// comment on function example_8.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-8/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_8.logout()
+// returns void
+//
+// comment on function example_8.logout is 'HTTP POST
+// logout';
+POST {{host}}/api/example-8/logout
+
+###
+
+// procedure example_8.send_message(
+//     _message_text text,
+//     _user_id text DEFAULT NULL::text,
+//     _user_name text DEFAULT NULL::text
+// )
+// returns void
+//
+// comment on function example_8.send_message is 'HTTP POST
+// authorize
+// sse
+// sse_scope authorize';
+POST {{host}}/api/example-8/send-message
+content-type: application/json
+
+{
+    "messageText": "ABC",
+    "userId": "XYZ",
+    "userName": "IJK"
+}
+
+###
+

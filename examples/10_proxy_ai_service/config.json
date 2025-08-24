@@ -1,0 +1,48 @@
+{
+  "ApplicationName": "10_proxy_ai_service",
+
+  "StaticFiles": {
+    "RootPath": "./10_proxy_ai_service/public"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_10_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_10" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_10"
+    },
+
+    // Enable proxy functionality
+    "ProxyOptions": {
+      "Enabled": true,
+      // Default host can be overridden per-endpoint with annotation
+      "Host": "http://localhost:3001",
+      // Timeout for proxy requests
+      "DefaultTimeout": "00:00:30",
+      // Forward request headers to upstream
+      "ForwardHeaders": true,
+      // Headers to exclude from forwarding
+      "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding"],
+      // Forward response headers from upstream
+      "ForwardResponseHeaders": true,
+      "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length"]
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./10_proxy_ai_service/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./10_proxy_ai_service/src/{0}Api.ts"
+    }
+  }
+}

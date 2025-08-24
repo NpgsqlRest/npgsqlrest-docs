@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example 6: Image Uploads</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .card {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        input[type="text"],
+        input[type="password"] {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-login { background: #2196F3; color: white; }
+        .btn-logout { background: #f44336; color: white; }
+        .btn-upload { background: #4CAF50; color: white; }
+        .hidden { display: none; }
+        #progress-container {
+            margin: 10px 0;
+            background: #ddd;
+            border-radius: 4px;
+            height: 24px;
+            position: relative;
+        }
+        #progress-bar {
+            background: #4CAF50;
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.2s;
+        }
+        #progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .credentials {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Example 6: Image Uploads</h1>
+
+    <div id="auth-status"></div>
+
+    <!-- Login Section -->
+    <div id="login-section" class="card">
+        <h2>Login</h2>
+        <div class="credentials">
+            <strong>alice</strong> / password123 | <strong>bob</strong> / password456
+        </div>
+        <input type="text" id="username" placeholder="Username" value="alice" />
+        <input type="password" id="password" placeholder="Password" value="password123" />
+        <button id="login-btn" class="btn-login">Login</button>
+    </div>
+
+    <!-- Upload Section -->
+    <div id="upload-section" class="card hidden">
+        <button id="logout-btn" class="btn-logout">Logout</button>
+        <button id="my-uploads-btn" class="btn-login">My Uploads</button>
+
+        <h2>Upload to File System</h2>
+        <input type="file" id="file-fs" accept="image/*" multiple />
+        <button id="upload-fs-btn" class="btn-upload">Upload Selected To FS</button>
+        <div id="progress-container" class="hidden">
+            <div id="progress-bar"></div>
+            <span id="progress-text">0%</span>
+        </div>
+
+        <h2>Upload to Large Object</h2>
+        <input type="file" id="file-lo" accept="image/*" multiple />
+        <button id="upload-lo-btn" class="btn-upload">Upload Selected To LO</button>
+
+        <h2>Upload to Both</h2>
+        <input type="file" id="file-combined" accept="image/*" multiple />
+        <button id="upload-combined-btn" class="btn-upload">Upload Selected To Both</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        window.user = { userId: {user_id}, username: {username} };
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

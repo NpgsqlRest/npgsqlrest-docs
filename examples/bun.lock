@@ -1,0 +1,23 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "examples",
+      "devDependencies": {
+        "@vbilopav/pgmigrations": "^0.58.0",
+        "npgsqlrest": "^3.6.3",
+      },
+    },
+  },
+  "trustedDependencies": [
+    "npgsqlrest",
+  ],
+  "packages": {
+    "@vbilopav/pgmigrations": ["@vbilopav/pgmigrations@0.58.0", "", { "dependencies": { "dotenv": "^16.4.7" }, "bin": { "pgmigrations": "pgmigrations.js" } }, "sha512-rk7ooYv5+crzvgQn+LDscDI7DjJCmUn/HqchdZvOfOLruEW7SzLt1kpfAFUMVEDfFCBo1iQGvvqQ/GzbVBwq8A=="],
+
+    "dotenv": ["dotenv@16.6.1", "", {}, "sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow=="],
+
+    "npgsqlrest": ["npgsqlrest@3.8.0", "", { "bin": { "npgsqlrest": "node_modules/.bin/npgsqlrest", "npgsqlrest-config-copy": "config-copy.js" } }, "sha512-L4DRP+qPHoQmOo02y4s292VFTSd9+QZf9M0tNnjYw+bPDzalbqK9b4vC8nkctsVMdUf2MUGShD5KB1hyCml+gA=="],
+  }
+}

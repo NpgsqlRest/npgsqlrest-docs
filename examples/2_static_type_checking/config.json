@@ -1,0 +1,25 @@
+{
+  "ApplicationName": "static_type_checking",
+
+  "StaticFiles": {
+    // Root path to the static files for this example
+    "RootPath": "./2_static_type_checking/public"
+  },
+
+  "NpgsqlRest": {
+    // Include only the example_2 schema in the generated endpoints
+    "IncludeSchemas": [ "example_2" ],
+    // Disable authorization for this example
+    "RequiresAuthorization": false,
+
+    "HttpFileOptions": {
+      // Pattern output the generated HTTP files {1} placeholder is schema name
+      "NamePattern": "./2_static_type_checking/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      // Output path for the generated client code file
+      "FilePath": "./2_static_type_checking/src/{0}Api.ts"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "ApplicationName": "my_first_function",
+
+  "StaticFiles": {
+    // Root path to the static files for this example
+    "RootPath": "./1_my_first_function/public"
+  },
+
+  "NpgsqlRest": {
+    // Include only the example_1 schema in the generated endpoints
+    "IncludeSchemas": [ "example_1" ],
+    // Disable authorization for this example
+    "RequiresAuthorization": false,
+
+    "HttpFileOptions": {
+      // Pattern output the generated HTTP files {1} placeholder is schema name
+      "NamePattern": "./1_my_first_function/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      // Output path for the generated client code file {0} placeholder is schema name in camel case
+      "FilePath": "./1_my_first_function/src/{0}Api.ts"
+    }
+  }
+}

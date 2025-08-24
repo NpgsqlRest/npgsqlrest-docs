@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "upstream": "bun run ./upstream/server.ts",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./14_table_format/config.json",
+    "start": "bun run upstream & sleep 1 && bun run dev",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./14_table_format/sql_14",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./14_table_format/sql_14"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

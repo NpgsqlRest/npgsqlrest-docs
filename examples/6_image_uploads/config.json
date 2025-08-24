@@ -1,0 +1,65 @@
+{
+  "ApplicationName": "6_image_uploads",
+
+  "StaticFiles": {
+    "RootPath": "./6_image_uploads/public"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_6_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_6" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_6",
+      "UseUserParameters": true
+    },
+
+    // Enable file uploads with image validation
+    "UploadOptions": {
+      "Enabled": true,
+      "LogUploadEvent": true,
+      "LogUploadParameters": true,
+      "DefaultUploadHandler": "large_object",
+      "UseDefaultUploadMetadataParameter": true,
+      "DefaultUploadMetadataParameterName": "_meta",
+
+      "UploadHandlers": {
+        "StopAfterFirstSuccess": false,
+        "BufferSize": 16384,
+
+        // Large Object handler for PostgreSQL storage
+        "LargeObjectEnabled": true,
+        "LargeObjectKey": "large_object",
+        "LargeObjectCheckImage": true,
+
+        // File System handler for disk storage
+        "FileSystemEnabled": true,
+        "FileSystemKey": "file_system",
+        "FileSystemPath": "./6_image_uploads/uploads",
+        "FileSystemUseUniqueFileName": true,
+        "FileSystemCreatePathIfNotExists": true,
+        "FileSystemCheckImage": true,
+
+        // Disable CSV and Excel handlers - not needed for image uploads
+        "CsvUploadEnabled": false,
+        "ExcelUploadEnabled": false
+      }
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./6_image_uploads/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./6_image_uploads/src/{0}Api.ts"
+    }
+  }
+}

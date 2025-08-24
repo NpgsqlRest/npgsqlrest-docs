@@ -1,0 +1,1 @@
+alter table example_2.posts alter column content type jsonb using '{}'::jsonb;

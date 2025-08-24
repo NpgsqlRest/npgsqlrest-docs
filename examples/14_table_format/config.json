@@ -1,0 +1,49 @@
+{
+  "ApplicationName": "14_table_format",
+
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
+  "StartupMessage": "NpgsqlRest v{version} - {application}, {environment} configuration, loaded in {time}, listening on http://localhost:8080",
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
+
+  "StaticFiles": {
+    "RootPath": "./14_table_format/public"
+  },
+  
+  "Stats": {
+    "Enabled": true,
+    "OutputFormat": "html",
+    "SchemaSimilarTo": "example_14"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_14_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_14" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_14"
+    },
+
+    "TableFormatOptions": {
+      "Enabled": true,
+      "HtmlEnabled": true,
+      "ExcelEnabled": true,
+      "ExcelKey": "excel"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./14_table_format/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./14_table_format/src/{0}Api.ts"
+    }
+  }
+}

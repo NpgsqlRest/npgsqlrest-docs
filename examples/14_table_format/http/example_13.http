@@ -1,0 +1,79 @@
+@host=http://localhost:8080
+
+// function example_13.is_passkey_enabled(
+//     _user_id text DEFAULT NULL::text
+// )
+// returns boolean
+//
+// comment on function example_13.is_passkey_enabled is 'HTTP GET
+// @authorize';
+GET {{host}}/api/example-13/is-passkey-enabled?userId=ABC
+
+###
+
+// function example_13.list_passkey_users()
+// returns table(
+//     user_id integer,
+//     username text,
+//     pass text,
+//     email text,
+//     passkey_enabled boolean
+// )
+//
+// comment on function example_13.list_passkey_users is 'HTTP GET
+// @anonymous';
+GET {{host}}/api/example-13/list-passkey-users
+
+###
+
+// function example_13.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text,
+//     email text,
+//     message jsonb
+// )
+//
+// comment on function example_13.login is 'HTTP POST
+// @login
+// @anonymous';
+POST {{host}}/api/example-13/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_13.logout()
+// returns void
+//
+// comment on function example_13.logout is 'HTTP POST
+// @logout';
+POST {{host}}/api/example-13/logout
+
+###
+
+// function example_13.who_am_i(
+//     _user_id text DEFAULT NULL::text,
+//     _username text DEFAULT NULL::text,
+//     _email text DEFAULT NULL::text
+// )
+// returns table(
+//     user_id text,
+//     username text,
+//     email text
+// )
+//
+// comment on function example_13.who_am_i is 'HTTP GET
+// @authorize';
+GET {{host}}/api/example-13/who-am-i?userId=ABC&username=XYZ&email=IJK
+
+###
+

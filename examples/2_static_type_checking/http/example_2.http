@@ -1,0 +1,27 @@
+@host=http://127.0.0.1:8080
+
+// function example_2.get_posts()
+// returns table(
+//     username text,
+//     content text,
+//     created_at timestamp without time zone
+// )
+//
+// comment on function example_2.get_posts is 'HTTP GET
+GET {{host}}/api/example-2/get-posts
+
+###
+
+// function example_2.get_users()
+// returns table(
+//     user_id integer,
+//     username text,
+//     email text,
+//     active boolean
+// )
+//
+// comment on function example_2.get_users is 'HTTP GET
+GET {{host}}/api/example-2/get-users
+
+###
+

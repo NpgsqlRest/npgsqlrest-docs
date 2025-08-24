@@ -1,0 +1,64 @@
+@host=http://127.0.0.1:8080
+
+// function example_14.get_data(
+//     _format text,
+//     _excel_file_name text DEFAULT NULL::text,
+//     _excel_sheet text DEFAULT NULL::text
+// )
+// returns table(
+//     int_val integer,
+//     bigint_val bigint,
+//     numeric_val numeric,
+//     float_val double precision,
+//     bool_val boolean,
+//     text_val text,
+//     date_val date,
+//     timestamp_val timestamp without time zone,
+//     time_val time without time zone,
+//     json_val json,
+//     null_text text,
+//     null_int integer
+// )
+//
+// comment on function example_14.get_data is 'HTTP GET
+// @authorize
+// @table_format = {_format}
+// @excel_file_name = {_excel_file_name}
+// @excel_sheet = {_excel_sheet}
+// @tsclient_url_only = true';
+GET {{host}}/api/example-14/get-data?format=ABC&excelFileName=XYZ&excelSheet=IJK
+
+###
+
+// function example_14.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text
+// )
+//
+// comment on function example_14.login is 'HTTP POST
+// @login
+// @anonymous';
+POST {{host}}/api/example-14/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_14.logout()
+// returns void
+//
+// comment on function example_14.logout is 'HTTP POST
+// @logout';
+POST {{host}}/api/example-14/logout
+
+###
+

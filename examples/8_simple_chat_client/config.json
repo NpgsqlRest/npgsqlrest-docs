@@ -1,0 +1,36 @@
+{
+  "ApplicationName": "8_simple_chat_client",
+
+  "StaticFiles": {
+    "RootPath": "./8_simple_chat_client/public"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_8_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_8" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_8",
+      "UseUserParameters": true
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./8_simple_chat_client/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./8_simple_chat_client/src/{0}Api.ts",
+      // Export event source clients for SSE endpoints so we can use them in the chat client 
+      // and listen for new messages.
+      "ExportEventSources": true
+    }
+  }
+}

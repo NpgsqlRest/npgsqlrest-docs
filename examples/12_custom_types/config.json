@@ -1,0 +1,22 @@
+{
+  "ApplicationName": "12_custom_types",
+
+  "StaticFiles": {
+    "RootPath": "./12_custom_types/public"
+  },
+
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_12" ],
+    "RequiresAuthorization": false,
+    "QueryStringNullHandling": "EmptyString",
+
+    "HttpFileOptions": {
+      "NamePattern": "./12_custom_types/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./12_custom_types/src/{0}Api.ts"
+    }
+  }
+}

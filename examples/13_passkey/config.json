@@ -1,0 +1,67 @@
+{
+  "ApplicationName": "13_passkey",
+
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
+  "StartupMessage": "NpgsqlRest v{version} - {application}, {environment} configuration, loaded in {time}, listening on http://localhost:8080",
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
+  "Urls": "http://localhost:8080",
+
+  "StaticFiles": {
+    "RootPath": "./13_passkey/public"
+  },
+  
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_13_auth",
+    //
+    // WebAuthn/FIDO2 Passkey Authentication
+    // Provides phishing-resistant, passwordless authentication using device-native biometrics or PINs.
+    //
+    "PasskeyAuth": {
+      "Enabled": true,
+      "EnableRegister": true,
+      "RelyingPartyName": "Example 13 Passkey Demo",
+      
+      "ChallengeAddExistingUserCommand": "select * from example_13.passkey_challenge_add_existing($1,$2)",
+      "ChallengeRegistrationCommand": "select * from example_13.passkey_challenge_registration($1)",
+      "ChallengeAuthenticationCommand": "select * from example_13.passkey_challenge_authentication($1,$2)",
+      "VerifyChallengeCommand": "select * from example_13.passkey_verify_challenge($1,$2)",
+      "AuthenticateDataCommand": "select * from example_13.passkey_authenticate_data($1)",
+      "CompleteAddExistingUserCommand": "select * from example_13.passkey_complete_add_existing($1,$2,$3,$4,$5,$6,$7,$8)",
+      "CompleteRegistrationCommand": "select * from example_13.passkey_complete_registration($1,$2,$3,$4,$5,$6,$7,$8)",
+      "CompleteAuthenticateCommand": "select * from example_13.passkey_complete_authenticate($1,$2,$3,$4)"
+    }
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_13" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_13.passkey_auth",
+      // needed to map response claims to response body, for example, when login function returns "message" column with user info like this:
+      // jsonb_build_object('userId', u.user_id, 'username', u.username, 'email', u.email) as message
+      // this will be a string in the response body, and we need to map it to claims like this:
+      // user = JSON.parse(response.response);
+      // NOTE: this is only possible when using CookieAuth, because the response body is not accessible when using other auth methods
+      "BodyColumnName": "message",
+      "UseUserParameters": true,
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_username": "username",
+        "_email": "email"
+      }
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./13_passkey/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./13_passkey/src/{0}Api.ts"
+    }
+  }
+}

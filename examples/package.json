@@ -1,0 +1,14 @@
+{
+  "name": "examples",
+  "private": true,
+  "scripts": {
+    "db": "pgmigrations"
+  },
+  "devDependencies": {
+    "npgsqlrest": "^3.8.0",
+    "@vbilopav/pgmigrations": "^0.58.0"
+  },
+  "trustedDependencies": [
+    "npgsqlrest"
+  ]
+}

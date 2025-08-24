@@ -1,0 +1,427 @@
+---
+outline: [2, 3]
+title: "HTTP Client Options"
+titleTemplate: NpgsqlRest
+description: "Configure HTTP Types for calling external APIs from PostgreSQL functions. Make HTTP requests to external services directly from SQL with response handling."
+head:
+  - - meta
+    - name: keywords
+      content: npgsqlrest http client, postgresql http request, external api postgresql, sql http call, http types postgresql, call api from sql
+  - - meta
+    - property: og:title
+      content: "NpgsqlRest HTTP Client Options"
+  - - meta
+    - property: og:description
+      content: "Configure HTTP Types for calling external APIs directly from PostgreSQL functions."
+  - - meta
+    - property: og:type
+      content: article
+---
+
+# HTTP Client Options
+
+Configuration for HTTP Types - composite types that enable PostgreSQL functions to make HTTP requests to external APIs.
+
+## Overview
+
+```json
+{
+  "NpgsqlRest": {
+    "HttpClientOptions": {
+      "Enabled": false,
+      "ResponseStatusCodeField": "status_code",
+      "ResponseBodyField": "body",
+      "ResponseHeadersField": "headers",
+      "ResponseContentTypeField": "content_type",
+      "ResponseSuccessField": "success",
+      "ResponseErrorMessageField": "error_message"
+    }
+  }
+}
+```
+
+## Settings Reference
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `Enabled` | bool | `false` | Enable HTTP client functionality for annotated composite types. |
+| `ResponseStatusCodeField` | string | `"status_code"` | Field name for HTTP response status code. |
+| `ResponseBodyField` | string | `"body"` | Field name for HTTP response body content. |
+| `ResponseHeadersField` | string | `"headers"` | Field name for HTTP response headers (as JSON). |
+| `ResponseContentTypeField` | string | `"content_type"` | Field name for Content-Type header value. |
+| `ResponseSuccessField` | string | `"success"` | Field name for success flag (true for 2xx status codes). |
+| `ResponseErrorMessageField` | string | `"error_message"` | Field name for error message if request failed. |
+
+## How HTTP Types Work
+
+HTTP Types allow PostgreSQL functions to make HTTP requests to external APIs. When a function parameter uses a composite type with an HTTP definition comment, NpgsqlRest automatically:
+
+1. Parses the HTTP definition from the type comment
+2. Substitutes placeholders with function parameter values
+3. Executes the HTTP request
+4. Populates the type fields with response data
+5. Executes the PostgreSQL function with the populated parameter
+
+## Creating an HTTP Type
+
+### Step 1: Create a Composite Type
+
+Create a composite type with fields matching the response field names:
+
+```sql
+create type weather_api as (
+    body text,
+    status_code int,
+    headers json,
+    content_type text,
+    success boolean,
+    error_message text
+);
+```
+
+### Step 2: Add HTTP Definition Comment
+
+Add an HTTP definition as a comment on the type (RFC 7230 format):
+
+```sql
+comment on type weather_api is 'GET https://api.weather.com/v1/current?city={_city}
+Authorization: Bearer {_api_key}
+timeout 30s';
+```
+
+### Step 3: Use in a Function
+
+Create a function with the HTTP type as a parameter:
+
+```sql
+create function get_weather(
+  _city text,
+  _api_key text,
+  _req weather_api
+)
+returns json
+language plpgsql
+as $$
+begin
+    if (_req).success then
+        return (_req).body::json;
+    else
+        return json_build_object('error', (_req).error_message);
+    end if;
+end;
+$$;
+```
+
+## HTTP Definition Format
+
+The comment on the composite type follows a simplified HTTP message format similar to `.http` files:
+
+```
+METHOD URL [HTTP/version]
+Header-Name: Header-Value
+...
+
+[request body]
+```
+
+### Supported Methods
+
+- `GET`
+- `POST`
+- `PUT`
+- `PATCH`
+- `DELETE`
+
+### Example Definitions
+
+**Simple GET request:**
+
+```sql
+comment on type api_response is 'GET https://api.example.com/data';
+```
+
+**GET with headers:**
+
+```sql
+comment on type api_response is 'GET https://api.example.com/data
+Authorization: Bearer {_token}
+Accept: application/json';
+```
+
+**POST with body:**
+
+```sql
+comment on type api_response is 'POST https://api.example.com/users
+Content-Type: application/json
+
+{"name": "{_name}", "email": "{_email}"}';
+```
+
+## Timeout Directives
+
+Timeout can be specified before or after the request line using [interval format](../annotations/interval-format):
+
+```sql
+-- Before request line
+comment on type api_response is 'timeout 30
+GET https://api.example.com/data';
+
+-- After headers
+comment on type api_response is 'GET https://api.example.com/data
+Authorization: Bearer {_token}
+timeout 30s';
+```
+
+Common timeout formats:
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| Seconds (integer) | `timeout 30` | 30 seconds |
+| Seconds with suffix | `timeout 30s` | 30 seconds |
+| TimeSpan format | `timeout 00:00:30` | 30 seconds |
+| With @ prefix | `@timeout 2min` | 2 minutes |
+
+## Response Fields
+
+The composite type fields are automatically populated based on their names:
+
+| Field Name | Type | Description |
+|------------|------|-------------|
+| `body` | `text` | Response body content |
+| `status_code` | `int` or `text` | HTTP status code (e.g., 200, 404) |
+| `headers` | `json` | Response headers as JSON object |
+| `content_type` | `text` | Content-Type header value |
+| `success` | `boolean` | True for 2xx status codes |
+| `error_message` | `text` | Error message if request failed |
+
+You can customize field names via `HttpClientOptions` configuration if your type uses different names.
+
+## Placeholder Substitution
+
+URLs, headers, and request body can contain placeholders in the format `{parameter_name}`. These placeholders are automatically replaced with the values of other function parameters that share the same name.
+
+```sql
+-- Type with placeholders
+comment on type weather_api is 'GET https://api.weather.com/v1/current?city={_city}
+Authorization: Bearer {_api_key}
+timeout 30s';
+
+-- Function with matching parameter names
+create function get_weather(
+  _city text,        -- Value substitutes {_city} placeholder
+  _api_key text,     -- Value substitutes {_api_key} placeholder
+  _req weather_api   -- HTTP type parameter (receives response)
+)
+returns json
+...
+```
+
+When calling `GET /api/get-weather?_city=London&_api_key=secret123`, NpgsqlRest will:
+
+1. Substitute `{_city}` with `London` and `{_api_key}` with `secret123`
+2. Make the HTTP request to `https://api.weather.com/v1/current?city=London` with header `Authorization: Bearer secret123`
+3. Populate the `_req` parameter fields with the response data
+4. Execute the PostgreSQL function
+
+## Complete Example
+
+### Configuration
+
+```json
+{
+  "NpgsqlRest": {
+    "HttpClientOptions": {
+      "Enabled": true
+    }
+  }
+}
+```
+
+### SQL Setup
+
+```sql
+-- Create response type
+create type github_api as (
+    body text,
+    status_code int,
+    headers json,
+    content_type text,
+    success boolean,
+    error_message text
+);
+
+-- Define HTTP request
+comment on type github_api is 'GET https://api.github.com/users/{_username}
+Accept: application/vnd.github.v3+json
+User-Agent: NpgsqlRest
+timeout 10s';
+
+-- Create function
+create function get_github_user(
+    _username text,
+    _response github_api
+)
+returns json
+language plpgsql
+as $$
+begin
+    if (_response).success then
+        return (_response).body::json;
+    else
+        return json_build_object(
+            'error', true,
+            'status', (_response).status_code,
+            'message', (_response).error_message
+        );
+    end if;
+end;
+$$;
+
+comment on function get_github_user(text, github_api) is 'HTTP GET /github/user';
+```
+
+### Usage
+
+```
+GET /github/user/octocat
+```
+
+Returns the GitHub user data or an error response.
+
+## Resolved Parameter Expressions
+
+Sensitive values like API tokens or secrets are often needed in outgoing HTTP requests (e.g., in an `Authorization` header). Normally, these would have to be supplied as regular HTTP parameters — exposing them to the client. **Resolved parameter expressions** solve this by resolving values server-side via SQL expressions defined in comment annotations.
+
+Resolved values are used in HTTP Client Type placeholder substitution (headers, URL, body) and are also passed to the PostgreSQL function — but they never appear in or originate from the client HTTP request.
+
+### How It Works
+
+If a comment annotation on the **function** uses the `key = value` syntax and the key matches an actual function parameter name, the value is treated as a SQL expression to execute at runtime:
+
+```sql
+create type my_api_response as (body json, status_code int);
+comment on type my_api_response is 'GET https://api.example.com/data
+Authorization: Bearer {_token}';
+
+create function get_secure_data(
+    _user_id int,
+    _req my_api_response,
+    _token text default null
+)
+returns table (body json, status_code int)
+language plpgsql as $$
+begin
+    return query select (_req).body, (_req).status_code;
+end;
+$$;
+comment on function get_secure_data(int, my_api_response, text) is '
+_token = select api_token from user_tokens where user_id = {_user_id}
+';
+```
+
+The client calls `GET /api/get-secure-data/?user_id=42`. The server:
+
+1. Fills `_user_id` from the query string (value `42`).
+2. Executes the resolved expression: `select api_token from user_tokens where user_id = $1` (parameterized, with `$1 = 42`).
+3. Sets `_token` to the result (e.g., `"secret-abc"`).
+4. Substitutes `{_token}` in the outgoing HTTP request header: `Authorization: Bearer secret-abc`.
+5. Makes the HTTP call and returns the response.
+
+The token never leaves the server. The client never sees it.
+
+### Behavior
+
+- **Server-side only**: Resolved parameters cannot be overridden by client input. Even if the client sends `&token=hacked`, the DB-resolved value is used.
+- **NULL handling**: If the SQL expression returns no rows or NULL, the parameter is set to `DBNull.Value` (empty string in placeholder substitution).
+- **Name-based placeholders, parameterized execution**: Placeholders like `{_user_id}` reference other function parameters by name. Internally, placeholders are converted to positional `$N` parameters for safe execution (preventing SQL injection).
+- **Sequential execution**: When multiple parameters are resolved, expressions execute one-by-one on the same connection, in annotation order.
+- **Works with user_params**: Resolved expressions can reference parameters auto-filled from JWT claims via `user_params`, enabling fully zero-parameter authenticated calls.
+
+### Multiple Resolved Parameters
+
+Multiple parameters can each have their own resolved expression:
+
+```sql
+comment on function my_func(text, my_type, text, text) is '
+_token = select api_token from tokens where user_name = {_name}
+_api_key = select ''static-key-'' || api_token from tokens where user_name = {_name}
+';
+```
+
+### Resolved Parameters in URL, Headers, and Body
+
+Resolved values participate in all HTTP Client Type placeholder locations — URL path segments, headers, and request body templates:
+
+```sql
+-- URL: GET https://api.example.com/resource/{_secret_path}
+-- Header: Authorization: Bearer {_token}
+-- Body: {"token": "{_token}", "data": "{_payload}"}
+```
+
+## Retry Logic
+
+When using HTTP Client Types, outgoing HTTP requests to external APIs can fail transiently — rate limiting (429), temporary server errors (503), network timeouts. The `@retry_delay` directive adds configurable automatic retries with delays.
+
+### Syntax
+
+```sql
+-- Retry on any failure (non-2xx status, timeout, or network error):
+comment on type my_api_type is '@retry_delay 1s, 2s, 5s
+GET https://api.example.com/data';
+
+-- Retry only on specific HTTP status codes:
+comment on type my_api_type is '@retry_delay 1s, 2s, 5s on 429, 503
+GET https://api.example.com/data';
+
+-- Combined with timeout:
+comment on type my_api_type is 'timeout 10s
+@retry_delay 1s, 2s, 5s on 429, 503
+GET https://api.example.com/data';
+```
+
+The delay list defines both the **number of retries** and the **delay before each retry**. `1s, 2s, 5s` means 3 retries with 1-second, 2-second, and 5-second delays respectively. Delay values use the same format as `timeout` — `100ms`, `1s`, `5m`, `30`, `00:00:01`, etc.
+
+### Behavior
+
+- **Without `on` filter**: Retries on any non-success HTTP response, timeout, or network error.
+- **With `on` filter**: Retries only when the HTTP response status code matches one of the listed codes (e.g., `429, 503`). Timeouts and network errors always trigger retry regardless of the filter.
+- **Retry exhaustion**: If all retries fail, the last error is passed to the PostgreSQL function — the same as if retries were not configured.
+- **Unexpected exceptions**: Non-HTTP errors (e.g., invalid URL) are never retried.
+- **Parallel execution**: Each HTTP type in a function retries independently within its own parallel task.
+
+### Example
+
+```sql
+create type rate_limited_api as (body json, status_code int, error_message text);
+comment on type rate_limited_api is '@retry_delay 1s, 2s, 5s on 429, 503
+GET https://api.example.com/data
+Authorization: Bearer {_token}';
+
+create function get_rate_limited_data(
+    _token text,
+    _req rate_limited_api
+)
+returns table (body json, status_code int, error_message text)
+language plpgsql as $$
+begin
+    return query select (_req).body, (_req).status_code, (_req).error_message;
+end;
+$$;
+```
+
+If the external API returns 429 (rate limited), the request is automatically retried after 1s, then 2s, then 5s. If it returns 400 (bad request), no retry occurs and the error is returned immediately.
+
+## Related
+
+- [HTTP Type annotation](../annotations/http-type) - HTTP Type comment format reference
+- [Comment Annotations Guide](../guide/annotations) - How annotations work
+- [Configuration Guide](../guide/configuration) - How configuration works
+
+## Next Steps
+
+- [NpgsqlRest Options](./npgsqlrest) - Configure general NpgsqlRest settings
+- [Connection Settings](./connection) - Configure database connections
+
+## See Also
+
+- [HTTP_TYPE](/annotations/http-type) - HTTP Type comment format reference

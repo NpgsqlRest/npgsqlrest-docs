@@ -1,0 +1,92 @@
+@host=http://127.0.0.1:8080
+
+// function example_7.combined_upload(
+//     _meta json DEFAULT NULL::json
+// )
+// returns json
+//
+// comment on function example_7.combined_upload is 'HTTP POST
+// @authorize
+// @upload for excel
+// @param _meta is upload metadata
+// @all_sheets = true
+// @fallback_handler = csv
+// @row_command = select example_7.combined_upload_row($1,$2,$3,$4)';
+POST {{host}}/api/example-7/combined-upload?meta=%7B%7D
+
+###
+
+// function example_7.csv_upload(
+//     _meta json DEFAULT NULL::json
+// )
+// returns json
+//
+// comment on function example_7.csv_upload is 'HTTP POST
+// @authorize
+// @upload for csv
+// @param _meta is upload metadata
+// @delimiters = ,;
+// @row_command = select example_7.csv_upload_row($1,$2,$3,$4)';
+POST {{host}}/api/example-7/csv-upload?meta=%7B%7D
+
+###
+
+// function example_7.excel_upload(
+//     _meta json DEFAULT NULL::json
+// )
+// returns json
+//
+// comment on function example_7.excel_upload is 'HTTP POST
+// @authorize
+// @upload for excel
+// @param _meta is upload metadata
+// @all_sheets = true
+// @row_command = select example_7.excel_upload_row($1,$2,$3,$4)';
+POST {{host}}/api/example-7/excel-upload?meta=%7B%7D
+
+###
+
+// function example_7.get_upload_data(
+//     _type text,
+//     _user_id text DEFAULT NULL::text
+// )
+// returns setof text[]
+//
+// comment on function example_7.get_upload_data is 'HTTP GET
+// @authorize';
+GET {{host}}/api/example-7/get-upload-data?type=ABC&userId=XYZ
+
+###
+
+// function example_7.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text
+// )
+//
+// comment on function example_7.login is 'HTTP POST
+// @login
+// @anonymous';
+POST {{host}}/api/example-7/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_7.logout()
+// returns void
+//
+// comment on function example_7.logout is 'HTTP POST
+// @logout';
+POST {{host}}/api/example-7/logout
+
+###
+

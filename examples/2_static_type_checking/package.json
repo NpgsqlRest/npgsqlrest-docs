@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "bun run db:up && cd .. && bun npgsqlrest ./config.json ./2_static_type_checking/config.json",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./2_static_type_checking/sql_2",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./2_static_type_checking/sql_2"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "ApplicationName": "9_http_calls",
+
+  "StaticFiles": {
+    "RootPath": "./9_http_calls/public"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_9_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_9" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_9",
+      "UseUserParameters": true
+    },
+
+    "HttpClientOptions": {
+      "Enabled": true
+      // "ResponseStatusCodeField": "status_code",
+      // "ResponseBodyField": "body",
+      // "ResponseHeadersField": "headers",
+      // "ResponseContentTypeField": "content_type",
+      // "ResponseSuccessField": "success",
+      // "ResponseErrorMessageField": "error_message"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./9_http_calls/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./9_http_calls/src/{0}Api.ts"
+    }
+  }
+}

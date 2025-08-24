@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./7_csv_excel_uploads/config.json",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./7_csv_excel_uploads/sql_7",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./7_csv_excel_uploads/sql_7"
+  }
+}

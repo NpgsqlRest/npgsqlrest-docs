@@ -1,0 +1,10 @@
+@host=http://127.0.0.1:8080
+
+// function example_1.my_first_function()
+// returns setof text
+//
+// comment on function example_1.my_first_function is 'HTTP GET
+GET {{host}}/api/example-1/my-first-function
+
+###
+

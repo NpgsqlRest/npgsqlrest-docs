@@ -1,0 +1,69 @@
+{
+  "ApplicationName": "7_csv_excel_uploads",
+
+  "StaticFiles": {
+    "RootPath": "./7_csv_excel_uploads/public"
+  },
+
+  // Cookie authentication for simple login (bob and alice)
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_7_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_7" ],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_7"
+    },
+
+    // Enable file uploads for CSV and Excel
+    "UploadOptions": {
+      "Enabled": true,
+      "LogUploadEvent": true,
+      "LogUploadParameters": true,
+      // Default to CSV handler if no specific handler matches
+      // Default for this setting is "large_object" and 
+      // since that handler isnt enabled in this example, we will get a warning in the logs at startup.
+      "DefaultUploadHandler": "csv",
+      // "UseDefaultUploadMetadataParameter": true,
+      // "DefaultUploadMetadataParameterName": "_meta",
+
+      "UploadHandlers": {
+        "StopAfterFirstSuccess": false,
+        "BufferSize": 16384,
+
+        // Disable image handlers - not needed for CSV/Excel uploads
+        "LargeObjectEnabled": false,
+        "FileSystemEnabled": false,
+
+        // Enable CSV handler
+        "CsvUploadEnabled": true,
+        "CsvUploadKey": "csv",
+        "CsvUploadDelimiterChars": ",;",
+        "CsvUploadHasFieldsEnclosedInQuotes": true,
+        "CsvUploadSetWhiteSpaceToNull": true,
+
+        // Enable Excel handler
+        "ExcelUploadEnabled": true,
+        "ExcelUploadKey": "excel",
+        "ExcelAllSheets": true,
+        "ExcelDateFormat": "yyyy-MM-dd",
+        "ExcelTimeFormat": "HH:mm:ss",
+        "ExcelDateTimeFormat": "yyyy-MM-dd HH:mm:ss"
+      }
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./7_csv_excel_uploads/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./7_csv_excel_uploads/src/{0}Api.ts"
+    }
+  }
+}

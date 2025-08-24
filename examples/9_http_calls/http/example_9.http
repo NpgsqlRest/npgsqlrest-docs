@@ -1,0 +1,56 @@
+@host=http://127.0.0.1:8080
+
+// function example_9.get_financial_dashboard(
+//     _base_currency text,
+//     _target_currencies_csv text,
+//     _crypto_ids_csv text,
+//     _vs_currencies_csv text,
+//     _exchange_rate_response_body jsonb,
+//     _exchange_rate_response_status_code integer,
+//     _exchange_rate_response_success boolean,
+//     _exchange_rate_response_error_message text,
+//     _crypto_response_body jsonb,
+//     _crypto_response_status_code integer,
+//     _crypto_response_success boolean,
+//     _crypto_response_error_message text
+// )
+// returns record
+//
+// comment on function example_9.get_financial_dashboard is 'HTTP GET /financial-dashboard
+// authorize';
+GET {{host}}/financial-dashboard?baseCurrency=ABC&targetCurrenciesCsv=XYZ&cryptoIdsCsv=IJK&vsCurrenciesCsv=ABC&exchangeRateResponseBody=%7B%7D&exchangeRateResponseStatusCode=6&exchangeRateResponseSuccess=false&exchangeRateResponseErrorMessage=XYZ&cryptoResponseBody=%7B%7D&cryptoResponseStatusCode=10&cryptoResponseSuccess=false&cryptoResponseErrorMessage=IJK
+
+###
+
+// function example_9.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     user_name text
+// )
+//
+// comment on function example_9.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-9/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_9.logout()
+// returns void
+//
+// comment on function example_9.logout is 'HTTP POST
+// logout';
+POST {{host}}/api/example-9/logout
+
+###
+

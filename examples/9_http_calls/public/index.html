@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example 9: HTTP Calls</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .card {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        input[type="text"],
+        input[type="password"] {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-login { background: #2196F3; color: white; }
+        .btn-logout { background: #f44336; color: white; }
+        .btn-fetch { background: #4CAF50; color: white; }
+        .hidden { display: none; }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .credentials {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .dashboard-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Example 9: HTTP Calls</h1>
+    <p>This example demonstrates fetching data from external APIs using PostgreSQL HTTP Types.</p>
+
+    <div id="auth-status"></div>
+
+    <!-- Login Section -->
+    <div id="login-section" class="card">
+        <h2>Login</h2>
+        <div class="credentials">
+            <strong>alice</strong> / password123 | <strong>bob</strong> / password456
+        </div>
+        <input type="text" id="username" placeholder="Username" value="alice" />
+        <input type="password" id="password" placeholder="Password" value="password123" />
+        <button id="login-btn" class="btn-login">Login</button>
+    </div>
+
+    <!-- Dashboard Section (shown after login) -->
+    <div id="dashboard-section" class="card hidden">
+        <h2>Financial Dashboard</h2>
+        <p>Fetches fiat currency exchange rates and cryptocurrency prices from two external APIs, combines them in PostgreSQL, and returns a unified response.</p>
+
+        <div style="margin-bottom: 15px;">
+            <label for="base-currency">Base Currency (3-letter code)</label>
+            <input type="text" id="base-currency" value="USD" maxlength="3" style="width: 100px;" />
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="target-currencies">Target Currencies</label>
+            <div class="hint">Comma-separated currency codes</div>
+            <input type="text" id="target-currencies" value="EUR, GBP, JPY, CHF" />
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="crypto-ids">Cryptocurrencies</label>
+            <div class="hint">Comma-separated crypto IDs (e.g., bitcoin, ethereum, solana)</div>
+            <input type="text" id="crypto-ids" value="bitcoin, ethereum" />
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="vs-currencies">Price Currencies</label>
+            <div class="hint">Comma-separated currencies for crypto prices</div>
+            <input type="text" id="vs-currencies" value="usd, eur" />
+        </div>
+
+        <button id="fetch-dashboard-btn" class="btn-fetch">Fetch Dashboard</button>
+
+        <div class="dashboard-grid" style="margin-top: 20px;">
+            <div class="dashboard-card">
+                <h3>Fiat Exchange Rates</h3>
+                <div id="fiat-rates">
+                    <p style="color: #999;">Click "Fetch Dashboard" to load data</p>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Cryptocurrency Prices</h3>
+                <div id="crypto-prices">
+                    <p style="color: #999;">Click "Fetch Dashboard" to load data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        window.user = { userId: {user_id}, username: {user_name} };
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+@host=http://127.0.0.1:8080
+
+// function example_12.create_author(
+//     _author_author_id integer,
+//     _author_first_name text,
+//     _author_last_name text
+// )
+// returns record
+//
+// comment on function example_12.create_author is 'HTTP POST
+POST {{host}}/api/example-12/create-author
+content-type: application/json
+
+{
+    "authorAuthorId": 1,
+    "authorFirstName": "XYZ",
+    "authorLastName": "IJK"
+}
+
+###
+
+// function example_12.get_author(
+//     _author_id integer
+// )
+// returns record
+//
+// comment on function example_12.get_author is 'HTTP GET
+GET {{host}}/api/example-12/get-author?authorId=1
+
+###
+
+// function example_12.get_author_info(
+//     _author_id integer
+// )
+// returns record
+//
+// comment on function example_12.get_author_info is 'HTTP GET
+GET {{host}}/api/example-12/get-author-info?authorId=1
+
+###
+
+// function example_12.get_authors(
+//     _author_id integer
+// )
+// returns table(
+//     author_id integer,
+//     first_name text,
+//     last_name text
+// )
+//
+// comment on function example_12.get_authors is 'HTTP GET
+GET {{host}}/api/example-12/get-authors?authorId=1
+
+###
+
+// function example_12.get_authors(
+//     _author_author_id integer,
+//     _author_first_name text,
+//     _author_last_name text
+// )
+// returns table(
+//     author_id integer,
+//     first_name text,
+//     last_name text
+// )
+//
+// comment on function example_12.get_authors is 'HTTP GET
+GET {{host}}/api/example-12/get-authors?authorAuthorId=1&authorFirstName=XYZ&authorLastName=IJK
+
+###
+
+// function example_12.get_authors_and_books(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books example_12.books[]
+// )
+//
+// comment on function example_12.get_authors_and_books is 'HTTP GET
+// @nested';
+GET {{host}}/api/example-12/get-authors-and-books?authorId=1
+
+###
+
+// function example_12.get_authors_and_books_and_reviews(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books example_12.book_details[]
+// )
+//
+// comment on function example_12.get_authors_and_books_and_reviews is 'HTTP GET
+// @nested';
+GET {{host}}/api/example-12/get-authors-and-books-and-reviews?authorId=1
+
+###
+
+// function example_12.get_authors_with_details(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books integer
+// )
+//
+// comment on function example_12.get_authors_with_details is 'HTTP GET
+GET {{host}}/api/example-12/get-authors-with-details?authorId=1
+
+###
+
+// function example_12.get_authors_with_details_nested(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books integer
+// )
+//
+// comment on function example_12.get_authors_with_details_nested is 'HTTP GET
+// @nested';
+GET {{host}}/api/example-12/get-authors-with-details-nested?authorId=1
+
+###
+
+// function example_12.get_authors_with_details_type(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books_info integer,
+//     books_info integer,
+//     books_info numeric
+// )
+//
+// comment on function example_12.get_authors_with_details_type is 'HTTP GET
+GET {{host}}/api/example-12/get-authors-with-details-type?authorId=1
+
+###
+
+// function example_12.get_authors_with_details_type_nested(
+//     _author_id integer
+// )
+// returns table(
+//     author integer,
+//     author text,
+//     author text,
+//     books_info integer,
+//     books_info integer,
+//     books_info numeric
+// )
+//
+// comment on function example_12.get_authors_with_details_type_nested is 'HTTP GET
+// @nested';
+GET {{host}}/api/example-12/get-authors-with-details-type-nested?authorId=1
+
+###
+

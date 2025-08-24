@@ -1,0 +1,113 @@
+{
+  "ApplicationName": "4_passwords_tokens_roles",
+
+  "StaticFiles": {
+    // Root path to the static files for this example
+    "RootPath": "./4_passwords_tokens_roles/public"
+  },
+
+  // Data Protection configuration for encrypting cookies and bearer tokens
+  // see https://npgsqlrest.github.io/config/data-protection.html
+  "DataProtection": {
+    "Enabled": true,
+    "DefaultKeyLifetimeDays": 90,
+    "Storage": "Database",
+    "GetAllElementsCommand": "select example_4.get_data_protection_keys()",
+    "StoreElementCommand": "call example_4.store_data_protection_keys($1,$2)"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_4_auth",
+
+    // see https://npgsqlrest.github.io/config/auth.html#microsoft-bearer-token-authentication
+    "BearerTokenAuth": true,
+    "BearerTokenAuthScheme": "token",
+    "BearerTokenExpireHours": 1,
+    "BearerTokenRefreshPath": "/api/token/refresh",
+
+    // see https://npgsqlrest.github.io/config/auth.html#jwt-authentication
+    "JwtAuth": true,
+    "JwtAuthScheme": "jwt",
+    "JwtSecret": "your-secret-key-at-least-32-characters-long",
+    "JwtIssuer": "example_4",
+    "JwtAudience": "example_4",
+    "JwtExpireMinutes": 60,
+    "JwtRefreshExpireDays": 7,
+    "JwtValidateIssuer": true,
+    "JwtValidateAudience": true,
+    "JwtValidateLifetime": true,
+    "JwtValidateIssuerSigningKey": true,
+    "JwtClockSkew": "5 minutes",
+    "JwtRefreshPath": "/api/jwt/refresh",
+
+    // see https://npgsqlrest.github.io/config/external-auth.html
+    "External": {
+      "Enabled": true,
+      "SigninUrl": "/signin-{0}",
+      "LoginCommand": "select * from example_4.external_login($1,$2,$3,$4,$5)",
+      "Google": {
+        "Enabled": true,
+        // Navigate to Google Cloud Console to create OAuth 2.0 credentials and obtain ClientId and ClientSecret
+        // Set Authorized JavaScript origins to your local host address, e.g., http://127.0.0.1:8080
+        // Set Authorised redirect URIs to your local host signin callback, e.g., http://127.0.0.1:8080/signin-google
+        // Paste your ClientId and ClientSecret below
+        "ClientId": "{GOOGLE_CLIENT_ID}",
+        "ClientSecret": "{GOOGLE_CLIENT_SECRET}"
+      }
+    }
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": [ "example_4" ],
+    // We will require authorization for this example
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_4",
+
+      // These claim names are returned by the login function and will be interpreted by NpgsqlRest as default values for user id, name and role collection
+      // See https://npgsqlrest.github.io/config/authentication-options.html#default-claim-types
+      "DefaultUserIdClaimType": "user_id",
+      "DefaultNameClaimType": "username",
+      "DefaultRoleClaimType": "roles",
+
+      // Column for password hash verification. Used by the built-in login function.
+      "HashColumnName": "password_hash",
+
+      // callbacks for built-in password verification system see https://npgsqlrest.github.io/annotations/login.html#verification-callbacks
+      "PasswordVerificationFailedCommand": "call example_4.password_verification_failed($1, $2, $3)",
+      "PasswordVerificationSucceededCommand": "call example_4.password_verification_succeeded($1, $2, $3)",
+
+      //
+      // Map claims to context settings. Note, we could also use UseUserParameters this is just a demonstration of both approaches
+      // see https://npgsqlrest.github.io/config/authentication-options.html#user-context-settings
+      //
+      "UseUserContext": true,
+      "UseUserParameters": false,
+      
+      // "context key" : "claim name"
+      "ContextKeyClaimsMapping": {
+        "request.user_id": "user_id",
+        "request.username": "username",
+        "request.email": "email",
+        "request.roles": "roles"
+      }
+    },
+
+    "HttpFileOptions": {
+      // Pattern output the generated HTTP files {1} placeholder is schema name
+      "NamePattern": "./4_passwords_tokens_roles/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      // Output path for the generated client code file
+      "FilePath": "./4_passwords_tokens_roles/src/{0}Api.ts",
+      // Add optional parameter: parseRequest: (request: RequestInit) => RequestInit = request => request
+      // This parameter allows us to authorization headers or other customizations to each request
+      "IncludeParseRequestParam": true
+    }
+  }
+}

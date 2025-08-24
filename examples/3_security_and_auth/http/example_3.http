@@ -1,0 +1,53 @@
+@host=http://127.0.0.1:8080
+
+// function example_3.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text,
+//     email text
+// )
+//
+// comment on function example_3.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-3/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_3.logout()
+// returns text
+//
+// comment on function example_3.logout is 'HTTP POST
+// logout
+// authorize';
+POST {{host}}/api/example-3/logout
+
+###
+
+// function example_3.who_am_i(
+//     _user_id text DEFAULT NULL::text,
+//     _username text DEFAULT NULL::text,
+//     _email text DEFAULT NULL::text
+// )
+// returns table(
+//     user_id text,
+//     username text,
+//     email text
+// )
+//
+// comment on function example_3.who_am_i is 'HTTP GET
+// authorize';
+GET {{host}}/api/example-3/who-am-i?userId=ABC&username=XYZ&email=IJK
+
+###
+

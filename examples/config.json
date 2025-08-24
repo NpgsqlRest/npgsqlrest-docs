@@ -1,0 +1,74 @@
+//
+// Configuration reference: https://npgsqlrest.github.io/config/
+// Configuration guide: https://npgsqlrest.github.io/guide/configuration.html
+//
+// See https://npgsqlrest.github.io/config/latest.html for latest configuration options
+//
+{
+  // Top level settings: https://npgsqlrest.github.io/config/top-level.html
+  "StartupMessage": "NpgsqlRest v{version} - {application}, {environment} configuration, loaded in {time}, listening on http://127.0.0.1:8080",
+  "EnvironmentName": "Example",
+  "Urls": "http://127.0.0.1:8080",
+  
+  // Database connection strings and settings: https://npgsqlrest.github.io/config/connection.html
+  "ConnectionStrings": {
+    "Default": "Host={PGHOST};Port={PGPORT};Database={PGDATABASE};Username={PGUSER};Password={PGPASSWORD}"
+  },
+
+  "Config": {
+    "EnvFile": ".env"
+  },
+
+  // Logging configuration: https://npgsqlrest.github.io/config/logging.html
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRestClient": "Debug",
+      "NpgsqlRest": "Debug",
+      "System": "Warning",
+      "Microsoft": "Warning"
+    },
+    "ToConsole": true
+  },
+
+  // Static files configuration: https://npgsqlrest.github.io/config/static-files.html
+  "StaticFiles": {
+    "Enabled": true,
+    // The tags are in the format: {claimType} where claimType is the name of the claim that will be replaced with the value from the claims collection.
+    // Also, parsed files have cache disabled (see Headers), which we will need to run differnet examples.
+    // see https://npgsqlrest.github.io/config/static-files.html#content-parsing
+    "ParseContentOptions": {
+      "Enabled": true,
+      // list of file patterns to parse for claims replacement
+      // WARNING: parsed files have caching disabled by default. 
+      // This is suitable for examples and development, but not recommended for production use.
+      // In real world scenarios, consider limiting the parsed files to only those that require dynamic content (html or single dedicated file).
+      // see Headers configuration: https://npgsqlrest.github.io/config/static-files.html#default-headers
+      "FilePaths": [ "*.html" ],
+      // list of available claims that can be used in the static files
+      // when these claims are not present in the user's claims collection, they will be replaced with NULL value.
+      "AvailableClaims": ["user_id", "username", "email" ]
+    }
+  },
+
+  "NpgsqlRest": {
+    // NpgsqlRest options: https://npgsqlrest.github.io/config/npgsqlrest.html
+    "RequiresAuthorization": true,
+    "LogConnectionNoticeEvents": true,
+    "LogCommands": true,
+    "LogCommandParameters": true,
+
+    // HTTP file generation options: https://npgsqlrest.github.io/config/http-files.html
+    "HttpFileOptions": {
+      "Enabled": true
+    },
+
+    // Client code generation options: https://npgsqlrest.github.io/config/codegen.html
+    "ClientCodeGen": {
+      "Enabled": true,
+      "CustomHost": "",
+      "CreateSeparateTypeFile": false,
+      "UseRoutineNameInsteadOfEndpoint": true,
+      "IncludeSchemaInNames": false
+    }
+  }
+}

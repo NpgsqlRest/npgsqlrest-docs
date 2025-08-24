@@ -1,0 +1,159 @@
+@host=http://127.0.0.1:8080
+
+// function example_6.get_image(
+//     _oid bigint,
+//     _mime_type text
+// )
+// returns bytea
+//
+// comment on function example_6.get_image is 'HTTP GET
+// raw
+// tsclient = false
+// content_type: {_mime_type}';
+GET {{host}}/api/example-6/get-image?oid=1&mimeType=XYZ
+
+###
+
+// function example_6.get_my_uploads(
+//     _user_id integer DEFAULT NULL::integer
+// )
+// returns table(
+//     id integer,
+//     user_id integer,
+//     file_name text,
+//     content_type text,
+//     file_size bigint,
+//     oid bigint,
+//     file_path text,
+//     uploaded_at timestamp with time zone
+// )
+//
+// comment on function example_6.get_my_uploads is 'HTTP GET
+GET {{host}}/api/example-6/get-my-uploads?userId=1
+
+###
+
+// function example_6.get_my_uploads(
+//     _user_id text DEFAULT NULL::text
+// )
+// returns table(
+//     id integer,
+//     user_id integer,
+//     file_name text,
+//     content_type text,
+//     file_size bigint,
+//     oid bigint,
+//     file_path text,
+//     uploaded_at timestamp with time zone
+// )
+//
+// comment on function example_6.get_my_uploads is 'HTTP GET
+GET {{host}}/api/example-6/get-my-uploads?userId=ABC
+
+###
+
+// function example_6.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text
+// )
+//
+// comment on function example_6.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-6/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_6.logout()
+// returns void
+//
+// comment on function example_6.logout is 'HTTP POST
+// logout
+// authorize';
+POST {{host}}/api/example-6/logout
+
+###
+
+// function example_6.upload_to_combined(
+//     _user_id text DEFAULT NULL::text,
+//     _meta json DEFAULT NULL::json
+// )
+// returns table(
+//     success boolean,
+//     status text,
+//     file_name text,
+//     content_type text,
+//     file_size bigint,
+//     oid bigint,
+//     file_path text
+// )
+//
+// comment on function example_6.upload_to_combined is 'HTTP POST
+// upload for large_object, file_system
+// param _meta is upload metadata
+// check_image = true
+// path = ./6_image_uploads/public/uploads
+// unique_name = true
+// create_path = true';
+POST {{host}}/api/example-6/upload-to-combined?userId=ABC&meta=%7B%7D
+
+###
+
+// function example_6.upload_to_file_system(
+//     _user_id text DEFAULT NULL::text,
+//     _meta json DEFAULT NULL::json
+// )
+// returns table(
+//     success boolean,
+//     status text,
+//     file_name text,
+//     content_type text,
+//     file_size bigint,
+//     oid bigint,
+//     file_path text
+// )
+//
+// comment on function example_6.upload_to_file_system is 'HTTP POST
+// upload for file_system
+// param _meta is upload metadata
+// check_image = true
+// path = ./6_image_uploads/public/uploads
+// unique_name = true
+// create_path = true';
+POST {{host}}/api/example-6/upload-to-file-system?userId=ABC&meta=%7B%7D
+
+###
+
+// function example_6.upload_to_large_object(
+//     _user_id text DEFAULT NULL::text,
+//     _meta json DEFAULT NULL::json
+// )
+// returns table(
+//     success boolean,
+//     status text,
+//     file_name text,
+//     content_type text,
+//     file_size bigint,
+//     oid bigint,
+//     file_path text
+// )
+//
+// comment on function example_6.upload_to_large_object is 'HTTP POST
+// upload for large_object
+// param _meta is upload metadata
+// check_image = true';
+POST {{host}}/api/example-6/upload-to-large-object?userId=ABC&meta=%7B%7D
+
+###
+

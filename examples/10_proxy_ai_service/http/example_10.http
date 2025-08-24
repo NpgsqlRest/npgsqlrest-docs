@@ -1,0 +1,168 @@
+@host=http://127.0.0.1:8080
+
+// function example_10.ai_analyze(
+//     _text text,
+//     _max_length integer DEFAULT 150,
+//     _max_keywords integer DEFAULT 5,
+//     _proxy_status_code integer DEFAULT NULL::integer,
+//     _proxy_body text DEFAULT NULL::text,
+//     _proxy_success boolean DEFAULT NULL::boolean,
+//     _proxy_error_message text DEFAULT NULL::text
+// )
+// returns json
+//
+// comment on function example_10.ai_analyze is 'HTTP POST /ai/analyze
+// authorize
+// proxy POST';
+POST {{host}}/ai/analyze
+content-type: application/json
+
+{
+    "text": "ABC",
+    "maxLength": 2,
+    "maxKeywords": 3,
+    "proxyStatusCode": 4,
+    "proxyBody": "XYZ",
+    "proxySuccess": true,
+    "proxyErrorMessage": "ABC"
+}
+
+###
+
+// function example_10.ai_health()
+// returns void
+//
+// comment on function example_10.ai_health is 'HTTP GET /ai/health
+// proxy';
+GET {{host}}/ai/health
+
+###
+
+// function example_10.ai_sentiment(
+//     _text text,
+//     _proxy_status_code integer DEFAULT NULL::integer,
+//     _proxy_body text DEFAULT NULL::text,
+//     _proxy_success boolean DEFAULT NULL::boolean,
+//     _proxy_error_message text DEFAULT NULL::text
+// )
+// returns json
+//
+// comment on function example_10.ai_sentiment is 'HTTP POST /ai/sentiment
+// authorize
+// proxy POST';
+POST {{host}}/ai/sentiment
+content-type: application/json
+
+{
+    "text": "ABC",
+    "proxyStatusCode": 2,
+    "proxyBody": "IJK",
+    "proxySuccess": true,
+    "proxyErrorMessage": "XYZ"
+}
+
+###
+
+// function example_10.ai_summarize(
+//     _text text,
+//     _max_length integer DEFAULT 150,
+//     _proxy_status_code integer DEFAULT NULL::integer,
+//     _proxy_body text DEFAULT NULL::text,
+//     _proxy_success boolean DEFAULT NULL::boolean,
+//     _proxy_error_message text DEFAULT NULL::text
+// )
+// returns json
+//
+// comment on function example_10.ai_summarize is 'HTTP POST /ai/summarize
+// authorize
+// proxy POST';
+POST {{host}}/ai/summarize
+content-type: application/json
+
+{
+    "text": "ABC",
+    "maxLength": 2,
+    "proxyStatusCode": 3,
+    "proxyBody": "ABC",
+    "proxySuccess": false,
+    "proxyErrorMessage": "IJK"
+}
+
+###
+
+// function example_10.cache_clear()
+// returns json
+//
+// comment on function example_10.cache_clear is 'HTTP DELETE /cache/clear
+// authorize';
+DELETE {{host}}/cache/clear
+
+###
+
+// function example_10.cache_entries(
+//     _limit integer DEFAULT 10
+// )
+// returns table(
+//     id integer,
+//     text_preview text,
+//     has_summary boolean,
+//     sentiment text,
+//     keywords text[],
+//     accessed_count integer,
+//     created_at timestamp with time zone
+// )
+//
+// comment on function example_10.cache_entries is 'HTTP GET /cache/entries
+// authorize';
+GET {{host}}/cache/entries?limit=1
+
+###
+
+// function example_10.cache_stats()
+// returns table(
+//     total_cached bigint,
+//     total_cache_hits bigint,
+//     most_accessed_preview text,
+//     most_accessed_hits integer,
+//     oldest_entry timestamp with time zone,
+//     newest_entry timestamp with time zone
+// )
+//
+// comment on function example_10.cache_stats is 'HTTP GET /cache/stats
+// authorize';
+GET {{host}}/cache/stats
+
+###
+
+// function example_10.login(
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     user_name text
+// )
+//
+// comment on function example_10.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-10/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// function example_10.logout()
+// returns void
+//
+// comment on function example_10.logout is 'HTTP POST
+// logout';
+POST {{host}}/api/example-10/logout
+
+###
+

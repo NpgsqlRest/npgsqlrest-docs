@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example 10: Proxy AI Service</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #00d9ff;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card h2 {
+            color: #00d9ff;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .login-form, .auth-status {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input, textarea, select, button {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: linear-gradient(135deg, #00d9ff 0%, #0077ff 100%);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+        }
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .status.online { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .status.offline { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .status.checking { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .results {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .sentiment-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .sentiment-positive { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .sentiment-negative { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .sentiment-neutral { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .keyword-tag {
+            display: inline-block;
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+            font-size: 0.85rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .hidden { display: none !important; }
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .cache-indicator {
+            font-size: 0.8rem;
+            color: #ffc107;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Text Analysis Service</h1>
+        <p class="subtitle">Proxy Feature Demo - NpgsqlRest forwards requests to an upstream AI service</p>
+
+        <!-- Auth Card -->
+        <div class="card">
+            <h2>Authentication</h2>
+            <div id="login-section" class="login-form">
+                <select id="username">
+                    <option value="bob">bob</option>
+                    <option value="alice">alice</option>
+                </select>
+                <input type="password" id="password" placeholder="Password (bob123 or alice123)">
+                <button id="login-btn">Login</button>
+            </div>
+            <div id="auth-section" class="auth-status hidden">
+                <span>Logged in as: <strong id="current-user"></strong></span>
+                <button id="logout-btn" class="secondary">Logout</button>
+            </div>
+        </div>
+
+        <!-- AI Service Status -->
+        <div class="card">
+            <h2>AI Service Status (Passthrough Proxy)</h2>
+            <p style="color: #888; margin-bottom: 1rem; font-size: 0.9rem;">
+                This endpoint uses <strong>passthrough mode</strong> - no database connection is opened.
+                The response from the upstream AI service is returned directly.
+            </p>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span id="ai-status" class="status checking">Checking...</span>
+                <button id="check-health-btn" class="secondary">Check Health</button>
+            </div>
+            <div id="health-result" class="results hidden"></div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div id="analysis-section" class="card hidden">
+            <h2>Text Analysis (Transform Proxy)</h2>
+            <p style="color: #888; margin-bottom: 1rem; font-size: 0.9rem;">
+                These endpoints use <strong>transform mode</strong> - the upstream response is passed to
+                PostgreSQL for processing, caching, and enrichment.
+            </p>
+            <textarea id="text-input" placeholder="Enter text to analyze...">PostgreSQL is an excellent database system. It provides great performance and reliability. The community is amazing and very helpful. I love using it for all my projects. The documentation is comprehensive and well-written.</textarea>
+            <div class="actions">
+                <button id="summarize-btn">Summarize</button>
+                <button id="sentiment-btn">Analyze Sentiment</button>
+                <button id="analyze-btn">Full Analysis</button>
+            </div>
+            <div id="analysis-result" class="results hidden"></div>
+        </div>
+
+        <!-- Cache Stats -->
+        <div id="cache-section" class="card hidden">
+            <h2>Cache Statistics</h2>
+            <p style="color: #888; margin-bottom: 1rem; font-size: 0.9rem;">
+                Analysis results are cached in PostgreSQL. Repeated requests return cached data instantly.
+            </p>
+            <div id="cache-stats" class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-total">-</div>
+                    <div class="stat-label">Cached Items</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-hits">-</div>
+                    <div class="stat-label">Total Cache Hits</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-most">-</div>
+                    <div class="stat-label">Most Accessed</div>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="refresh-stats-btn" class="secondary">Refresh Stats</button>
+                <button id="clear-cache-btn" class="danger">Clear Cache</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.user = { userId: {user_id}, username: {user_name} };
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

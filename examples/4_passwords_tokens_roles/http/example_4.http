@@ -1,0 +1,67 @@
+@host=http://127.0.0.1:8080
+
+// function example_4.get_users()
+// returns table(
+//     users integer,
+//     users text,
+//     users text,
+//     users text[],
+//     users text,
+//     users timestamp with time zone,
+//     users text,
+//     is_this_me boolean
+// )
+//
+// comment on function example_4.get_users is 'HTTP GET
+// authorize admin';
+GET {{host}}/api/example-4/get-users
+
+###
+
+// function example_4.login(
+//     _scheme text,
+//     _username text,
+//     _password text
+// )
+// returns table(
+//     scheme text,
+//     user_id integer,
+//     username text,
+//     roles text[],
+//     email text,
+//     password_hash text
+// )
+//
+// comment on function example_4.login is 'HTTP POST
+// login
+// anonymous';
+POST {{host}}/api/example-4/login
+content-type: application/json
+
+{
+    "scheme": "ABC",
+    "username": "XYZ",
+    "password": "IJK"
+}
+
+###
+
+// function example_4.logout()
+// returns void
+//
+// comment on function example_4.logout is 'HTTP POST
+// logout
+// authorize';
+POST {{host}}/api/example-4/logout
+
+###
+
+// function example_4.who_am_i()
+// returns record
+//
+// comment on function example_4.who_am_i is 'HTTP GET
+// authorize';
+GET {{host}}/api/example-4/who-am-i
+
+###
+
