@@ -167,19 +167,22 @@ The `@nested` annotation specifically controls whether **single composite type c
 
 ## Global Configuration
 
-Instead of adding the annotation to each function, you can enable nested JSON globally via configuration:
+Instead of adding the annotation to each endpoint, you can enable nested JSON globally via configuration. Each endpoint source has its own independent setting:
 
 ```json
 {
   "NpgsqlRest": {
     "RoutineOptions": {
       "NestedJsonForCompositeTypes": true
+    },
+    "SqlFileSource": {
+      "NestedJsonForCompositeTypes": true
     }
   }
 }
 ```
 
-When enabled globally, all composite type columns will be serialized as nested JSON objects by default, without requiring the annotation.
+When enabled globally, all composite type columns from the respective endpoint source will be serialized as nested JSON objects by default, without requiring the annotation.
 
 ## Behavior
 
@@ -192,5 +195,6 @@ When enabled globally, all composite type columns will be serialized as nested J
 ## Related
 
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
-- [Routine Options](../config/routine-options) - Configuration options including `NestedJsonForCompositeTypes` and `ResolveNestedCompositeTypes`
+- [Routine Options](../config/routine-options) - `NestedJsonForCompositeTypes` and `ResolveNestedCompositeTypes` for functions/procedures
+- [SQL File Source](../config/sql-file-source) - `NestedJsonForCompositeTypes` for SQL file endpoints
 - [Custom Types and Multiset for Nested JSON](../blog/custom-types-multiset-rest-api) - In-depth blog post with real-world examples including multiset patterns

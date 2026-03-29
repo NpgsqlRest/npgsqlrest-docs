@@ -161,7 +161,11 @@ To enable globally:
 }
 ```
 
-For per-routine control, use the [`nested` annotation](../annotations/nested).
+For per-endpoint control, use the [`@nested` annotation](../annotations/nested).
+
+::: tip
+This setting applies to function/procedure endpoints. SQL file endpoints have their own independent `NestedJsonForCompositeTypes` setting in [SQL File Source configuration](./sql-file-source#nestedjsonforcompositetypes).
+:::
 
 ## Resolve Nested Composite Types
 

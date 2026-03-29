@@ -34,7 +34,8 @@ Configuration for generating REST API endpoints from `.sql` files.
       "CommentScope": "All",
       "ErrorMode": "Exit",
       "ResultPrefix": "result",
-      "UnnamedSingleColumnSet": true
+      "UnnamedSingleColumnSet": true,
+      "NestedJsonForCompositeTypes": false
     }
   }
 }
@@ -51,6 +52,7 @@ Configuration for generating REST API endpoints from `.sql` files.
 | `ErrorMode` | string | `"Exit"` | Behavior when a SQL file fails to parse or describe. |
 | `ResultPrefix` | string | `"result"` | Prefix for result keys in multi-command JSON responses. |
 | `UnnamedSingleColumnSet` | bool | `true` | Single-column queries return flat arrays instead of object arrays. |
+| `NestedJsonForCompositeTypes` | bool | `false` | When `true`, composite type columns are serialized as nested JSON objects. When `false` (default), composite fields are flattened inline. Can also be enabled per-endpoint with the [`@nested`](../annotations/nested) annotation. |
 
 ## Enabled
 
@@ -188,6 +190,56 @@ With `UnnamedSingleColumnSet: false`:
 ```
 
 This applies to both single-command endpoints and per-result in multi-command files.
+
+## NestedJsonForCompositeTypes
+
+Controls how composite type columns are serialized in SQL file endpoint responses.
+
+**Default (flat):** Composite fields are spliced inline into the JSON row:
+
+```sql
+-- sql/get_user_with_address.sql
+-- HTTP GET
+-- @param $1 user_id
+select id, address from users where id = $1;
+-- where address is: create type address_type as (street text, city text, zip text)
+```
+
+```json
+{"id": 1, "street": "123 Main St", "city": "New York", "zip": "10001"}
+```
+
+**With `NestedJsonForCompositeTypes: true` or `@nested` annotation:** Composite wrapped under column name:
+
+```json
+{"id": 1, "address": {"street": "123 Main St", "city": "New York", "zip": "10001"}}
+```
+
+Enable globally for all SQL file endpoints:
+
+```json
+"SqlFileSource": {
+  "Enabled": true,
+  "FilePattern": "sql/**/*.sql",
+  "NestedJsonForCompositeTypes": true
+}
+```
+
+Or per-endpoint with the [`@nested` annotation](../annotations/nested):
+
+```sql
+-- sql/get_user_with_address.sql
+-- HTTP GET
+-- @nested
+-- @param $1 user_id
+select id, address from users where id = $1;
+```
+
+NULL composites are serialized as `null` in nested mode, or as individual `null` fields in flat mode.
+
+::: tip
+This setting is also available in [Routine Options](./routine-options#nested-json-for-composite-types) for function/procedure endpoints. Each endpoint source has its own independent setting.
+:::
 
 ## Quick Start Example
 
