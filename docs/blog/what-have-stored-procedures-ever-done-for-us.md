@@ -436,8 +436,23 @@ Traditional REST API:
 
 **With NpgsqlRest:**
 
-1. Define functions in PostgreSQL
+1. Write SQL (as a function or a `.sql` file)
 2. Done.
+
+Starting with v3.12.0, you don't even need to create a database function for simpler endpoints. A [SQL file](/config/sql-file-source) with a comment annotation becomes a REST endpoint:
+
+```sql
+-- sql/get-latest-measurement.sql
+-- HTTP GET
+-- @param $1 device_id
+SELECT "timestamp", device_id, value
+FROM device_measurements
+WHERE device_id = $1
+ORDER BY "timestamp" DESC
+LIMIT 1;
+```
+
+That's it — `GET /api/get-latest-measurement?device_id=42` works immediately. No `CREATE FUNCTION`, no database deployment. For the evolution story told above, you would still want a proper function — the data contract that can be changed atomically without touching the application. But for straightforward queries, SQL files eliminate even the function boilerplate.
 
 ```sql
 -- This IS your API endpoint: POST /api/create-user
@@ -518,7 +533,8 @@ At the core sits PostgreSQL with its tables, schemas, types, and domains. The ne
 
 NpgsqlRest wraps this with:
 
-- **Automatic HTTP REST API** - Endpoints derived from function signatures
+- **Automatic HTTP REST API** - Endpoints derived from function signatures, SQL files, or table structure
+- **[SQL File Endpoints](/config/sql-file-source)** - Write a `.sql` file, get a REST endpoint — no functions needed for simple queries
 - **Auto-generated TypeScript/JavaScript** - Type-safe client code
 - **Auto-generated OpenAPI** - Documentation and tooling
 - **Auto-generated HTTP files** - For testing in VS Code/JetBrains
@@ -533,14 +549,14 @@ All of this from your PostgreSQL schema. No controllers, no services, no reposit
 
 When your API is defined as PostgreSQL functions, entire application layers disappear:
 
-| Traditional Layer | What It Does | With Functions |
+| Traditional Layer | What It Does | With NpgsqlRest |
 |-------------------|--------------|----------------|
-| Repository layer | Data access abstraction | **Eliminated** - functions ARE the abstraction |
-| Service layer | Business logic | **PostgreSQL functions** - logic lives in the database |
-| Controller/routes | HTTP handling | **Auto-generated** from function signatures |
-| DTOs/Models | Data transfer objects | **Eliminated** - function parameters define the contract |
-| TypeScript types | Frontend type safety | **Auto-generated** from function metadata |
-| OpenAPI docs | API documentation | **Auto-generated** from function signatures |
+| Repository layer | Data access abstraction | **Eliminated** - functions or SQL files ARE the abstraction |
+| Service layer | Business logic | **PostgreSQL functions** or **SQL files** - logic lives in SQL |
+| Controller/routes | HTTP handling | **Auto-generated** from functions, SQL files, or tables |
+| DTOs/Models | Data transfer objects | **Eliminated** - parameters define the contract |
+| TypeScript types | Frontend type safety | **Auto-generated** from function/SQL file metadata |
+| OpenAPI docs | API documentation | **Auto-generated** from signatures |
 | Validation logic | Input validation | **PostgreSQL** - type system enforces constraints |
 
 From our [benchmark comparison](/blog/postgresql-rest-api-benchmark-2026): **21 lines of configuration** vs. **140-350 lines** in traditional frameworks - for the same functionality.

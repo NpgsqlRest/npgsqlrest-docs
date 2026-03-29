@@ -70,6 +70,10 @@ PostgreSQL Function → NpgsqlRest → Generated TypeScript API Client → Your 
 
 Any change to the PostgreSQL function signature automatically regenerates the TypeScript interfaces. If your application code references a property that no longer exists, the TypeScript compiler fails the build.
 
+::: tip SQL Files Also Generate TypeScript
+Starting with v3.12.0, [SQL file endpoints](/config/sql-file-source) also generate TypeScript clients automatically. However, SQL files don't provide the same level of **database-enforced** type checking that functions do — there's no `returns table(...)` contract that PostgreSQL validates at creation time. For maximum type safety, PostgreSQL functions remain the strongest approach and are the focus of this post. SQL files are better suited for simpler queries where the convenience of skipping `CREATE FUNCTION` outweighs the stricter type checking.
+:::
+
 ## Project Structure
 
 > **Source Code**: The complete working example is available at [github.com/NpgsqlRest/npgsqlrest-docs/examples/2_static_type_checking](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking)
@@ -902,7 +906,7 @@ Compare this approach to traditional stacks:
 | Database schema | Database schema |
 | ORM models | — |
 | Repository layer | — |
-| Service layer | PostgreSQL functions |
+| Service layer | PostgreSQL functions (or [SQL files](/config/sql-file-source) for simpler queries) |
 | Controller layer | — |
 | API documentation | — |
 | TypeScript types (manual) | TypeScript types (generated) |

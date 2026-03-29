@@ -398,6 +398,16 @@ comment on function change_password(_old text, _new text) is
 
 The `@sensitive` annotation prevents parameter values from appearing in logs.
 
+### Nested JSON for Composite Types
+
+```sql
+comment on function get_user_with_address() is
+'HTTP GET
+@nested';
+```
+
+The `@nested` annotation serializes composite type columns as nested JSON objects instead of expanding their fields into separate columns. See the [NESTED annotation reference](../annotations/nested) for details.
+
 ### Rate Limiting
 
 ```sql

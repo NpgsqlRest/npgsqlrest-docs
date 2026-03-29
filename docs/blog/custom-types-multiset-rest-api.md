@@ -654,7 +654,13 @@ LINE 11: array_agg(
 
 This limitation can be worked around by using subqueries, temp tables or CTEs, but it gets complicated quickly. Example is in source code on GitHub (see link above).
 
-But even if we could do that, NpgsqlRest currently only supports one level of nesting per function. Sort of. Any additional levels of nesting is rendred as PostgreSQL tuple strings in JSON. For example a single object in JSON array looks like this:
+But even if we could do that, prior to NpgsqlRest 3.4.4, only one level of nesting was supported per function. Any additional levels of nesting were rendered as PostgreSQL tuple strings in JSON.
+
+::: tip Deep Nesting Support (v3.4.4+)
+Since NpgsqlRest 3.4.4, the [`ResolveNestedCompositeTypes`](/config/routine-options#resolve-nested-composite-types) option (enabled by default) resolves nested composite types to any depth, serializing inner composites as proper JSON objects/arrays instead of PostgreSQL tuple strings. The limitation below only applies when `ResolveNestedCompositeTypes` is set to `false`.
+:::
+
+For example, with `ResolveNestedCompositeTypes: false`, a single object in the JSON array would look like this:
 
 ```json
 [
@@ -688,11 +694,39 @@ But even if we could do that, NpgsqlRest currently only supports one level of ne
 ]
 ```
 
-As we can see, the `reviews` array contains PostgreSQL tuple strings instead of proper JSON objects. We could parse those strings on the client side, but it is not ideal, we need to know striucture of the type in advance and there is no type safety.
+With the default `ResolveNestedCompositeTypes: true`, the `reviews` array is properly serialized as JSON objects:
 
-::: tip Update: Deep Nesting Support Added in v3.4.4
-This limitation has been addressed in NpgsqlRest 3.4.4. The new [`ResolveNestedCompositeTypes`](/config/routine-options#resolve-nested-composite-types) option (enabled by default) resolves nested composite types to any depth, serializing inner composites as proper JSON objects/arrays instead of PostgreSQL tuple strings.
-:::
+```json
+[
+  {
+    "author": {
+      "authorId": 1,
+      "firstName": "George",
+      "lastName": "Orwell"
+    },
+    "books": [
+      {
+        "bookId": 1,
+        "title": "1984",
+        "reviews": [
+          {"reviewId": 1, "bookId": 1, "reviewerName": "Alice Johnson", "rating": 5, "reviewText": "A chilling and prophetic masterpiece.", "createdAt": "2026-01-16T08:45:55.560972"},
+          {"reviewId": 2, "bookId": 1, "reviewerName": "Bob Smith", "rating": 4, "reviewText": "Thought-provoking but bleak.", "createdAt": "2026-01-16T08:45:55.560972"},
+          {"reviewId": 3, "bookId": 1, "reviewerName": "Carol White", "rating": 5, "reviewText": "Essential reading for everyone.", "createdAt": "2026-01-16T08:45:55.560972"}
+        ]
+      },
+      {
+        "bookId": 2,
+        "title": "Animal Farm",
+        "reviews": [
+          {"reviewId": 4, "bookId": 2, "reviewerName": "David Brown", "rating": 5, "reviewText": "Brilliant political allegory.", "createdAt": "2026-01-16T08:45:55.560972"},
+          {"reviewId": 5, "bookId": 2, "reviewerName": "Eve Davis", "rating": 4, "reviewText": "Simple yet profound.", "createdAt": "2026-01-16T08:45:55.560972"}
+        ]
+      }
+    ]
+  },
+  ...
+]
+```
 
 2) Working memory pressure on the database server.
 

@@ -62,4 +62,22 @@ Now, if we all start doing software architecture like that, imagine how many tok
 
 ---
 
+Starting with NpgsqlRest 3.12.0, this simplification reached its logical conclusion with [SQL File Endpoints](/config/sql-file-source). You don't even need to store your SQL in the database as functions anymore. Write a `.sql` file, add a comment annotation, and it becomes a REST endpoint:
+
+```sql
+-- sql/get-users.sql
+-- HTTP GET
+-- @param $1 department
+SELECT id, name, email FROM users WHERE department = $1;
+```
+
+That's it. No `CREATE FUNCTION`, no database deployment step. Just a file on disk that becomes `GET /api/get-users?department=engineering`. TypeScript types are auto-generated. The SQL stays version-controlled in your repo.
+
+For complex business logic that needs to evolve independently from the application — like the [data contracts](/blog/what-have-stored-procedures-ever-done-for-us) story — PostgreSQL functions remain the right choice. But for straightforward queries, SQL files remove the last bit of ceremony between your intent and a working API endpoint.
+
+Three endpoint sources, one binary, zero boilerplate:
+- **SQL Files** — write a query, get an endpoint
+- **Functions** — formal data contracts with static type checking
+- **Tables** — automatic CRUD generation
+
 If you want to learn how to do this with PostgreSQL, check out the [Quick Start Guide](/guide/quick-start) or dive into the [Tutorials](/blog/).

@@ -62,6 +62,7 @@ NpgsqlRest HTTP middleware general configuration for endpoint generation and req
     "RoutineOptions": { ... },
     "AuthenticationOptions": { ... },
     "CrudSource": { ... },
+    "SqlFileSource": { ... },
     "UploadOptions": { ... },
     "ClientCodeGen": { ... },
     "HttpFileOptions": { ... },
@@ -75,6 +76,7 @@ See related configuration pages:
 - [Routine Options](./routine-options) for `RoutineOptions` configuration
 - [Authentication Options](./authentication-options) for `AuthenticationOptions` configuration
 - [CRUD Source](./crud) for `CrudSource` configuration
+- [SQL File Source](./sql-file-source) for `SqlFileSource` configuration
 - [Upload Options](./uploads) for `UploadOptions` configuration
 - [Code Generation](./codegen) for `ClientCodeGen` configuration
 - [HTTP Files](./http-files) for `HttpFileOptions` configuration

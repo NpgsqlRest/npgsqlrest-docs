@@ -642,7 +642,13 @@ Let's tally what NpgsqlRest generated automatically:
 
 ## Beyond Basic CRUD
 
-The CRUD auto-generation is just the starting point. You can combine it with:
+The CRUD auto-generation is just the starting point. NpgsqlRest supports three endpoint sources that you can combine freely:
+
+1. **Tables/Views (CRUD)** — what this post covers, auto-generated endpoints from table structure
+2. **SQL Files** — write a `.sql` file with a query and a comment annotation, get a REST endpoint. No `CREATE FUNCTION` needed. Great for custom queries, reports, and multi-command batch operations. See the [SQL File Source documentation](/config/sql-file-source)
+3. **Functions/Procedures** — full PostgreSQL functions for complex business logic with static type checking
+
+You can combine all three in the same project:
 
 ### Computed Columns
 
@@ -670,9 +676,39 @@ create policy contacts_user_policy on contacts
 
 Combined with NpgsqlRest's [user context injection](/annotations/user-context), each user only sees their own data.
 
+### SQL Files for Custom Queries
+
+When you need a query that doesn't map directly to CRUD operations, use a SQL file instead of creating a database function:
+
+```sql
+-- sql/search-contacts.sql
+-- HTTP GET
+-- @param $1 search_term
+-- @authorize
+SELECT id, name, email, phone
+FROM example_11.contacts
+WHERE name ILIKE '%' || $1 || '%'
+   OR email ILIKE '%' || $1 || '%'
+ORDER BY name;
+```
+
+This creates a `GET /api/search-contacts?search_term=alice` endpoint — no `CREATE FUNCTION`, no database deployment. Just a file on disk. Enable it in your config:
+
+```json
+{
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "sql/**/*.sql",
+      "CommentsMode": "OnlyWithHttpTag"
+    }
+  }
+}
+```
+
 ### Custom Functions for Complex Operations
 
-When CRUD isn't enough, add functions for complex logic:
+When CRUD isn't enough and SQL files aren't sufficient, add functions for complex logic:
 
 ```sql
 create function example_11.merge_contacts(
@@ -715,14 +751,22 @@ In [benchmarks](/blog/postgresql-rest-api-benchmark-2026), NpgsqlRest consistent
 - Data management interfaces
 - Any table-centric UI
 
+**Consider [SQL files](/config/sql-file-source) when:**
+
+- You need custom queries (joins, aggregates, CTEs) without creating database functions
+- You want a quick endpoint for a specific report or search
+- Multi-command batch operations (validate → mutate → return results in one request)
+- You prefer keeping SQL in version-controlled files rather than database objects
+
 **Consider custom functions when:**
 
 - Complex business logic spans multiple tables
 - You need computed fields not in the table
 - Operations require transactions with specific isolation
 - You want to hide the underlying schema
+- You need static type checking end-to-end
 
-The beauty is you can mix both approaches. Use CRUD for simple tables, custom functions for complex operations.
+The beauty is you can mix all three approaches. Use CRUD for simple tables, SQL files for custom queries, and functions for complex operations.
 
 ## Conclusion
 
