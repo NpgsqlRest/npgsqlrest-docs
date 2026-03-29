@@ -1,0 +1,41 @@
+{
+  "ApplicationName": "3_security_and_auth_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./3_security_and_auth_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_3_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_3",
+      "UseUserParameters": true,
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_username": "username",
+        "_email": "email"
+      }
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./3_security_and_auth_sql_file/sql-src/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./3_security_and_auth_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./3_security_and_auth_sql_file/src/{0}Api.ts"
+    }
+  }
+}

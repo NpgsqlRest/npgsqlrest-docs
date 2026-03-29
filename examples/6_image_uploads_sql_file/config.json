@@ -1,0 +1,61 @@
+{
+  "ApplicationName": "6_image_uploads_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./6_image_uploads_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_6_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_6",
+      "UseUserParameters": true
+    },
+
+    "UploadOptions": {
+      "Enabled": true,
+      "LogUploadEvent": true,
+      "LogUploadParameters": true,
+      "DefaultUploadHandler": "large_object",
+      "UseDefaultUploadMetadataParameter": true,
+      "DefaultUploadMetadataParameterName": "_meta",
+
+      "UploadHandlers": {
+        "StopAfterFirstSuccess": false,
+        "BufferSize": 16384,
+        "LargeObjectEnabled": true,
+        "LargeObjectKey": "large_object",
+        "LargeObjectCheckImage": true,
+        "FileSystemEnabled": true,
+        "FileSystemKey": "file_system",
+        "FileSystemPath": "./6_image_uploads_sql_file/uploads",
+        "FileSystemUseUniqueFileName": true,
+        "FileSystemCreatePathIfNotExists": true,
+        "FileSystemCheckImage": true,
+        "CsvUploadEnabled": false,
+        "ExcelUploadEnabled": false
+      }
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./6_image_uploads_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./6_image_uploads_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./6_image_uploads_sql_file/src/{0}Api.ts"
+    }
+  }
+}

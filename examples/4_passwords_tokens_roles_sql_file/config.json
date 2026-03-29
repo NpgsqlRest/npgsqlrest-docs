@@ -1,0 +1,57 @@
+{
+  "ApplicationName": "4_passwords_tokens_roles_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./4_passwords_tokens_roles_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_4_auth",
+
+    "DataProtectionGetCommand": "select * from example_4.get_data_protection_keys()",
+    "DataProtectionStoreCommand": "call example_4.store_data_protection_keys($1, $2)",
+
+    "BearerTokenAuth": true,
+    "JwtAuth": true,
+
+    "PasswordVerification": {
+      "Enabled": true,
+      "PasswordField": "password_hash",
+      "OnFailedCommand": "call example_4.password_verification_failed($user_name, $ip)",
+      "OnSucceededCommand": "call example_4.password_verification_succeeded($user_id, $ip)"
+    },
+
+    "ExternalAuth": {
+      "Enabled": true,
+      "LoginCommand": "select * from example_4.external_login($provider, $provider_key, $name, $email)",
+      "Google": {
+        "Enabled": true
+      }
+    }
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_4",
+      "UseUserContext": true
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./4_passwords_tokens_roles_sql_file/sql/api/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./4_passwords_tokens_roles_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./4_passwords_tokens_roles_sql_file/src/{0}Api.ts"
+    }
+  }
+}

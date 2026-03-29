@@ -42,6 +42,7 @@ Each annotation has its own page with:
 - [DISABLED](./disabled) - Disable endpoint for specific tags
 - [TAGS](./tags) - Filter annotations by tags
 - [HTTP CUSTOM TYPES](./http-type) - Define HTTP request on composite type for external API calls
+- [INTERNAL](./internal) - Mark endpoint as internal-only (accessible via proxy/HTTP client types, not public HTTP)
 
 ### Authorization
 
@@ -121,9 +122,15 @@ Each annotation has its own page with:
 
 ### Parameter Annotations
 
+- [PARAMETER_RENAME](./parameter-rename) - Rename and optionally retype parameters
 - [PARAMETER_HASH](./parameter-hash) - Hash one parameter using another
 - [ENCRYPT](./encrypt-decrypt) - Encrypt parameter values before sending to PostgreSQL
 - [DECRYPT](./encrypt-decrypt) - Decrypt result column values before returning to client
+
+### SQL File Annotations
+
+- [DEFINE_PARAM](./define-param) - Define virtual HTTP parameters not bound to SQL
+- [RESULT_NAME](./result-name) - Rename result keys in multi-command SQL file endpoints
 
 ### Custom
 

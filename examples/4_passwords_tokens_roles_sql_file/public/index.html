@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Tokens Auth, Built-In Passwords Verification and Role-based Access Control Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        input {
+            display: block;
+            margin: 8px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 4px 4px 4px 0;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multiple Tokens Auth, Built-In Passwords Verification, Role-based Access Control and External Login Example</h1>
+
+    <div id="auth-status"></div>
+
+    <div id="login-form">
+        <h2>Login</h2>
+        <p>
+            Try one of the following credentials:
+        </p>
+        <p>
+            Username <strong><code>alice</code></strong> (user) and password <strong><code>password123</code></strong>
+        </p>
+        <p>
+            Username <strong><code>bob</code></strong> (admin) and password <strong><code>password456</code></strong>
+        </p>
+        <p>
+            Username <strong><code>carol</code></strong> () and password <strong><code>password789</code></strong>
+        </p>
+        <input type="text" id="username" placeholder="Username" value="alice" />
+        <input type="password" id="password" placeholder="Password" value="password123" />
+        <div style="margin: 8px 0; display: flex; align-items: center; gap: 12px;">
+            <label><strong>Auth Scheme:</strong></label>
+            <label><input type="radio" name="scheme" value="cookies" checked /> Cookies</label>
+            <label><input type="radio" name="scheme" value="token" /> Bearer Token</label>
+            <label><input type="radio" name="scheme" value="jwt" /> JWT</label>
+        </div>
+        <button id="login-btn">Login</button>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ccc;">
+            <a href="/signin-google" style="display: inline-block; padding: 8px 16px; cursor: pointer; text-decoration: none; border: 1px solid #ccc; background: #f5f5f5; color: #333;">
+                Login with Google (Cookies)
+            </a>
+            <small style="display: block; margin-top: 8px; color: #666;">
+                Requires <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in environment configuration.
+            </small>
+        </div>
+    </div>
+    <hr />
+
+    <div id="actions">
+        <button id="whoami-btn">Who Am I?</button>
+        <button id="getusers-btn">Get Users (Admin)</button>
+        <button id="logout-btn">Logout</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        window.user = { userId: {user_id}, username: {username}, email: {email} };
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

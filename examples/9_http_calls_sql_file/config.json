@@ -1,0 +1,41 @@
+{
+  "ApplicationName": "9_http_calls_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./9_http_calls_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_9_auth"
+  },
+
+  "NpgsqlRest": {
+    "IncludeSchemas": ["example_9"],
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_9",
+      "UseUserParameters": true
+    },
+
+    "HttpClientOptions": {
+      "Enabled": true
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./9_http_calls_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./9_http_calls_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./9_http_calls_sql_file/src/{0}Api.ts"
+    }
+  }
+}

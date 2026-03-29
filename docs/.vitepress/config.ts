@@ -123,7 +123,8 @@ export default defineConfig({
           text: 'Changelog',
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.11.1 (Latest)', link: '/guide/changelog/v3.11.1' },
+            { text: 'v3.12.0 (Latest)', link: '/guide/changelog/v3.12.0' },
+            { text: 'v3.11.1', link: '/guide/changelog/v3.11.1' },
             { text: 'v3.11.0', link: '/guide/changelog/v3.11.0' },
             { text: 'v3.10.0', link: '/guide/changelog/v3.10.0' },
             { text: 'v3.9.0', link: '/guide/changelog/v3.9.0' },
@@ -184,6 +185,7 @@ export default defineConfig({
             { text: 'PATH', link: '/annotations/path' },
             { text: 'PROXY', link: '/annotations/proxy' },
             { text: 'PROXY_OUT', link: '/annotations/proxy-out' },
+            { text: 'INTERNAL', link: '/annotations/internal' },
             { text: 'ENABLED', link: '/annotations/enabled' },
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
@@ -256,7 +258,10 @@ export default defineConfig({
           items: [
             { text: 'USER_CONTEXT', link: '/annotations/user-context' },
             { text: 'USER_PARAMETERS', link: '/annotations/user-parameters' },
+            { text: 'PARAMETER_RENAME', link: '/annotations/parameter-rename' },
             { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
+            { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
+            { text: 'RESULT_NAME', link: '/annotations/result-name' },
             { text: 'CONNECTION', link: '/annotations/connection' },
             { text: 'SECURITY_SENSITIVE', link: '/annotations/security-sensitive' },
             { text: 'Custom Parameters', link: '/annotations/custom-parameters' }
@@ -294,6 +299,7 @@ export default defineConfig({
           text: 'Configuration - Features',
           items: [
             { text: 'CRUD Source', link: '/config/crud' },
+            { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
             { text: 'HTTP Files', link: '/config/http-files' },
@@ -350,8 +356,8 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.11.1 (Latest)', link: '/guide/changelog/v3.11.1' },
-            { text: 'v3.11.0', link: '/guide/changelog/v3.11.0' },
+            { text: 'v3.12.0 (Latest)', link: '/guide/changelog/v3.12.0' },
+            { text: 'v3.11.x', link: '/guide/changelog/v3.11.1' },
             { text: 'v3.10.0', link: '/guide/changelog/v3.10.0' },
             { text: 'v3.9.0', link: '/guide/changelog/v3.9.0' },
             { text: 'v3.8.0', link: '/guide/changelog/v3.8.0' },
@@ -383,6 +389,7 @@ export default defineConfig({
             { text: 'Overview', link: '/annotations/' },
             { text: 'HTTP', link: '/annotations/http' },
             { text: 'PATH', link: '/annotations/path' },
+            { text: 'INTERNAL', link: '/annotations/internal' },
             { text: 'ENABLED', link: '/annotations/enabled' },
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
@@ -513,6 +520,7 @@ export default defineConfig({
           text: 'Features',
           items: [
             { text: 'CRUD Source', link: '/config/crud' },
+            { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
             { text: 'HTTP Files', link: '/config/http-files' },

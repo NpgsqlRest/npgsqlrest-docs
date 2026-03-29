@@ -411,9 +411,57 @@ $$;
 
 If the external API returns 429 (rate limited), the request is automatically retried after 1s, then 2s, then 5s. If it returns 400 (bad request), no retry occurs and the error is returned immediately.
 
+## Self-Referencing Calls (Relative Paths)
+
+HTTP client type definitions support **relative paths** that call back to the same NpgsqlRest server instance instead of external URLs:
+
+```sql
+create type api_users as (body text);
+comment on type api_users is 'GET /api/users';
+
+create type api_orders as (body text);
+comment on type api_orders is 'GET /api/orders';
+```
+
+### Parallel Query Composition
+
+Combined with HTTP client types executing all requests in parallel (`Task.WhenAll`), this enables a single endpoint to fan out to multiple internal endpoints simultaneously:
+
+```sql
+create function get_dashboard(
+    _users api_users,
+    _orders api_orders
+) returns json language plpgsql as $$
+begin
+    return json_build_object('users', (_users).body::json, 'orders', (_orders).body::json);
+end;
+$$;
+-- One request → two parallel internal calls → combined response
+```
+
+### Zero HTTP Overhead
+
+Self-referencing calls bypass the HTTP stack entirely — the endpoint handler is invoked directly in-process via `InternalRequestHandler`. No TCP connection, no HTTP parsing, no serialization overhead. Performance is microseconds instead of milliseconds per internal call.
+
+Use cases:
+- Parallel data aggregation across multiple queries
+- Orchestrating multiple mutations in a single request
+- Composing responses from several independent data sources
+
+### Internal-Only Endpoints
+
+Combine with the [`@internal` annotation](../annotations/internal) to create endpoints accessible only via self-referencing calls but not exposed as public HTTP routes:
+
+```sql
+comment on function helper_data() is 'HTTP GET
+@internal';
+-- Direct HTTP call → 404. Internal call via HTTP client type → works.
+```
+
 ## Related
 
 - [HTTP Type annotation](../annotations/http-type) - HTTP Type comment format reference
+- [INTERNAL annotation](../annotations/internal) - Mark endpoints as internal-only
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

@@ -213,6 +213,33 @@ For upload endpoints with proxy, configure whether to process uploads locally or
 - **Timeout handling**: Configurable per-request timeout with proper 504 Gateway Timeout responses
 - **Header forwarding**: Configurable request/response header forwarding with exclusion lists
 
+## Self-Referencing Calls (Relative Paths)
+
+Proxy annotations support **relative paths** that call back to the same NpgsqlRest server instance:
+
+```sql
+comment on function my_aggregator() is 'HTTP GET
+proxy POST /api/data-source';
+```
+
+Self-referencing calls bypass the HTTP stack entirely — the endpoint handler is invoked directly in-process via `InternalRequestHandler`, with zero network overhead.
+
+### Internal-Only Endpoints
+
+Combine with the [`@internal` annotation](../annotations/internal) to create endpoints accessible only via proxy but not exposed as public HTTP routes:
+
+```sql
+-- Internal helper: not accessible from outside
+comment on function get_cached_rates() is 'HTTP GET
+@internal';
+
+-- Public endpoint that proxies the internal one
+comment on function convert_currency(numeric, text, text) is 'HTTP GET
+proxy GET /api/get-cached-rates';
+```
+
+Direct HTTP call to `/api/get-cached-rates` returns 404, but the proxy call works.
+
 ## Complete Example
 
 Production configuration with proxy enabled:

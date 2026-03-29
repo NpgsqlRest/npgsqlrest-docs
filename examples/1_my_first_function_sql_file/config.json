@@ -1,0 +1,28 @@
+{
+  "ApplicationName": "1_my_first_function_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./1_my_first_function_sql_file/public"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": false,
+
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./1_my_first_function_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./1_my_first_function_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./1_my_first_function_sql_file/src/{0}Api.ts"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "ApplicationName": "8_simple_chat_client_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./8_simple_chat_client_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_8_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_8",
+      "UseUserParameters": true
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./8_simple_chat_client_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./8_simple_chat_client_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./8_simple_chat_client_sql_file/src/{0}Api.ts",
+      "ExportEventSources": true
+    }
+  }
+}

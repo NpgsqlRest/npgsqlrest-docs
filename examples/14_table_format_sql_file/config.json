@@ -1,0 +1,47 @@
+{
+  "ApplicationName": "14_table_format_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./14_table_format_sql_file/public"
+  },
+
+  "Stats": {
+    "Enabled": true,
+    "OutputFormat": "html"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_14_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_14"
+    },
+
+    "TableFormatOptions": {
+      "Enabled": true,
+      "HtmlEnabled": true,
+      "ExcelEnabled": true,
+      "ExcelKey": "excel"
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./14_table_format_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./14_table_format_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./14_table_format_sql_file/src/{0}Api.ts"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/2_static_type_checking_sql_file/sql_2/get-posts.sql
+//
+//  HTTP GET
+GET {{host}}/api/get-posts
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/2_static_type_checking_sql_file/sql_2/get-users.sql
+//
+//  HTTP GET
+GET {{host}}/api/get-users
+
+###
+

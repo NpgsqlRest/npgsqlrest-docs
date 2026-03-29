@@ -1,0 +1,33 @@
+{
+  "ApplicationName": "5_csv_basic_auth_sql_file",
+
+  "Ssl": {
+    "Enabled": false
+  },
+
+  "StaticFiles": {
+    "RootPath": "./5_csv_basic_auth_sql_file/public"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_5",
+      "UseUserParameters": true
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./5_csv_basic_auth_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./5_csv_basic_auth_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./5_csv_basic_auth_sql_file/src/{0}Api.ts"
+    }
+  }
+}

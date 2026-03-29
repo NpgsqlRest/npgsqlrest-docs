@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./8_simple_chat_client_sql_file/config.json",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./8_simple_chat_client_sql_file/sql_8",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./8_simple_chat_client_sql_file/sql_8"
+  }
+}

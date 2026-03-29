@@ -1,0 +1,11 @@
+@host=http://127.0.0.1:8080
+
+// SQL: my-first-query
+//
+// comment on function public.my-first-query is ' HTTP GET
+//  @result1 first
+//  @result2 second';
+GET {{host}}/api/my-first-query
+
+###
+

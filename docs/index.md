@@ -2,7 +2,7 @@
 layout: home
 title: "NpgsqlRest - Automatic REST API for PostgreSQL"
 titleTemplate: false
-description: "Create high-performance REST APIs for PostgreSQL databases in minutes. Auto-generate endpoints from functions, tables, and views with built-in authentication, caching, and TypeScript code generation."
+description: "Create high-performance REST APIs for PostgreSQL databases in minutes. Auto-generate endpoints from SQL files, functions, tables, and views with built-in authentication, caching, and TypeScript code generation."
 head:
   - - meta
     - name: keywords
@@ -26,7 +26,7 @@ head:
 hero:
   name: NpgsqlRest
   text: Automatic PostgreSQL Web Server
-  tagline: Create professional, high-performance HTTP REST APIs for PostgreSQL databases in minutes and generate type-safe client code automatically.
+  tagline: Create professional, high-performance HTTP REST APIs for PostgreSQL databases in minutes. Write plain SQL files — get REST endpoints automatically.
   actions:
     - theme: brand
       text: Get Started
@@ -54,7 +54,7 @@ features:
 ---
 
 <div style="display: flex; flex-direction: column; align-items: center; margin: 2rem 0;">
-  <img src="/clean.png" alt="NpgsqlRest Architecture - PostgreSQL at the center with automatic REST API, TypeScript generation, authentication, caching, and more" style="max-width: min(520px, 100%);" />
+  <img src="/clean.png" alt="NpgsqlRest Architecture - PostgreSQL at the center with automatic REST API, TypeScript generation, authentication, caching, and more" style="max-width: min(400px, 100%);" />
   <p style="font-style: italic; color: var(--vp-c-text-2); margin-top: 0.75rem; font-size: 0.9rem; text-align: center;">
     Clean PostgreSQL Architecture - PostgreSQL First Architecture - PostgreSQL Driven Architecture
   </p>
@@ -62,16 +62,11 @@ features:
 
 <div style="max-width: 640px; margin: 1.5rem auto; padding: 0 1rem;">
   <ul style="color: var(--vp-c-text-2); padding-left: 1.5rem; margin: 0; list-style: none;">
-    <li>✓ <strong>Schema as contract</strong> — Tables, views, and functions become REST endpoints</li>
+    <li>✓ <strong>Schema as contract</strong> — SQL files, functions, tables, and views become REST endpoints</li>
     <li>✓ <strong>SQL comments as config</strong> — Routes, auth, caching declared where the logic lives</li>
     <li>✓ <strong>Types flow outward</strong> — PostgreSQL types generate TypeScript clients automatically</li>
     <li>✓ <strong>No middle tier</strong> — No ORM mismatch, no N+1 queries, no boilerplate</li>
   </ul>
-</div>
-
-<div style="text-align: center; margin: 3rem auto; max-width: 720px; padding: 2rem; background: var(--vp-c-bg-soft); border-radius: 12px; border: 1px solid var(--vp-c-divider);">
-  <h2 style="margin: 0 0 1.5rem 0; font-size: 1.4rem;">System Diagram</h2>
-  <img src="/system-diagram.png" alt="System Diagram" style="width: 100%; max-width: 600px; display: block; margin: 0 auto; border-radius: 8px;" />
 </div>
 
 <h2 id="annotations" tabindex="-1" style="text-align: center; margin-top: 2rem;">
@@ -80,27 +75,53 @@ features:
 </h2>
 
 <p style="text-align: center; color: var(--vp-c-text-2); margin-bottom: 1.5rem;">
-  Simple comment annotations turn PostgreSQL functions into fully-featured REST endpoints.
+  Simple comment annotations turn SQL files and PostgreSQL functions into fully-featured REST endpoints.
 </p>
+
+<h3 id="sql-file-example" tabindex="-1" style="text-align: center; margin-top: 1rem; margin-bottom: 0.5rem;">
+  SQL File
+</h3>
+
+<div class="annotation-showcase">
+
+```sql
+/*
+HTTP GET /users/
+@authorize admin, user
+@cached
+@cache_expires_in 30sec
+@timeout 5min
+@table_format = excel
+@excel_file_name = users.xlsx
+*/
+select id, name, email, role
+from users
+where $1 is null or department_id = $1;
+```
+
+</div>
+
+<h3 id="function-example" tabindex="-1" style="text-align: center; margin-top: 1.5rem; margin-bottom: 0.5rem;">
+  PostgreSQL Function
+</h3>
 
 <div class="annotation-showcase">
 
 ```sql
 create or replace function api.get_users(
-  _department_id int,
-  _format text
+  _department_id int
 )
 returns table (id int, name text, email text, role text)
 language sql
 begin atomic;
-select id, name, email, role 
-from users 
-where 
-  _department_id is null 
+select id, name, email, role
+from users
+where
+  _department_id is null
   or department_id = _department_id;
 end;
 
-comment on function api.get_users(int, text) is '
+comment on function api.get_users(int) is '
 HTTP GET /users/
 @authorize admin, user
 @cached
@@ -108,16 +129,14 @@ HTTP GET /users/
 @timeout 10sec
 @retry_strategy aggressive
 @rate_limiter_policy authenticated_limit
-@validate _format using json_or_excel
-@table_format = {_format}
 @tsclient_module = users
 ';
 ```
 
-<div style="text-align: center; margin: 1.5rem 0;">
-  <a href="/annotations/" style="color: var(--vp-c-brand-1); font-weight: 500;">View all annotations →</a>
 </div>
 
+<div style="text-align: center; margin: 1.5rem 0;">
+  <a href="/annotations/" style="color: var(--vp-c-brand-1); font-weight: 500;">View all annotations →</a>
 </div>
 
 <h2 id="blog" tabindex="-1" style="text-align: center; margin-top: 2rem;">

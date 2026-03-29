@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./1_my_first_function_sql_file/config.json"
+  }
+}

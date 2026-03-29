@@ -30,9 +30,39 @@ Before starting, ensure you have:
 - **PostgreSQL** database running (version 13 or later)
 - A database with connection credentials
 
-## Step 1: Create a Sample Function With HTTP Comment
+## Step 1: Create Your First Endpoint
 
-Create a sample function in your PostgreSQL database to expose as an HTTP endpoint and add the necessary comment:
+NpgsqlRest can create endpoints from plain SQL files or from PostgreSQL functions. Choose whichever approach suits your use case — both are fully supported.
+
+### Option A: SQL File
+
+SQL file endpoints are not enabled by default. First, enable them in your `appsettings.json` (or create one — see Step 4):
+
+```json
+{
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "sql/**/*.sql"
+    }
+  }
+}
+```
+
+Then create a `sql/` directory next to the NpgsqlRest executable and add a `.sql` file:
+
+```sql
+-- sql/hello.sql
+-- HTTP GET
+-- @allow_anonymous
+select 'Hello, World!' as message;
+```
+
+NpgsqlRest will create a `GET /api/hello` endpoint from this file automatically.
+
+### Option B: PostgreSQL Function
+
+Alternatively, create a function directly in your PostgreSQL database:
 
 ```sql
 create function my_first_function()
@@ -45,7 +75,7 @@ end;
 comment on function my_first_function() is 'HTTP GET';
 ```
 
-Note: by default, the endpoint will be created only if the function comment starts with the `HTTP` keyword. This behavior can be changed in the configuration.
+Note: by default, function endpoints are created only if the function comment contains the `HTTP` keyword. This behavior can be changed in the configuration.
 
 ## Step 2: Run NpgsqlRest 
 
@@ -95,7 +125,7 @@ Also, since we are in development mode, let's enable debug logging with `--log:m
 [12:49:29.937 DBG] ----> Logging enabled: Console (minimum level: Verbose) [NpgsqlRest]
 [12:49:29.937 DBG] Using default as main connection string: Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=******;Application Name=example;Enlist=False;No Reset On Close=True [NpgsqlRest]
 [12:49:29.937 DBG] Using connection retry options with strategy: RetrySequenceSeconds=1,3,6,12, ErrorCodes=08000,08003,08006,08001,08004,55P03,55006,53300,57P03,40001 [NpgsqlRest]
-[12:49:29.939 DBG] Using RoutineSource PostrgeSQL Source [NpgsqlRest]
+[12:49:29.939 DBG] Using EndpointSource PostgreSQL Source [NpgsqlRest]
 [12:49:29.939 DBG] Routine caching is disabled. [NpgsqlRest]
 [12:49:29.961 DBG] Using DataSource with schema 'public' for metadata queries. [NpgsqlRest]
 [12:49:29.998 DBG] Function public.my_first_function mapped to GET /api/my-first-function has set HTTP by the comment annotation to GET /api/my-first-function [NpgsqlRest]
@@ -121,23 +151,31 @@ Function worked as expected, it returns JSON array of strings, and we have our f
 
 ## Step 4: Create Configuration File
 
-In order to avoid passing command line arguments every time we start NpgsqlRest, let's create a defualt configuration file.
+In order to avoid passing command line arguments every time we start NpgsqlRest, let's create a default configuration file.
 
 Create an `appsettings.json` file in your working directory:
 
 ```json
 {
-    // Default connection string to the PostgreSQL database
-    "ConnectionStrings": {
-        "Default": "Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=postgres"
-    },
+  // Default connection string to the PostgreSQL database
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=postgres"
+  },
 
-    // Logging configuration, use "Debug" level for NpgsqlRest namespace
-    "Log": {
-        "MinimalLevels": {
-            "NpgsqlRest": "Debug"
-        }
+  // Logging configuration, use "Debug" level for NpgsqlRest namespace
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRest": "Debug"
     }
+  },
+
+  // Enable SQL file endpoints (scan sql/ directory recursively)
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "sql/**/*.sql"
+    }
+  }
 }
 ```
 
@@ -149,7 +187,7 @@ Now you can start NpgsqlRest without any command line arguments:
 [12:55:09.750 DBG] ----> Logging enabled: Console (minimum level: Verbose) [NpgsqlRest]
 [12:55:09.750 DBG] Using Default as main connection string: Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=******;Application Name=example;Enlist=False;No Reset On Close=True [NpgsqlRest]
 [12:55:09.750 DBG] Using connection retry options with strategy: RetrySequenceSeconds=1,3,6,12, ErrorCodes=08000,08003,08006,08001,08004,55P03,55006,53300,57P03,40001 [NpgsqlRest]
-[12:55:09.753 DBG] Using RoutineSource PostrgeSQL Source [NpgsqlRest]
+[12:55:09.753 DBG] Using EndpointSource PostgreSQL Source [NpgsqlRest]
 [12:55:09.753 DBG] Routine caching is disabled. [NpgsqlRest]
 [12:55:09.778 DBG] Using DataSource with schema 'public' for metadata queries. [NpgsqlRest]
 [12:55:09.817 DBG] Function public.my_first_function mapped to GET /api/my-first-function has set HTTP by the comment annotation to GET /api/my-first-function [NpgsqlRest]

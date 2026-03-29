@@ -364,6 +364,7 @@ PostgREST has **no file upload support**. Supabase requires a separate Storage s
 | Multiple rate limit algorithms | ✅ | ❌ | ❌ |
 | Connection pooling | ✅ | ✅ | ✅ |
 | Command retry with backoff | ✅ | ❌ | ❌ |
+| Connection retry with configurable delays | ✅ | ❌ | ❌ |
 | Multi-host failover | ✅ | ❌ | ✅ |
 | Request compression | ✅ | ✅ | ✅ |
 | Response compression (Gzip/Brotli) | ✅ | ✅ | ✅ |
@@ -372,6 +373,7 @@ NpgsqlRest includes **enterprise-grade performance features**:
 - Three caching modes: Memory, Redis, and Hybrid with stampede protection
 - Four rate limiting algorithms: Fixed window, sliding window, token bucket, concurrency
 - Automatic retry with exponential backoff for transient failures
+- Connection retry with configurable delay sequences and PostgreSQL error code matching (e.g., connection lost, too many connections, server starting up)
 - Multi-host failover with read replica support
 
 ### Real-Time Capabilities

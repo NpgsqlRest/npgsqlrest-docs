@@ -1,0 +1,35 @@
+{
+  "ApplicationName": "11_crud_auto_api_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./11_crud_auto_api_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_11_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_11"
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./11_crud_auto_api_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./11_crud_auto_api_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./11_crud_auto_api_sql_file/src/{0}Api.ts"
+    }
+  }
+}

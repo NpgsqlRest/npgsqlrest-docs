@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./4_passwords_tokens_roles_sql_file/config.json",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./4_passwords_tokens_roles_sql_file/sql/_4_private",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./4_passwords_tokens_roles_sql_file/sql/_4_private"
+  }
+}

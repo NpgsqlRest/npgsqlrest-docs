@@ -1,0 +1,25 @@
+{
+  "ApplicationName": "12_custom_types_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./12_custom_types_sql_file/public"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": false,
+    "QueryStringNullHandling": "EmptyString",
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./12_custom_types_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./12_custom_types_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./12_custom_types_sql_file/src/{0}Api.ts"
+    }
+  }
+}

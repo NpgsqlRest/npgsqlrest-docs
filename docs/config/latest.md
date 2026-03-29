@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.9.0.
+This is the latest default configuration reference for NpgsqlRest version 3.12.0.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.9.0):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.9.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.9.0/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.9.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.9.0/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 3.12.0):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.12.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.12.0/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.12.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.12.0/NpgsqlRestClient/appsettings.json)
 
-Replace `3.9.0` with your desired version number.
+Replace `3.12.0` with your desired version number.
 :::
 
 ```json
@@ -188,7 +188,7 @@ Replace `3.9.0` with your desired version number.
   // Data protection settings. Encryption/decryption settings for Auth Cookies, Antiforgery tokens and custom data protection needs.
   //
   "DataProtection": {
-    "Enabled": true,
+    "Enabled": false,
     //
     // Set to null to use the current "ApplicationName" value.
     // This value determines encryption type or class. Meaning, different application names will not be able to decrypt each other's data.
@@ -1043,7 +1043,8 @@ Replace `3.9.0` with your desired version number.
     //
     // List of static file patterns that will require authorization.
     // File paths are relative to the RootPath property and pattern matching is case-insensitive.
-    // Pattern can include wildcards or question marks. For example: *.html, /user/*, etc
+    // Pattern can include wildcards (* matches any chars, ** matches recursively including /, ? matches single char).
+    // For example: *.html, /user/*, /admin/**/*.html
     //
     "AuthorizePaths": [],
     "UnauthorizedRedirectPath": "/",
@@ -1071,7 +1072,8 @@ Replace `3.9.0` with your desired version number.
       //
       // List of static file patterns that will parse the content and replace the tags with the values from the claims collection.
       // File paths are relative to the RootPath property and pattern matching is case-insensitive.
-      // Pattern can include wildcards or question marks. For example: *.html, *.htm, *.txt, *.json, *.xml, *.css, *.js
+      // Pattern can include wildcards (* matches any chars, ** matches recursively including /, ? matches single char).
+      // For example: *.html, *.htm, *.txt, /pages/**/*.html
       // 
       "FilePaths": [ "*.html" ],
       //
@@ -1801,6 +1803,10 @@ Replace `3.9.0` with your desired version number.
     //
     "RoutineOptions": {
       //
+      // Set to false to disable the routine source (PostgreSQL functions and procedures). Default is true.
+      //
+      "Enabled": true,
+      //
       // Name separator for parameter names when using custom type parameters. 
       // Parameter names will be in the format: {ParameterName}{CustomTypeParameterSeparator}{CustomTypeFieldName}. When NULL, default underscore is used.
       // This is used when using custom types for parameters. For example: with "create type custom_type1 as (value text);" and parameter "_p custom_type1", this name will be merged into "_p_value"
@@ -2524,7 +2530,7 @@ Replace `3.9.0` with your desired version number.
       //
       // Enable or disable the creation of the endpoints for the PostgreSQL tables and views.
       //
-      "Enabled": true,
+      "Enabled": false,
       //
       // Filter schema names similar to this parameter or `null` to ignore this parameter.
       //
@@ -2591,6 +2597,51 @@ Replace `3.9.0` with your desired version number.
       "CrudTypes": [
         "All"
       ]
+    },
+
+    //
+    // SQL file source for generating REST API endpoints from .sql files.
+    // Each SQL file must contain exactly one statement.
+    //
+    "SqlFileSource": {
+      //
+      // Enable or disable SQL file source endpoints. Default is false.
+      //
+      "Enabled": false,
+      //
+      // Glob pattern for SQL files, e.g. "sql/**/*.sql", "queries/*.sql".
+      // Supports * (any chars), ** (recursive, any including /), ? (single char).
+      // Empty string disables the feature.
+      //
+      "FilePattern": "",
+      //
+      // How comment annotations are processed for SQL file endpoints.
+      // Possible values: Ignore, ParseAll, OnlyWithHttpTag.
+      // OnlyWithHttpTag requires an explicit HTTP annotation (e.g., "-- HTTP GET") in the file.
+      //
+      "CommentsMode": "OnlyWithHttpTag",
+      //
+      // Which comments in the SQL file to parse as annotations.
+      // Possible values: All (default), Header (only comments before the first statement).
+      //
+      "CommentScope": "All",
+      //
+      // Behavior when a SQL file fails to parse or describe.
+      // Possible values: Skip (default — log error, continue), Throw (halt startup).
+      //
+      "ErrorMode": "Exit",
+      //
+      // Prefix for result keys in multi-command JSON responses.
+      // Default keys are "result1", "result2", etc.
+      // Override per-result with @resultN annotation in the SQL file.
+      //
+      "ResultPrefix": "result",
+      //
+      // When true, queries returning a single column produce a flat JSON array of values
+      // (e.g., ["a", "b", "c"]) instead of an array of objects (e.g., [{"col": "a"}, {"col": "b"}]).
+      // This matches the behavior of PostgreSQL functions returning setof single values.
+      //
+      "UnnamedSingleColumnSet": true
     }
   }
 }

@@ -27,7 +27,7 @@ Data protection settings control encryption and decryption for authentication co
 ```json
 {
   "DataProtection": {
-    "Enabled": true,
+    "Enabled": false,
     "CustomApplicationName": null,
     "DefaultKeyLifetimeDays": 90,
     "Storage": "Default",
@@ -48,7 +48,7 @@ Data protection settings control encryption and decryption for authentication co
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `Enabled` | bool | `true` | Enable data protection. |
+| `Enabled` | bool | `false` | Enable data protection. Required when using Cookie Authentication, Antiforgery tokens, or `@encrypt`/`@decrypt` annotations. |
 | `CustomApplicationName` | string | `null` | Application name for encryption scope. Uses `ApplicationName` if null. Different names cannot decrypt each other's data. |
 | `DefaultKeyLifetimeDays` | int | `90` | Number of days before keys are rotated. |
 | `Storage` | string | `"Default"` | Key storage location: `"Default"`, `"FileSystem"`, or `"Database"`. |

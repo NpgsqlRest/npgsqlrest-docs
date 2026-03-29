@@ -28,7 +28,7 @@ Configuration for automatic CRUD endpoint generation from PostgreSQL tables and 
 {
   "NpgsqlRest": {
     "CrudSource": {
-      "Enabled": true,
+      "Enabled": false,
       "SchemaSimilarTo": null,
       "SchemaNotSimilarTo": null,
       "IncludeSchemas": null,
@@ -53,7 +53,7 @@ Configuration for automatic CRUD endpoint generation from PostgreSQL tables and 
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `Enabled` | bool | `true` | Enable CRUD endpoint generation for tables and views. |
+| `Enabled` | bool | `false` | Enable CRUD endpoint generation for tables and views. |
 | `CommentsMode` | string | `"OnlyWithHttpTag"` | How comment annotations affect endpoint creation. |
 
 ### Comments Mode

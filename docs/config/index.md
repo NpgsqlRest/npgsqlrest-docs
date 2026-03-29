@@ -25,7 +25,7 @@ Complete reference documentation for all NpgsqlRest configuration options.
 For an introduction to how configuration works (sources, precedence, environment variables, command-line arguments), see the [Configuration Guide](../guide/configuration).
 
 ::: tip Latest Default Configuration
-See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.8.0.
+See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.12.0.
 :::
 
 ## Reference Sections
@@ -57,6 +57,7 @@ See the [Latest Default Configuration](./latest) for a complete reference of all
 ### Features
 
 - [CRUD](./crud) - Automatic CRUD endpoint generation for tables
+- [SQL File Source](./sql-file-source) - REST API endpoints from SQL files
 - [Proxy](./proxy) - Reverse proxy support for forwarding requests to upstream services
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation
 - [HTTP Files](./http-files) - HTTP test file generation

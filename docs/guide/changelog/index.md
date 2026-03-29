@@ -6,7 +6,23 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 ---
 
-## Version 3.11 (Latest)
+## Version 3.12 (Latest)
+
+| Version | Date |
+|---------|------|
+| [v3.12.0](/guide/changelog/v3.12.0) | 2026-03-23 |
+
+- New endpoint source plugin: `NpgsqlRest.SqlFileSource` — generate REST API endpoints directly from `.sql` files
+- Multi-command SQL files with batched execution and named result sets
+- New `@param` / `@parameter` annotation for renaming and retyping parameters across all endpoint types
+- Glob pattern `**` recursive matching support
+- Interface refactoring: `IEndpointSource` / `IRoutineSource` split
+- TsClient: multi-command SQL file endpoint support
+- Composite type cache public API
+
+---
+
+## Version 3.11
 
 | Version | Date |
 |---------|------|

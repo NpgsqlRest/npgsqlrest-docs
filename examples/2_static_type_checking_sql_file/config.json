@@ -1,0 +1,29 @@
+{
+  "ApplicationName": "2_static_type_checking_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./2_static_type_checking_sql_file/public"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": false,
+    "QueryStringNullHandling": "EmptyString",
+
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./2_static_type_checking_sql_file/sql_2/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./2_static_type_checking_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./2_static_type_checking_sql_file/src/{0}Api.ts"
+    }
+  }
+}

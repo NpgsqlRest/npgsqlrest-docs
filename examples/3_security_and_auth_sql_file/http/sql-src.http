@@ -1,0 +1,40 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/who-am-i.sql
+//
+// HTTP GET
+// @authorize
+// @user_parameters
+// @param $1 _user_id default null
+// @param $2 _username default null
+// @param $3 _email default null
+GET {{host}}/api/who-am-i?_user_id=ABC&_username=XYZ&_email=IJK
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/login.sql
+//
+// HTTP POST
+// @login
+// @allow_anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+

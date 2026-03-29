@@ -28,6 +28,7 @@ Options for handling PostgreSQL routines (functions and procedures).
 {
   "NpgsqlRest": {
     "RoutineOptions": {
+      "Enabled": true,
       "CustomTypeParameterSeparator": null,
       "IncludeLanguages": null,
       "ExcludeLanguages": null,
@@ -42,6 +43,7 @@ Options for handling PostgreSQL routines (functions and procedures).
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
+| `Enabled` | bool | `true` | Enable endpoint creation from PostgreSQL functions and procedures. Set to `false` for SQL-files-only deployments. |
 | `CustomTypeParameterSeparator` | string | `null` | Separator for custom type parameter names. Uses underscore (`_`) if `null`. |
 | `IncludeLanguages` | array | `null` | List of routine language names to include. Includes all if `null`. Case-insensitive. |
 | `ExcludeLanguages` | array | `null` | List of routine language names to exclude. Excludes `C` and `INTERNAL` if `null`. Case-insensitive. |

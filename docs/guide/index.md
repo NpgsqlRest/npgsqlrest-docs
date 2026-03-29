@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "NpgsqlRest Overview"
 titleTemplate: NpgsqlRest
-description: "NpgsqlRest is a production-ready web server that automatically transforms PostgreSQL databases into REST APIs. Auto-generate endpoints from functions, tables, and views."
+description: "NpgsqlRest is a production-ready web server that automatically transforms PostgreSQL databases into REST APIs. Auto-generate endpoints from SQL files, functions, tables, and views."
 head:
   - - meta
     - name: keywords
@@ -22,10 +22,11 @@ head:
 
 NpgsqlRest is a **production-ready**, standalone **web server** that automatically transforms your PostgreSQL database into a REST API. It provides:
 
-- **Automatic HTTP REST endpoints** generated from your database metadata
+- **Automatic HTTP REST endpoints** from SQL files, functions, procedures, tables, and views
+- **SQL files as endpoints** — write plain `.sql` files containing PostgreSQL commands and get REST endpoints automatically
 - **Code generation** for JavaScript/TypeScript client libraries
 - **Code generation** for [HTTP files](https://www.google.com/search?q=http+files&oq=http+files&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOTIGCAEQRRg8MgYIAhBFGDzSAQgxNTI4ajBqMagCALACAA&sourceid=chrome&ie=UTF-8) for a simple way to quickly invoke and TEST your API.
-- **Declarative configuration** using PostgreSQL comments
+- **Declarative configuration** using SQL comments and annotations
 
 To get started, you need:
 - A **PostgreSQL database** for metadata and endpoint specifications
@@ -33,54 +34,71 @@ To get started, you need:
 
 ## Declarative Approach
 
-NpgsqlRest uses PostgreSQL's built-in comment system to configure API endpoints directly in your database. This declarative approach keeps your API configuration close to your data structure.
+NpgsqlRest uses SQL comment annotations to configure API endpoints declaratively. This approach keeps your API configuration close to your SQL logic.
 
-PostgreSQL allows you to attach descriptions to database objects using the `COMMENT` command:
+NpgsqlRest creates REST endpoints from two types of sources:
+
+### Plain SQL Script Files
+
+Place `.sql` files containing PostgreSQL commands in a directory, and NpgsqlRest creates REST endpoints automatically. Parameter types and return columns are inferred via PostgreSQL's wire protocol — no functions needed:
 
 ```sql
-comment on table users is 
-'Stores application user accounts';
-
-comment on function get_user_data(id int) is 
-'Gets application user account data';
+-- sql/get_users.sql
+-- HTTP GET
+-- @authorize admin
+-- @cached
+-- @param $1 department_id
+select id, name, email from users where department_id = $1;
 ```
 
-To expose these as HTTP endpoints, simply add the `HTTP` keyword:
+This creates a `GET /api/get-users?department_id=1` endpoint with authorization and caching.
+
+Multi-command SQL files execute multiple statements in a single database round-trip:
 
 ```sql
-comment on table users is 'HTTP';
-comment on function get_user_data(id int) is 'HTTP';
+-- sql/process_order.sql
+-- HTTP POST
+-- @result1 validate
+-- @result3 confirm
+-- @param $1 order_id
+select count(*) from orders where id = $1;
+update orders set status = 'processing' where id = $1;
+select id, status from orders where id = $1;
 ```
 
-This configuration automatically generates:
-- **REST endpoints** for CRUD operations on the `users` table
-- **HTTP test files** for quickly testing your API
-- **JavaScript/TypeScript client libraries** with type definitions ready for your frontend
+See the [SQL File Source configuration](/config/sql-file-source) for details.
 
+### PostgreSQL Routines (Functions and Procedures)
 
-The parser recognizes keywords at the start of lines, ignoring unrecognized text. This means you can combine human-readable documentation with API configuration:
+NpgsqlRest generates endpoints from PostgreSQL functions and procedures using the built-in `COMMENT` system:
 
 ```sql
-comment on table users is 'Stores application user accounts
-HTTP';
+create function get_user_data(id int)
+returns table (name text, email text)
+language sql
+begin atomic;
+select name, email from users where users.id = get_user_data.id;
+end;
 
-comment on function get_user_data(id int) is 'Gets application user account data
-HTTP';
-```
-
-For more control, you can specify detailed endpoint behavior:
-
-```sql
-comment on function get_user_data(id int) is 'Gets application user account data
+comment on function get_user_data(id int) is '
 HTTP GET /admin/get-user-data
-AUTHORIZE admin
+@authorize admin
 Cache-Control: public, max-age=31536000';
 ```
 
-This creates a GET endpoint at `/admin/get-user-data` that:
-- Requires admin authorization
-- Sets cache control headers for performance
-- Remains fully readable and maintainable
+This creates a GET endpoint at `/admin/get-user-data` that requires admin authorization and sets cache control headers.
+
+### Tables and Views (CRUD)
+
+NpgsqlRest can also auto-generate CRUD endpoints for PostgreSQL tables and views:
+
+```sql
+comment on table users is 'HTTP';
+```
+
+This automatically generates REST endpoints for SELECT, INSERT, UPDATE, and DELETE operations on the `users` table. See [CRUD Source configuration](/config/crud) for details.
+
+All three sources generate **HTTP test files** for testing your API and **JavaScript/TypeScript client libraries** with type definitions ready for your frontend.
 
 ## Technology & Distribution
 

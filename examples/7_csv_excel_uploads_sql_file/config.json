@@ -1,0 +1,60 @@
+{
+  "ApplicationName": "7_csv_excel_uploads_sql_file",
+
+  "StaticFiles": {
+    "RootPath": "./7_csv_excel_uploads_sql_file/public"
+  },
+
+  "Auth": {
+    "CookieAuth": true,
+    "CookieAuthScheme": "cookies",
+    "CookieValidDays": 1,
+    "CookieName": "example_7_auth"
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    "AuthenticationOptions": {
+      "DefaultAuthenticationType": "example_7"
+    },
+
+    "UploadOptions": {
+      "Enabled": true,
+      "LogUploadEvent": true,
+      "LogUploadParameters": true,
+      "DefaultUploadHandler": "csv",
+
+      "UploadHandlers": {
+        "StopAfterFirstSuccess": false,
+        "BufferSize": 16384,
+        "LargeObjectEnabled": false,
+        "FileSystemEnabled": false,
+        "CsvUploadEnabled": true,
+        "CsvUploadKey": "csv",
+        "CsvUploadDelimiterChars": ",;",
+        "CsvUploadHasFieldsEnclosedInQuotes": true,
+        "CsvUploadSetWhiteSpaceToNull": true,
+        "ExcelUploadEnabled": true,
+        "ExcelUploadKey": "excel",
+        "ExcelAllSheets": true,
+        "ExcelDateFormat": "yyyy-MM-dd",
+        "ExcelTimeFormat": "HH:mm:ss",
+        "ExcelDateTimeFormat": "yyyy-MM-dd HH:mm:ss"
+      }
+    },
+
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./7_csv_excel_uploads_sql_file/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./7_csv_excel_uploads_sql_file/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./7_csv_excel_uploads_sql_file/src/{0}Api.ts"
+    }
+  }
+}
