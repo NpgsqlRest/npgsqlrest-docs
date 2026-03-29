@@ -1,0 +1,48 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/who-am-i.sql
+//
+//  HTTP GET
+//  @authorize
+//  user claims are stored in current settings by npgsqlrest
+GET {{host}}/api/who-am-i
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/login.sql
+//
+// HTTP POST
+// @login
+// @allow_anonymous
+// @param $1 scheme text
+// @param $2 username text
+// @define_param password text
+//  configured schemes are 'cookies', 'token' and 'jwt' and any other scheme is rejected (404)
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "scheme": "ABC",
+    "username": "XYZ",
+    "password": "IJK"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/get-users.sql
+//
+//  HTTP GET
+//  @authorize admin
+GET {{host}}/api/get-users
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+

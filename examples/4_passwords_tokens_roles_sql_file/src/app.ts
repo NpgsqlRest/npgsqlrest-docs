@@ -1,4 +1,4 @@
-import { login, logout, whoAmI, getUsers } from "./example4Api.ts";
+import { login, logout, whoAmI, getUsers } from "./apiApi.ts";
 
 // DOM elements
 const usernameInput = document.getElementById("username") as HTMLInputElement;

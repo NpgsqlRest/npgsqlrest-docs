@@ -1,4 +1,4 @@
 -- HTTP POST
 -- @logout
 -- @authorize
-select null;
+select 'cookies'

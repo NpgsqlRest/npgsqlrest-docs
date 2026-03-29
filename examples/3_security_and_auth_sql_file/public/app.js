@@ -1,4 +1,4 @@
-// src/sqlSrcApi.ts
+// src/sql3Api.ts
 var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";

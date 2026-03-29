@@ -1,7 +1,7 @@
-// src/example4Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+// src/apiApi.ts
+var baseUrl = "";
 async function getUsers(parseRequest = (request) => request) {
-  const response = await fetch(baseUrl + "/api/example-4/get-users", parseRequest({
+  const response = await fetch(baseUrl + "/api/get-users", parseRequest({
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -14,7 +14,7 @@ async function getUsers(parseRequest = (request) => request) {
   };
 }
 async function login(request, parseRequest = (request2) => request2) {
-  const response = await fetch(baseUrl + "/api/example-4/login", parseRequest({
+  const response = await fetch(baseUrl + "/api/login", parseRequest({
     method: "POST",
     body: JSON.stringify(request)
   }));
@@ -25,7 +25,7 @@ async function login(request, parseRequest = (request2) => request2) {
   };
 }
 async function logout(parseRequest = (request) => request) {
-  const response = await fetch(baseUrl + "/api/example-4/logout", parseRequest({
+  const response = await fetch(baseUrl + "/api/logout", parseRequest({
     method: "POST"
   }));
   return {
@@ -34,7 +34,7 @@ async function logout(parseRequest = (request) => request) {
   };
 }
 async function whoAmI(parseRequest = (request) => request) {
-  const response = await fetch(baseUrl + "/api/example-4/who-am-i", parseRequest({
+  const response = await fetch(baseUrl + "/api/who-am-i", parseRequest({
     method: "GET",
     headers: {
       "Content-Type": "application/json"

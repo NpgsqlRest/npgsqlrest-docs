@@ -27,7 +27,7 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "./3_security_and_auth_sql_file/sql-src/**/*.sql"
+      "FilePattern": "./3_security_and_auth_sql_file/sql_3/**/*.sql"
     },
 
     "HttpFileOptions": {

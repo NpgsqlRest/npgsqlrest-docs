@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/who-am-i.sql
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql_3/who-am-i.sql
 //
 // HTTP GET
 // @authorize
@@ -12,7 +12,7 @@ GET {{host}}/api/who-am-i?_user_id=ABC&_username=XYZ&_email=IJK
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/login.sql
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql_3/login.sql
 //
 // HTTP POST
 // @login
@@ -29,7 +29,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql-src/logout.sql
+// SQL file: ../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql_3/logout.sql
 //
 //  HTTP POST
 //  @logout

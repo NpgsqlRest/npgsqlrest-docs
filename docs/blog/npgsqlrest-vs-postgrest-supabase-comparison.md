@@ -43,8 +43,8 @@ Choosing the right tool to expose your PostgreSQL database as a REST API can sig
 | Aspect | NpgsqlRest | PostgREST | Supabase |
 |--------|------------|-----------|----------|
 | **What It Is** | Complete platform in a single binary | Standalone executable/Docker | Backend-as-a-Service platform |
-| **Core Focus** | Function-first REST API + full-stack | Table/View-centric REST API | Complete backend platform |
-| **Best For** | Enterprise features, self-hosted full-stack | Flexible client-side queries | Managed hosting with dashboard |
+| **Core Focus** | SQL files + functions as REST endpoints | Table/View-centric REST API | Complete backend platform |
+| **Best For** | SQL-first APIs, self-hosted full-stack | Flexible client-side queries | Managed hosting with dashboard |
 | **Performance** | 4,588 req/s (100 VU) | 1,749 req/s (100 VU) | Uses PostgREST internally |
 | **Deployment** | Single binary (~30MB), any cloud | Single binary (~20MB) | Managed cloud or complex self-host |
 | **Self-Hosting** | Simple (single binary) | Simple | Complex (7+ services) |
@@ -66,9 +66,12 @@ flowchart LR
     end
 ```
 
-NpgsqlRest is a **complete platform in a single, self-contained executable** that connects directly to PostgreSQL and serves REST APIs. API configuration lives in PostgreSQL as **[comment annotations](/annotations/)** on your functions and tables—custom paths, caching, rate limiting, authentication, and more, all version-controlled with your schema.
+NpgsqlRest is a **complete platform in a single, self-contained executable** that connects directly to PostgreSQL and serves REST APIs. Starting with v3.12.0, the primary way to create endpoints is **SQL files** — write a `.sql` file, add a comment annotation, and it becomes a REST endpoint. No database deployment needed, no functions to create. For more complex logic, PostgreSQL functions and procedures are still fully supported and give you true static type checking end-to-end.
+
+API configuration lives in SQL comments — the same annotation syntax works in both SQL files and database object comments. Custom paths, caching, rate limiting, authentication, and more, all version-controlled with your code.
 
 Beyond API generation, NpgsqlRest includes everything needed for full-stack development:
+- **[SQL file endpoints](/config/sql-file-source)** — drop a `.sql` file in a folder, get a REST endpoint. Single or multi-command batch scripts with named result sets
 - **Static file serving** with authorization and [template parsing](/config/static-files) (replace placeholders with user claims)
 - **[TypeScript/JavaScript code generation](/config/codegen)** for type-safe frontend clients
 - **[HTTP test file generation](/config/http-files)** for API testing in VS Code and Visual Studio
@@ -195,6 +198,8 @@ All three frameworks handle PostgreSQL types correctly.
 
 | Feature | NpgsqlRest | PostgREST | Supabase |
 |---------|:----------:|:---------:|:--------:|
+| **SQL files as endpoints** | **✅** | **❌** | **❌** |
+| **Multi-command SQL batch execution** | **✅** | **❌** | **❌** |
 | Functions as endpoints | ✅ | ✅ | ✅ |
 | Tables as endpoints | ✅ | ✅ | ✅ |
 | Views as endpoints | ✅ | ✅ | ✅ |
@@ -204,6 +209,8 @@ All three frameworks handle PostgreSQL types correctly.
 | OpenAPI/Swagger generation | ✅ | ✅ | ✅ |
 | TypeScript client generation | ✅ | ❌ | ✅ |
 | HTTP test file generation | ✅ | ❌ | ❌ |
+
+**SQL file endpoints** are unique to NpgsqlRest. Neither PostgREST nor Supabase can turn a `.sql` file on disk into a REST endpoint. Both require you to create database objects first (functions, views, or tables) before anything is exposed as an API. With NpgsqlRest, you write a SQL file, annotate it with a comment, and the endpoint exists — no database deployment step, no `CREATE FUNCTION`. Multi-command files execute as a batch and return a JSON object with named result sets.
 
 ### Table and View Query Features
 
@@ -223,15 +230,14 @@ PostgREST and Supabase allow **clients to compose queries** against tables:
 - 28+ filtering operators including `like`, `ilike`, `in`, `fts` (full-text search), range operators
 - Aggregate functions with automatic GROUP BY
 
-NpgsqlRest takes a **function-first approach**: these same capabilities (joins, full-text search, aggregates, filtering, pagination) are achieved through PostgreSQL functions. This is a deliberate design choice, not a limitation:
+NpgsqlRest takes a different approach: write the SQL yourself — either as a SQL file or a PostgreSQL function — and expose exactly the query you intend. These same capabilities (joins, full-text search, aggregates, filtering, pagination) are all available because you're writing actual SQL:
 
-- **Full PostgreSQL power** - Every query feature PostgreSQL offers is available: CTEs, window functions, recursive queries, full-text search, JSON operators, lateral joins—anything you can write in SQL
-- **Optimized query plans** - PostgreSQL optimizes your functions; client-composed queries may produce suboptimal plans
-- **Security by design** - You expose exactly what you intend to expose, not an entire table with filters
-- **Predictable performance** - No surprise queries that scan entire tables or create N+1 problems
-- **Easier with modern AI tools** - Writing PostgreSQL functions is straightforward, especially with AI assistance
+- **Full PostgreSQL power** — CTEs, window functions, recursive queries, full-text search, JSON operators, lateral joins — anything you can write in SQL
+- **SQL files or functions** — SQL files for straightforward queries, functions when you need PL/pgSQL logic or static type checking
+- **Security by design** — you expose exactly what you intend, not an entire table with filters
+- **Predictable performance** — no surprise queries that scan entire tables or create N+1 problems
 
-> **Author's note:** NpgsqlRest was designed with functions and stored procedures as the primary abstraction layer. Table/view endpoints exist for convenience, but I personally consider exposing raw tables directly to be a questionable engineering practice. Functions provide a proper API contract, encapsulate business logic, and give you full control over what data is exposed and how. — *Vedran Bilopavlović, NpgsqlRest author*
+> **Author's note:** Table/view endpoints exist for convenience, but I consider exposing raw tables directly to be a questionable engineering practice. SQL files and functions provide a proper API contract, encapsulate business logic, and give you full control over what data is exposed and how. — *Vedran Bilopavlović, NpgsqlRest author*
 
 **Choose PostgREST** if you want clients to compose their own queries against tables.
 **Choose NpgsqlRest** if you prefer well-defined server-side endpoints with explicit query logic.
@@ -577,7 +583,7 @@ The fundamental difference is **where orchestration lives**:
 
 | Aspect | NpgsqlRest | PostgREST | Supabase |
 |--------|------------|-----------|----------|
-| **Where logic is defined** | SQL comments on PG functions/types | N/A | TypeScript in separate runtime |
+| **Where logic is defined** | SQL files + comments on PG functions/types | N/A | TypeScript in separate runtime |
 | **Additional services required** | None | Custom API server or middleware | Edge Runtime (Deno container) |
 | **Database involvement** | PG function controls the entire flow | PG has no role in external calls | PG can trigger webhooks only |
 | **Response control** | PG function decides what client receives | N/A | Edge Function decides |
@@ -769,16 +775,16 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 
 ### Choose NpgsqlRest When:
 
-- **You want a self-hosted platform** - API, static files, auth, and code generation in one binary
-- **Performance is critical** - 2.6x faster than PostgREST under load
-- **You want function-first API design** - Business logic in PostgreSQL functions, not client-side query composition
-- **You need enterprise features** - Caching (memory/Redis/hybrid), rate limiting, retry logic, multi-host failover
-- **You need file handling** - Upload images, process CSV/Excel, store as Large Objects
-- **You want real-time without WebSocket complexity** - SSE with PostgreSQL RAISE statements
-- **You prefer simple deployment** - Single binary on any cloud server (AWS, DigitalOcean, Hetzner, etc.)
-- **You use TypeScript** - Auto-generated type-safe clients with full type definitions
-- **You want custom URL paths** - `/users/{id}` instead of `/rpc/get_user?id=1`
-- **You need template-based pages** - Static HTML with claim substitution (user name, email, role)
+- **You want SQL files as endpoints** — write a `.sql` file, get a REST endpoint. No `CREATE FUNCTION` needed
+- **You want a self-hosted platform** — API, static files, auth, and code generation in one binary
+- **Performance is critical** — 2.6x faster than PostgREST under load
+- **You want server-side API design** — SQL files for simple queries, functions for complex logic
+- **You need enterprise features** — caching (memory/Redis/hybrid), rate limiting, retry logic, multi-host failover
+- **You need file handling** — upload images, process CSV/Excel, store as Large Objects
+- **You want real-time without WebSocket complexity** — SSE with PostgreSQL RAISE statements
+- **You prefer simple deployment** — single binary on any cloud server (AWS, DigitalOcean, Hetzner, etc.)
+- **You use TypeScript** — auto-generated type-safe clients with full type definitions
+- **You want custom URL paths** — `/users/{id}` instead of `/rpc/get_user?id=1`
 
 ### Choose PostgREST When:
 
@@ -802,10 +808,11 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 
 ### From PostgREST to NpgsqlRest
 
-1. **Functions work identically** - Both expose PostgreSQL functions as endpoints
-2. **Add SQL comments for configuration** - Replace external config with inline annotations
-3. **Replace RLS with function-level auth** - Or keep RLS and add `authorize` annotations
-4. **Gain features** - Caching, rate limiting, file uploads now available
+1. **Functions work identically** — both expose PostgreSQL functions as endpoints
+2. **Move simple RPC functions to SQL files** — many `/rpc/` endpoints can become plain `.sql` files, no `CREATE FUNCTION` needed
+3. **Add SQL comments for configuration** — replace external config with inline annotations
+4. **Replace RLS with function-level auth** — or keep RLS and add `authorize` annotations
+5. **Gain features** — caching, rate limiting, file uploads, multi-command batch scripts
 
 ### From Supabase to NpgsqlRest
 
@@ -813,13 +820,14 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 2. **Replace GoTrue with built-in auth** - JWT, encrypted Bearer/Cookie, OAuth, Passkey/WebAuthn
 3. **Replace Storage with NpgsqlRest uploads** - File system or Large Objects
 4. **Replace Realtime with SSE** - Simpler protocol, works through standard HTTP
-5. **Replace Edge Functions with proxy annotations** - Edge Functions that call external APIs become PostgreSQL functions with `@proxy`, `@proxy_out`, or [HTTP Client Type](/config/http-client) annotations. No separate Deno runtime needed — external service calls are declared in SQL and executed by NpgsqlRest
+5. **Replace Edge Functions with SQL files or proxy annotations** — simple Edge Functions become SQL files. Those that call external APIs become functions with `@proxy`, `@proxy_out`, or [HTTP Client Type](/config/http-client) annotations. No separate Deno runtime needed
 6. **Replace pg_net/http extensions with HTTP Client Types** - Typed, synchronous HTTP calls with retry logic and server-side secret resolution, integrated into the function execution pipeline
 
 ## Conclusion
 
 | Criteria | Winner |
 |----------|--------|
+| **SQL File Endpoints** | NpgsqlRest (only native support) |
 | **Raw Performance** | NpgsqlRest (2.6x faster) |
 | **Self-Hosted Platform** | NpgsqlRest (single binary) |
 | **Table/View Query Flexibility** | PostgREST / Supabase |
@@ -848,7 +856,7 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 
 Each tool excels in different areas:
 
-**NpgsqlRest** is a **complete self-hosted platform** ideal when you need **enterprise-grade features** (caching, rate limiting, multi-host failover, retry logic), **high performance**, custom URL paths, file handling, or prefer keeping your API logic in PostgreSQL functions. Beyond API generation, it serves static files with template parsing, generates TypeScript clients, and includes built-in authentication—all in a single ~30MB binary you can deploy on any cloud server. A unique strength is **per-endpoint configuration stored in the database**—each function can have its own caching, rate limiting, timeout, and authentication rules defined via SQL comments, version-controlled alongside your schema. Another unique strength is **declarative external service integration**: three proxy modes (passthrough, transform, proxy_out) let PostgreSQL functions orchestrate calls to external APIs, AI services, PDF renderers, and more — with zero additional infrastructure, no separate runtimes, and built-in caching and retry logic.
+**NpgsqlRest** is a **complete self-hosted platform** where the fastest way to create an endpoint is to write a SQL file. No `CREATE FUNCTION`, no database deployment — just a `.sql` file with a comment annotation. For complex logic, PostgreSQL functions are fully supported with true end-to-end type checking. Beyond API generation, NpgsqlRest serves static files with template parsing, generates TypeScript clients, and includes built-in authentication — all in a single ~30MB binary. Each endpoint can have its own caching, rate limiting, timeout, and auth rules defined via SQL comments, version-controlled alongside your code. Three proxy modes (passthrough, transform, proxy_out) let your SQL orchestrate calls to external APIs with zero additional infrastructure.
 
 **PostgREST** shines for **flexible client-side queries** with its GraphQL-like resource embedding, 28+ filtering operators, aggregates, and pagination. It's the right choice when your API consumers need to compose their own queries against tables and views. PostgREST is API-only—you'll need additional services for auth, static files, and file uploads.
 
