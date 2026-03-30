@@ -98,12 +98,42 @@ SELECT name FROM users WHERE id = $1;
 
 `GET /api/get-username?user_id=1` → `"Alice"`
 
+### Multi-Command Files (Positional)
+
+In multi-command SQL files, `@single` is positional — it applies to the next statement below it:
+
+```sql
+-- sql/process_user.sql
+-- HTTP POST
+-- @param $1 id
+-- @single
+SELECT id, name FROM users WHERE id = $1;
+UPDATE orders SET status = 'done' WHERE id = $1;
+-- @single
+SELECT id, status FROM orders WHERE id = $1;
+```
+
+Result:
+
+```json
+{
+  "result1": {"id": 1, "name": "alice"},
+  "result2": 1,
+  "result3": {"id": 1, "status": "done"}
+}
+```
+
+- First and third commands return objects (`@single` above them)
+- Second command returns rows-affected count (void, unaffected)
+- Empty per-command `@single` results render as `null`
+
 ## Behavior
 
 - Multi-column results return a JSON object (no array wrapping)
 - Single unnamed column results return a bare JSON value (e.g., `"hello"`, `42`)
 - If the query returns multiple rows, only the first row is returned
 - Works across all endpoint sources: functions, SQL files, and CRUD endpoints
+- In multi-command files, `@single` is positional — applies to the next statement below
 - TypeScript client generates `Promise<IResponse>` instead of `Promise<IResponse[]>`
 
 ### Empty Results
@@ -116,8 +146,11 @@ When the query returns no rows, the behavior depends on the [`@response_null`](.
 | `null_literal` | `null` |
 | `no_content` | HTTP 204 No Content |
 
+In multi-command files, empty per-command `@single` results render as `null`.
+
 ## Related
 
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
+- [RESULT_NAME](./result-name) - Rename result keys in multi-command files
 - [RESPONSE_NULL_HANDLING](./response-null-handling) - Control empty result behavior
 - [RAW](./raw) - Return raw text instead of JSON

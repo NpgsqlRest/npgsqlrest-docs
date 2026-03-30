@@ -30,6 +30,7 @@ This annotation only applies to multi-command SQL file endpoints (files with mul
 
 ## Syntax
 
+**Numbered (from anywhere in the file):**
 ```
 @resultN <name>
 @resultN is <name>
@@ -37,6 +38,14 @@ This annotation only applies to multi-command SQL file endpoints (files with mul
 
 - `N`: The 1-based index of the command in the file (e.g., `1` for the first statement, `2` for the second)
 - `name`: The custom key name for this result in the response JSON
+
+**Positional (applies to the next statement below):**
+```
+@result <name>
+@result is <name>
+```
+
+Place `@result name` between statements and it applies to the next command below.
 
 ## Examples
 
@@ -57,7 +66,7 @@ select id, status from orders where id = $1;
 
 ```json
 {
-  "validate": [{"count": 1}],
+  "validate": [1],
   "result2": 1,
   "confirm": [{"id": 42, "status": "processing"}]
 }
@@ -100,16 +109,58 @@ Response:
 }
 ```
 
+### Positional Syntax
+
+Place `@result name` between statements — it applies to the next command below:
+
+```sql
+-- sql/dashboard.sql
+-- HTTP GET
+-- @result users
+SELECT id, name FROM users;
+-- @result orders
+SELECT id, total FROM orders;
+```
+
+Response:
+
+```json
+{
+  "users": [{"id": 1, "name": "Alice"}, ...],
+  "orders": [{"id": 1, "total": 99.99}, ...]
+}
+```
+
+### Combining Both Forms
+
+Both numbered and positional forms can coexist in the same file:
+
+```sql
+-- @result3 summary
+-- @result users
+SELECT id, name FROM users;
+-- @result orders
+SELECT id, total FROM orders;
+SELECT count(*) FROM orders;
+```
+
+- Positional `@result` takes precedence when both target the same command
+- `result1` → `users` (positional), `result2` → `orders` (positional), `result3` → `summary` (numbered)
+
 ## Behavior
 
 - Default result keys use the format `result1`, `result2`, `result3`, etc.
 - The prefix (`result`) is configurable via the `ResultPrefix` setting in `SqlFileSource` configuration
 - Commands returning rows produce a JSON array of row objects
 - Void commands (INSERT/UPDATE/DELETE without RETURNING) produce an integer (rows affected count)
-- Only results with a matching `@resultN` annotation are renamed; others keep their default key
+- Only results with a matching annotation are renamed; others keep their default key
+- Positional `@result name` applies to the next statement below it
+- Numbered `@resultN name` targets a specific command by index from anywhere in the file
+- Positional takes precedence when both forms target the same command
 - This annotation has no effect on single-command SQL file endpoints (they return a plain array, not a keyed object)
 
 ## Related
 
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
+- [SINGLE](./single) - Return single records as objects in multi-command results
 - [PARAMETER_RENAME](./parameter-rename) - Rename endpoint parameters
