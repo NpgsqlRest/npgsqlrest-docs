@@ -1,5 +1,6 @@
 -- HTTP GET
 -- @authorize
+-- @single_result
 select
     -- user claims are stored in current settings by npgsqlrest
     nullif(pg_catalog.current_setting('request.user_id', true), '')::int as user_id,

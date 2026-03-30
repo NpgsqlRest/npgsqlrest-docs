@@ -4,6 +4,7 @@
 //
 //  HTTP GET
 //  @authorize
+//  @single_result
 //  user claims are stored in current settings by npgsqlrest
 GET {{host}}/api/who-am-i
 
