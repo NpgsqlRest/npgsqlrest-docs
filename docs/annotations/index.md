@@ -71,6 +71,7 @@ Each annotation has its own page with:
 - [Response Headers](./response-headers) - Set custom response headers
 - [RESPONSE_NULL_HANDLING](./response-null-handling) - NULL handling in responses
 - [NESTED](./nested) - Serialize composite type columns as nested JSON objects
+- [SINGLE](./single) - Return a single record as a JSON object instead of an array
 
 ### Table Format Output
 
