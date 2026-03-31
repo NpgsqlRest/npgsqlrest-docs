@@ -1,4 +1,4 @@
-import { myFirstQuery } from "./publicApi";
+import { myFirstQuery } from "./sqlApi";
 
 const app = document.getElementById("app")!;
 
@@ -18,7 +18,7 @@ async function render() {
         <table border="1" cellpadding="6" cellspacing="0">
             <thead><tr><th>Query</th><th>User</th><th>Timestamp</th></tr></thead>
             <tbody>
-                ${response.second.map(r => `<tr><td>${r.queryText}</td><td>${r.user}</td><td>${r.timestamp}</td></tr>`).join("")}
+                <tr><td>${response.second.queryText}</td><td>${response.second.user}</td><td>${response.second.timestamp}</td></tr>
             </tbody>
         </table>
     `;

@@ -15,7 +15,7 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "./2_static_type_checking_sql_file/sql_2/**/*.sql"
+      "FilePattern": "./2_static_type_checking_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {

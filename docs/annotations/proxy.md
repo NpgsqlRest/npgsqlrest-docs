@@ -123,6 +123,36 @@ Specify both HTTP method and host:
 comment on function my_func() is '@proxy POST https://api.example.com';
 ```
 
+### Self-Referencing Proxy (Relative Path)
+
+Use a relative path starting with `/` to proxy to another endpoint on the same server:
+
+```sql
+comment on function my_func() is '@proxy POST /api/data-source';
+```
+
+Self-referencing calls bypass the HTTP stack entirely — the target endpoint handler is invoked directly in-process with zero network overhead.
+
+## URL Resolution
+
+The proxy target URL is resolved with the following priority:
+
+1. **Annotation URL** — if the annotation includes a URL (absolute or relative), it is used. The global `ProxyOptions.Host` is **ignored**.
+2. **Global `ProxyOptions.Host`** — used only when the annotation has no URL (e.g., `@proxy` or `@proxy POST`).
+
+| Annotation | `ProxyOptions.Host` | Resolved Target | Self-Call? |
+|---|---|---|---|
+| `@proxy` | `https://api.example.com` | `https://api.example.com` + request path | No |
+| `@proxy POST` | `https://api.example.com` | `https://api.example.com` + request path | No |
+| `@proxy https://other.com` | `https://api.example.com` | `https://other.com` + request path | No |
+| `@proxy POST /api/data` | `https://api.example.com` | `/api/data` (internal) | **Yes** |
+| `@proxy /api/data` | `https://api.example.com` | `/api/data` (internal) | **Yes** |
+| `@proxy /api/data` | `null` | `/api/data` (internal) | **Yes** |
+
+::: warning Important
+A relative path in the annotation (starting with `/`) **always** creates a self-referencing internal call, regardless of the `ProxyOptions.Host` setting. The global host is never prepended to relative paths.
+:::
+
 ## Response Parameters
 
 When the PostgreSQL function has parameters matching these names (configurable in `ProxyOptions`), the proxy response data is passed to the function:

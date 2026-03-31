@@ -117,6 +117,25 @@ comment on function my_func() is 'HTTP GET
 @proxy_out POST https://render-service.internal/render';
 ```
 
+### Self-Referencing Proxy Out (Relative Path)
+
+Use a relative path starting with `/` to forward the function result to another endpoint on the same server:
+
+```sql
+comment on function my_func() is 'HTTP GET
+@proxy_out POST /api/internal-processor';
+```
+
+Self-referencing calls bypass the HTTP stack entirely — the target endpoint handler is invoked directly in-process with zero network overhead.
+
+## URL Resolution
+
+The target URL follows the same resolution rules as [`proxy`](./proxy#url-resolution):
+
+- **Annotation URL** takes priority — if provided (absolute or relative), the global `ProxyOptions.Host` is **ignored**.
+- **Global `ProxyOptions.Host`** is used only when the annotation has no URL.
+- A **relative path** (starting with `/`) always creates an internal self-call, regardless of `ProxyOptions.Host`.
+
 ## Query String Forwarding
 
 The original client query string is forwarded to the upstream service as-is. This allows the upstream to receive the same parameters that were used to invoke the function:

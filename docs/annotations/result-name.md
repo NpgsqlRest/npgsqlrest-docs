@@ -20,98 +20,31 @@ head:
 
 # RESULT_NAME
 
-::: info Also known as
-`resultN` where N is the result number (with or without `@` prefix)
-:::
-
 Rename the default result keys (`result1`, `result2`, ...) in multi-command SQL file endpoints. This makes the response JSON more descriptive and easier to consume.
 
 This annotation only applies to multi-command SQL file endpoints (files with multiple SQL statements separated by `;`).
 
+Available since version 3.12.0.
+
 ## Syntax
 
-**Numbered (from anywhere in the file):**
-```
-@resultN <name>
-@resultN is <name>
-```
-
-- `N`: The 1-based index of the command in the file (e.g., `1` for the first statement, `2` for the second)
-- `name`: The custom key name for this result in the response JSON
-
-**Positional (applies to the next statement below):**
 ```
 @result <name>
 @result is <name>
 ```
 
-Place `@result name` between statements and it applies to the next command below.
+The `@result` annotation is positional. It can be placed in two ways:
+
+1. **Before the statement** (on a separate line) — applies to the next statement below it
+2. **Inline after the semicolon** (on the same line) — applies to the statement on that line
+
+This same placement rule applies to all positional annotations: `@result`, [`@single`](./single), and [`@skip`](./skip).
 
 ## Examples
 
-### Basic Result Naming
+### Before Statement (Separate Line)
 
-```sql
--- sql/process_order.sql
--- HTTP POST
--- @result1 validate
--- @result3 confirm
--- @param $1 order_id
-select count(*) from orders where id = $1;
-update orders set status = 'processing' where id = $1;
-select id, status from orders where id = $1;
-```
-
-`POST /api/process-order` with `{"order_id": 42}` returns:
-
-```json
-{
-  "validate": [1],
-  "result2": 1,
-  "confirm": [{"id": 42, "status": "processing"}]
-}
-```
-
-- `result1` renamed to `validate`
-- `result2` keeps its default name (no annotation)
-- `result3` renamed to `confirm`
-
-### "is" Style Syntax
-
-The `is` keyword is optional:
-
-```sql
--- These are equivalent:
--- @result1 validate
--- @result1 is validate
-```
-
-### Naming All Results
-
-```sql
--- sql/dashboard_data.sql
--- HTTP GET
--- @result1 users
--- @result2 orders
--- @result3 revenue
-select count(*) from users;
-select count(*) from orders where created_at > now() - interval '24 hours';
-select sum(total) from orders where created_at > now() - interval '24 hours';
-```
-
-Response:
-
-```json
-{
-  "users": [{"count": 150}],
-  "orders": [{"count": 42}],
-  "revenue": [{"sum": 12500.00}]
-}
-```
-
-### Positional Syntax
-
-Place `@result name` between statements — it applies to the next command below:
+Place `@result name` on a line before the statement it applies to:
 
 ```sql
 -- sql/dashboard.sql
@@ -131,21 +64,80 @@ Response:
 }
 ```
 
-### Combining Both Forms
+### Inline After Semicolon (Same Line)
 
-Both numbered and positional forms can coexist in the same file:
+Place `@result name` after the semicolon on the same line as the statement:
 
 ```sql
--- @result3 summary
--- @result users
-SELECT id, name FROM users;
--- @result orders
-SELECT id, total FROM orders;
-SELECT count(*) FROM orders;
+-- sql/dashboard.sql
+-- HTTP GET
+SELECT id, name FROM users; -- @result users
+SELECT id, total FROM orders; -- @result orders
 ```
 
-- Positional `@result` takes precedence when both target the same command
-- `result1` → `users` (positional), `result2` → `orders` (positional), `result3` → `summary` (numbered)
+Produces the same result as the previous example.
+
+### "is" Style Syntax
+
+The `is` keyword is optional:
+
+```sql
+-- These are equivalent:
+-- @result validate
+-- @result is validate
+```
+
+### Naming Some Results
+
+Commands without a `@result` annotation keep their default auto-generated key:
+
+```sql
+-- sql/process_order.sql
+-- HTTP POST
+-- @param $1 order_id
+-- @result validate
+select count(*) from orders where id = $1;
+update orders set status = 'processing' where id = $1;
+-- @result confirm
+select id, status from orders where id = $1;
+```
+
+`POST /api/process-order` with `{"order_id": 42}` returns:
+
+```json
+{
+  "validate": [1],
+  "result2": 1,
+  "confirm": [{"id": 42, "status": "processing"}]
+}
+```
+
+- First command renamed to `validate`
+- Second command keeps its default name `result2` (no annotation)
+- Third command renamed to `confirm`
+
+### Naming All Results
+
+```sql
+-- sql/dashboard_data.sql
+-- HTTP GET
+-- @result users
+select count(*) from users;
+-- @result orders
+select count(*) from orders where created_at > now() - interval '24 hours';
+-- @result revenue
+select sum(total) from orders where created_at > now() - interval '24 hours';
+```
+
+Response:
+
+```json
+{
+  "users": [{"count": 150}],
+  "orders": [{"count": 42}],
+  "revenue": [{"sum": 12500.00}]
+}
+```
 
 ## Behavior
 
@@ -153,14 +145,13 @@ SELECT count(*) FROM orders;
 - The prefix (`result`) is configurable via the `ResultPrefix` setting in `SqlFileSource` configuration
 - Commands returning rows produce a JSON array of row objects
 - Void commands (INSERT/UPDATE/DELETE without RETURNING) produce an integer (rows affected count)
-- Only results with a matching annotation are renamed; others keep their default key
-- Positional `@result name` applies to the next statement below it
-- Numbered `@resultN name` targets a specific command by index from anywhere in the file
-- Positional takes precedence when both forms target the same command
+- Only results with a `@result` annotation are renamed; others keep their default key
 - This annotation has no effect on single-command SQL file endpoints (they return a plain array, not a keyed object)
 
 ## Related
 
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [SINGLE](./single) - Return single records as objects in multi-command results
+- [SKIP](./skip) - Exclude commands from multi-command results
 - [PARAMETER_RENAME](./parameter-rename) - Rename endpoint parameters
+- [SQL File Source](../config/sql-file-source) - SQL file source configuration

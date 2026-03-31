@@ -3,7 +3,7 @@
     "build": "bun build ./src/app.ts --outdir ./public",
     "watch": "bun build ./src/app.ts --outdir ./public --watch",
     "dev": "cd .. && bun npgsqlrest ./config.json ./3_security_and_auth_sql_file/config.json",
-    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./3_security_and_auth_sql_file/sql_3",
-    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./3_security_and_auth_sql_file/sql_3"
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./3_security_and_auth_sql_file/migrations_3",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./3_security_and_auth_sql_file/migrations_3"
   }
 }

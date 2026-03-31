@@ -58,11 +58,11 @@ Multi-command SQL files execute multiple statements in a single database round-t
 ```sql
 -- sql/process_order.sql
 -- HTTP POST
--- @result1 validate
--- @result3 confirm
 -- @param $1 order_id
+-- @result validate
 select count(*) from orders where id = $1;
 update orders set status = 'processing' where id = $1;
+-- @result confirm
 select id, status from orders where id = $1;
 ```
 

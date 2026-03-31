@@ -1,4 +1,4 @@
-import { login, logout, whoAmI } from "./sql3Api.ts";
+import { login, logout, whoAmI } from "./sqlApi.ts";
 
 const usernameInput = document.getElementById("username") as HTMLInputElement;
 const passwordInput = document.getElementById("password") as HTMLInputElement;

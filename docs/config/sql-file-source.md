@@ -168,7 +168,7 @@ Prefix for result keys in multi-command JSON responses. Default keys are `result
 "ResultPrefix": "query"
 ```
 
-Individual result keys can be overridden per-file using the [`@resultN` annotation](../annotations/result-name).
+Individual result keys can be overridden per-file using the [`@result` annotation](../annotations/result-name).
 
 ## UnnamedSingleColumnSet
 

@@ -1,4 +1,4 @@
-import { getPosts, getUsers } from "./sql2Api.ts";
+import { getPosts, getUsers } from "./sqlApi.ts";
 
 const app = document.getElementById("app")!;
 

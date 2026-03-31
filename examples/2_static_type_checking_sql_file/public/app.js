@@ -1,4 +1,4 @@
-// src/sql2Api.ts
+// src/sqlApi.ts
 var baseUrl = "";
 async function getPosts() {
   const response = await fetch(baseUrl + "/api/get-posts", {

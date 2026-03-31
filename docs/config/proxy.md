@@ -52,7 +52,7 @@ Reverse proxy configuration for NpgsqlRest endpoints. When an endpoint is marked
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `Enabled` | bool | `false` | Enable proxy functionality for endpoints with proxy annotations. |
-| `Host` | string | `null` | Default upstream host URL. Can be overridden per endpoint with annotation. |
+| `Host` | string | `null` | Default upstream host URL. Used when the annotation has no URL. Ignored when the annotation specifies its own URL (absolute or relative). See [URL Resolution](../annotations/proxy#url-resolution). |
 | `DefaultTimeout` | string | `"00:00:30"` | Default timeout for proxy requests. Format: `"HH:MM:SS"` or [interval format](../annotations/interval-format) (e.g., `"30s"`). |
 | `ForwardHeaders` | bool | `true` | Forward request headers to upstream service. |
 | `ExcludeHeaders` | array | `["Host", "Content-Length", "Transfer-Encoding"]` | Request headers to exclude from forwarding. |
@@ -215,7 +215,7 @@ For upload endpoints with proxy, configure whether to process uploads locally or
 
 ## Self-Referencing Calls (Relative Paths)
 
-Proxy annotations support **relative paths** that call back to the same NpgsqlRest server instance:
+When a proxy annotation includes a **relative path** (starting with `/`), the request is routed to another endpoint on the same NpgsqlRest server:
 
 ```sql
 comment on function my_aggregator() is 'HTTP GET
@@ -223,6 +223,10 @@ proxy POST /api/data-source';
 ```
 
 Self-referencing calls bypass the HTTP stack entirely — the endpoint handler is invoked directly in-process via `InternalRequestHandler`, with zero network overhead.
+
+::: info URL Resolution
+A relative path in the annotation **always** creates a self-referencing internal call. The global `ProxyOptions.Host` setting is **not** prepended to relative paths — it is only used when the annotation has no URL at all. See [URL Resolution](../annotations/proxy#url-resolution) for the full priority table.
+:::
 
 ### Internal-Only Endpoints
 

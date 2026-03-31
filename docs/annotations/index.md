@@ -132,6 +132,7 @@ Each annotation has its own page with:
 
 - [DEFINE_PARAM](./define-param) - Define virtual HTTP parameters not bound to SQL
 - [RESULT_NAME](./result-name) - Rename result keys in multi-command SQL file endpoints
+- [SKIP](./skip) - Exclude commands from multi-command results
 
 ### Custom
 

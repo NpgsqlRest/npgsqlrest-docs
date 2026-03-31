@@ -262,6 +262,7 @@ export default defineConfig({
             { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
             { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
             { text: 'RESULT_NAME', link: '/annotations/result-name' },
+            { text: 'SKIP', link: '/annotations/skip' },
             { text: 'CONNECTION', link: '/annotations/connection' },
             { text: 'SECURITY_SENSITIVE', link: '/annotations/security-sensitive' },
             { text: 'Custom Parameters', link: '/annotations/custom-parameters' }
