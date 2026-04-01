@@ -1,4 +1,4 @@
-import { login, logout, csvUpload, excelUpload, combinedUpload, getUploadData } from "./example7Api.ts";
+import { login, logout, csvUpload, excelUpload, combinedUpload, getUploadData } from "./sqlApi.ts";
 
 const usernameInput = document.getElementById("username") as HTMLInputElement;
 const passwordInput = document.getElementById("password") as HTMLInputElement;

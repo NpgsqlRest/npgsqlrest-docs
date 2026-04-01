@@ -1,7 +1,7 @@
 /*
 HTTP POST
 @login
-@allow_anonymous
+@anonymous
 @param $1 username
 @param $2 password
 */

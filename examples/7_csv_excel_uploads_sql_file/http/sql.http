@@ -1,0 +1,78 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/csv-upload.sql
+//
+// HTTP POST
+// @authorize
+// @upload for csv
+// @param $1 meta json = null
+// @param meta is upload metadata
+// @delimiters = ,;
+// @row_command = select example_7.csv_upload_row($1,$2,$3,$4)
+POST {{host}}/api/csv-upload?meta=%7B%7D
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/excel-upload.sql
+//
+// HTTP POST
+// @authorize
+// @upload for excel
+// @param $1 meta json = null
+// @param meta is upload metadata
+// @all_sheets = true
+// @row_command = select example_7.excel_upload_row($1,$2,$3,$4)
+POST {{host}}/api/excel-upload?meta=%7B%7D
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/login.sql
+//
+// HTTP POST
+// @login
+// @anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/combined-upload.sql
+//
+// HTTP POST
+// @authorize
+// @upload for excel
+// @param $1 meta json = null
+// @param meta is upload metadata
+// @all_sheets = true
+// @fallback_handler = csv
+// @row_command = select example_7.combined_upload_row($1,$2,$3,$4)
+POST {{host}}/api/combined-upload?meta=%7B%7D
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/get-upload-data.sql
+//
+// HTTP GET
+// @authorize
+// @param $1 type text
+// @param $2 _user_id text = null
+GET {{host}}/api/get-upload-data?type=ABC&_user_id=XYZ
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+

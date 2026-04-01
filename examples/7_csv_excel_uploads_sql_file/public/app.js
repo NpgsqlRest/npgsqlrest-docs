@@ -1,5 +1,5 @@
-// src/example7Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+// src/sqlApi.ts
+var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";
   if (Array.isArray(value)) {
@@ -36,7 +36,7 @@ async function combinedUpload(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-7/combined-upload" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/combined-upload" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -74,7 +74,7 @@ async function csvUpload(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-7/csv-upload" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/csv-upload" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -112,7 +112,7 @@ async function excelUpload(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-7/excel-upload" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/excel-upload" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -122,7 +122,7 @@ async function excelUpload(files, request, progress) {
   });
 }
 async function getUploadData(request) {
-  const response = await fetch(baseUrl + "/api/example-7/get-upload-data" + parseQuery(request), {
+  const response = await fetch(baseUrl + "/api/get-upload-data" + parseQuery(request), {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -135,7 +135,7 @@ async function getUploadData(request) {
   };
 }
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-7/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -146,7 +146,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-7/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {

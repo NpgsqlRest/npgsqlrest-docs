@@ -212,7 +212,6 @@ Parameter names are validated when renaming. Invalid renames are rejected with a
 **Rules:**
 - Must be a valid PostgreSQL identifier: starts with letter or `_`, followed by letters, digits, `_`, or `$`
 - Positional parameters (`$1`, `$2`) are allowed
-- Reserved annotation keywords cannot be used as parameter names: `default`, `is`, `hash`, `of`, `upload`, `metadata`, `type`
 
 ```sql
 -- Valid:
@@ -220,8 +219,6 @@ Parameter names are validated when renaming. Invalid renames are rejected with a
 -- @param $1 _val$1         ✓
 
 -- Rejected (with warning log):
--- @param $1 default        ✗ reserved keyword
--- @param $1 is             ✗ reserved keyword
 -- @param $1 1bad           ✗ starts with digit
 -- @param $1 my-param       ✗ invalid character (hyphen)
 ```
