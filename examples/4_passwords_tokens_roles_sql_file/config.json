@@ -95,6 +95,9 @@
       }
     },
 
+    "RoutineOptions": {
+      "Enabled": false
+    },
 
     "SqlFileSource": {
       "Enabled": true,

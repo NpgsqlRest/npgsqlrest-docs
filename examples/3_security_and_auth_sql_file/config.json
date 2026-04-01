@@ -25,6 +25,10 @@
       }
     },
 
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
     "SqlFileSource": {
       "Enabled": true,
       "FilePattern": "./3_security_and_auth_sql_file/sql/**/*.sql"

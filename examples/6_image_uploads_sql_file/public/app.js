@@ -1,5 +1,5 @@
-// src/example6Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+// src/sqlApi.ts
+var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";
   if (Array.isArray(value)) {
@@ -8,7 +8,7 @@ var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   return `${key}=${encodeURIComponent(value)}`;
 }).join("&");
 async function getMyUploads(request) {
-  const response = await fetch(baseUrl + "/api/example-6/get-my-uploads" + parseQuery(request), {
+  const response = await fetch(baseUrl + "/api/get-my-uploads" + parseQuery(request), {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -21,7 +21,7 @@ async function getMyUploads(request) {
   };
 }
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-6/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -32,7 +32,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-6/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {
@@ -69,7 +69,7 @@ async function uploadToCombined(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-6/upload-to-combined" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/upload-to-combined" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -107,7 +107,7 @@ async function uploadToFileSystem(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-6/upload-to-file-system" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/upload-to-file-system" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -145,7 +145,7 @@ async function uploadToLargeObject(files, request, progress) {
         response: this.response
       });
     };
-    xhr.open("POST", baseUrl + "/api/example-6/upload-to-large-object" + parseQuery(request));
+    xhr.open("POST", baseUrl + "/api/upload-to-large-object" + parseQuery(request));
     const formData = new FormData;
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -248,10 +248,10 @@ myUploadsBtn.addEventListener("click", async () => {
           html += `<div style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 4px;">
                         <strong>#${upload.id}</strong> - ${upload.fileName} (${upload.contentType})`;
           if (upload.filePath) {
-            const imgUrl = upload.filePath.replace("./6_image_uploads/public", "");
+            const imgUrl = upload.filePath.split("/public")[1];
             html += `<br><img src="${imgUrl}" style="max-width: 200px; max-height: 150px; margin-top: 8px;">`;
           } else if (upload.oid) {
-            const imgUrl = `/api/example-6/get-image?oid=${upload.oid}&mimeType=${encodeURIComponent(upload.contentType || "image/png")}`;
+            const imgUrl = `/api/get-image?oid=${upload.oid}&mimeType=${encodeURIComponent(upload.contentType || "image/png")}`;
             html += `<br><img src="${imgUrl}" style="max-width: 200px; max-height: 150px; margin-top: 8px;">`;
           }
           html += `</div>`;

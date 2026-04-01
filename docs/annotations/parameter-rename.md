@@ -44,6 +44,13 @@ The `@param` keyword is shared with the [PARAMETER_HASH](./parameter-hash) annot
 @param <old_name> <new_name> <type> default <value>
 @param <old_name> is <new_name> default <value>
 @param <old_name> is <new_name> <type> default <value>
+
+# `=` can be used instead of `default` in all forms above:
+@param <old_name> = <value>
+@param <old_name> <new_name> = <value>
+@param <old_name> <new_name> <type> = <value>
+@param <old_name> is <new_name> = <value>
+@param <old_name> is <new_name> <type> = <value>
 ```
 
 - `old_name`: The original parameter name (e.g., `$1`, `$2`, or `_old_name`)
@@ -162,6 +169,12 @@ This is essential for SQL files because positional parameters (`$1`, `$2`) must 
 -- @param $1 filter default null         -- SQL NULL (unquoted)
 -- @param $1 tag default 'null'          -- literal text "null" (quoted)
 -- @param $1 val default                 -- no value = NULL
+
+-- `=` can be used instead of `default` in all forms:
+-- @param $1 user_id = null
+-- @param $1 user_id integer = 42
+-- @param $1 is greeting = 'hey'
+-- @param my_name = 'hello'
 ```
 
 ### Value Parsing Rules (SQL Conventions)

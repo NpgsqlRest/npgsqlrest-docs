@@ -1,0 +1,92 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ./6_image_uploads_sql_file/sql/upload-to-file-system.sql
+//
+// HTTP POST
+// @upload for file_system
+// @param $1 _user_id text = null
+// @param $2 _meta json = null
+// @param _meta is upload metadata
+// @check_image = true
+// @path = ./6_image_uploads_sql_file/public/uploads
+// @unique_name = true
+// @create_path = true
+POST {{host}}/api/upload-to-file-system?_user_id=ABC&_meta=%7B%7D
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/login.sql
+//
+// HTTP POST
+// @login
+// @@anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/get-image.sql
+//
+// HTTP GET
+// @raw
+// @tsclient = false
+// @param $1 oid bigint
+// @define_param mimeType
+// content_type: {mimeType}
+GET {{host}}/api/get-image?oid=1&mimeType=XYZ
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/upload-to-large-object.sql
+//
+// HTTP POST
+// @upload for large_object
+// @param $1 _user_id text = null
+// @param $2 _meta json = null
+// @param _meta is upload metadata
+// @check_image = true
+POST {{host}}/api/upload-to-large-object?_user_id=ABC&_meta=%7B%7D
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/upload-to-combined.sql
+//
+// HTTP POST
+// @upload for large_object, file_system
+// @param $1 _user_id text = null
+// @param $2 _meta json = null
+// @param _meta is upload metadata
+// @check_image = true
+// @path = ./6_image_uploads_sql_file/public/uploads
+// @unique_name = true
+// @create_path = true
+POST {{host}}/api/upload-to-combined?_user_id=ABC&_meta=%7B%7D
+
+###
+
+// SQL file: ./6_image_uploads_sql_file/sql/get-my-uploads.sql
+//
+// HTTP GET
+// @authorize
+// @user_parameters
+// @param $1 _user_id text = null
+GET {{host}}/api/get-my-uploads?_user_id=ABC
+
+###
+

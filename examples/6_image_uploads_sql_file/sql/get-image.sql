@@ -2,8 +2,8 @@
 HTTP GET
 @raw
 @tsclient = false
-@param $1 oid
-@param $2 mime_type
-content_type: {mime_type}
+@param $1 oid bigint
+@define_param mimeType
+content_type: {mimeType}
 */
-select lo_get($1::bigint);
+select lo_get($1);

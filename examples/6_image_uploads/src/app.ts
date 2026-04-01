@@ -119,7 +119,7 @@ myUploadsBtn.addEventListener("click", async () => {
                     html += `<div style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 4px;">
                         <strong>#${upload.id}</strong> - ${upload.fileName} (${upload.contentType})`;
                     if (upload.filePath) {
-                        const imgUrl = upload.filePath.replace('./6_image_uploads/public', '');
+                        const imgUrl = upload.filePath.split("/public")[1];
                         html += `<br><img src="${imgUrl}" style="max-width: 200px; max-height: 150px; margin-top: 8px;">`;
                     } else if (upload.oid) {
                         const imgUrl = `/api/example-6/get-image?oid=${upload.oid}&mimeType=${encodeURIComponent(upload.contentType || 'image/png')}`;

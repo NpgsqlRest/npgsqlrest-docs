@@ -1,10 +1,11 @@
 {
-  "ApplicationName": "6_image_uploads_sql_file",
+  "ApplicationName": "6_image_uploads",
 
   "StaticFiles": {
-    "RootPath": "./6_image_uploads_sql_file/public"
+    "RootPath": ".//6_image_uploads_sql_file/public"
   },
 
+  // Cookie authentication for simple login (bob and alice)
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
@@ -20,6 +21,7 @@
       "UseUserParameters": true
     },
 
+    // Enable file uploads with image validation
     "UploadOptions": {
       "Enabled": true,
       "LogUploadEvent": true,
@@ -31,18 +33,28 @@
       "UploadHandlers": {
         "StopAfterFirstSuccess": false,
         "BufferSize": 16384,
+
+        // Large Object handler for PostgreSQL storage
         "LargeObjectEnabled": true,
         "LargeObjectKey": "large_object",
         "LargeObjectCheckImage": true,
+
+        // File System handler for disk storage
         "FileSystemEnabled": true,
         "FileSystemKey": "file_system",
         "FileSystemPath": "./6_image_uploads_sql_file/uploads",
         "FileSystemUseUniqueFileName": true,
         "FileSystemCreatePathIfNotExists": true,
         "FileSystemCheckImage": true,
+
+        // Disable CSV and Excel handlers - not needed for image uploads
         "CsvUploadEnabled": false,
         "ExcelUploadEnabled": false
       }
+    },
+
+    "RoutineOptions": {
+      "Enabled": false
     },
 
     "SqlFileSource": {

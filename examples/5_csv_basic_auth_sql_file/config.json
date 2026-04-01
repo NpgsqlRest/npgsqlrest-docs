@@ -69,6 +69,10 @@
       "NamePattern": "./5_csv_basic_auth_sql_file/http/{1}"
     },
 
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
     "SqlFileSource": {
       "Enabled": true,
       "FilePattern": "./5_csv_basic_auth_sql_file/sql/**/*.sql"

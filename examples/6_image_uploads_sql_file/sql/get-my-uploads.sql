@@ -2,7 +2,7 @@
 HTTP GET
 @authorize
 @user_parameters
-@param $1 _user_id
+@param $1 _user_id text = null
 */
 select *
 from example_6.uploads
