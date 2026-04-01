@@ -1,10 +1,11 @@
 {
-  "ApplicationName": "9_http_calls_sql_file",
+  "ApplicationName": "9_http_calls",
 
   "StaticFiles": {
-    "RootPath": "./9_http_calls_sql_file/public"
+    "RootPath": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/public"
   },
 
+  // Cookie authentication for simple login (bob and alice)
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
@@ -13,7 +14,6 @@
   },
 
   "NpgsqlRest": {
-    "IncludeSchemas": ["example_9"],
     "RequiresAuthorization": true,
 
     "AuthenticationOptions": {
@@ -23,19 +23,29 @@
 
     "HttpClientOptions": {
       "Enabled": true
+      // "ResponseStatusCodeField": "status_code",
+      // "ResponseBodyField": "body",
+      // "ResponseHeadersField": "headers",
+      // "ResponseContentTypeField": "content_type",
+      // "ResponseSuccessField": "success",
+      // "ResponseErrorMessageField": "error_message"
+    },
+
+    "RoutineOptions": {
+      "Enabled": false
     },
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "./9_http_calls_sql_file/sql/**/*.sql"
+      "FilePattern": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {
-      "NamePattern": "./9_http_calls_sql_file/http/{1}"
+      "NamePattern": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/http/{1}"
     },
 
     "ClientCodeGen": {
-      "FilePath": "./9_http_calls_sql_file/src/{0}Api.ts"
+      "FilePath": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/src/{0}Api.ts"
     }
   }
 }

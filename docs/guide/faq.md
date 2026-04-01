@@ -103,7 +103,7 @@ where user_id = $1;
 
 Here `$1` is renamed to `_user_id`, which matches the default `name_identifier` claim mapping. The authenticated user's ID is automatically injected — the client doesn't send this parameter. This works the same way as having a function parameter named `_user_id`.
 
-See [PARAMETER_RENAME annotation](/annotations/parameter-rename) and [User Parameters annotation](/annotations/user-parameters) for details.
+See [PARAM annotation](/annotations/param) and [User Parameters annotation](/annotations/user-parameters) for details.
 
 ---
 

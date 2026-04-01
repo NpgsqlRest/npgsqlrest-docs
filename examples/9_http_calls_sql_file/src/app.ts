@@ -1,4 +1,5 @@
-import { login, logout, getFinancialDashboard } from "./example9Api.ts";
+//import { login, logout, getFinancialDashboard } from "./example9Api.ts";
+import { login, logout, financialDashboard } from "./sqlApi.ts";
 
 const usernameInput = document.getElementById("username") as HTMLInputElement;
 const passwordInput = document.getElementById("password") as HTMLInputElement;
@@ -76,15 +77,15 @@ fetchDashboardBtn.addEventListener("click", async () => {
     const cryptoIdsCsv = cryptoIdsInput.value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean).join(",");
     const vsCurrenciesCsv = vsCurrenciesInput.value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean).join(",");
 
-    const response = await getFinancialDashboard({
-        baseCurrency: baseCurrencyInput.value.toUpperCase(),
-        targetCurrenciesCsv,
-        cryptoIdsCsv,
-        vsCurrenciesCsv
+    const response = await financialDashboard({
+        _base_currency: baseCurrencyInput.value.toUpperCase(),
+        _target_currencies_csv: targetCurrenciesCsv,
+        _crypto_ids_csv: cryptoIdsCsv,
+        _vs_currencies_csv: vsCurrenciesCsv
     });
 
     if (response.status === 200 && response.response) {
-        const data = response.response;
+        const data = response.response.dashboard;
 
         // Display fiat rates
         if (!data.fiatSuccess) {

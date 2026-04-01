@@ -258,7 +258,7 @@ export default defineConfig({
           items: [
             { text: 'USER_CONTEXT', link: '/annotations/user-context' },
             { text: 'USER_PARAMETERS', link: '/annotations/user-parameters' },
-            { text: 'PARAMETER_RENAME', link: '/annotations/parameter-rename' },
+            { text: 'PARAM', link: '/annotations/param' },
             { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
             { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
             { text: 'RESULT_NAME', link: '/annotations/result-name' },

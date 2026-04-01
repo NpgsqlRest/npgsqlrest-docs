@@ -1,5 +1,5 @@
-// src/example9Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+// src/sqlApi.ts
+var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";
   if (Array.isArray(value)) {
@@ -7,12 +7,9 @@ var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   }
   return `${key}=${encodeURIComponent(value)}`;
 }).join("&");
-async function getFinancialDashboard(request) {
+async function financialDashboard(request) {
   const response = await fetch(baseUrl + "/financial-dashboard" + parseQuery(request), {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    }
+    method: "GET"
   });
   return {
     status: response.status,
@@ -21,7 +18,7 @@ async function getFinancialDashboard(request) {
   };
 }
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-9/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -32,7 +29,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-9/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {
@@ -101,14 +98,14 @@ fetchDashboardBtn.addEventListener("click", async () => {
   const targetCurrenciesCsv = targetCurrenciesInput.value.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean).join(",");
   const cryptoIdsCsv = cryptoIdsInput.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean).join(",");
   const vsCurrenciesCsv = vsCurrenciesInput.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean).join(",");
-  const response = await getFinancialDashboard({
-    baseCurrency: baseCurrencyInput.value.toUpperCase(),
-    targetCurrenciesCsv,
-    cryptoIdsCsv,
-    vsCurrenciesCsv
+  const response = await financialDashboard({
+    _base_currency: baseCurrencyInput.value.toUpperCase(),
+    _target_currencies_csv: targetCurrenciesCsv,
+    _crypto_ids_csv: cryptoIdsCsv,
+    _vs_currencies_csv: vsCurrenciesCsv
   });
   if (response.status === 200 && response.response) {
-    const data = response.response;
+    const data = response.response.dashboard;
     if (!data.fiatSuccess) {
       fiatRatesDiv.innerHTML = `<p class="error">Error: ${data.fiatError}</p>`;
     } else {

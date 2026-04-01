@@ -153,5 +153,5 @@ Response:
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [SINGLE](./single) - Return single records as objects in multi-command results
 - [SKIP](./skip) - Exclude commands from multi-command results
-- [PARAMETER_RENAME](./parameter-rename) - Rename endpoint parameters
+- [PARAM](./param) - Rename, retype, and configure parameters
 - [SQL File Source](../config/sql-file-source) - SQL file source configuration

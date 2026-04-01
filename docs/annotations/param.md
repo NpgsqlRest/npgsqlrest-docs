@@ -1,24 +1,24 @@
 ---
 outline: [2, 3]
-title: "PARAMETER_RENAME Annotation"
+title: "PARAM Annotation"
 titleTemplate: NpgsqlRest
-description: "Rename and optionally retype endpoint parameters for better API ergonomics. Works on all endpoint types — functions, procedures, CRUD, and SQL file endpoints."
+description: "Rename, retype, set defaults, and configure composite type parameters. Works on all endpoint types — functions, procedures, CRUD, and SQL file endpoints."
 head:
   - - meta
     - name: keywords
-      content: npgsqlrest parameter rename, rename parameter, retype parameter, param annotation, sql file parameters, api parameter names
+      content: npgsqlrest param annotation, rename parameter, retype parameter, default value, composite type parameter, sql file parameters, api parameter names
   - - meta
     - property: og:title
-      content: "NpgsqlRest PARAMETER_RENAME Annotation"
+      content: "NpgsqlRest PARAM Annotation"
   - - meta
     - property: og:description
-      content: "Rename and optionally retype endpoint parameters for better API ergonomics."
+      content: "Rename, retype, set defaults, and configure composite type parameters."
   - - meta
     - property: og:type
       content: article
 ---
 
-# PARAMETER_RENAME
+# PARAM
 
 ::: info Also known as
 `param`, `parameter` (with or without `@` prefix)
@@ -222,6 +222,26 @@ Parameter names are validated when renaming. Invalid renames are rejected with a
 -- @param $1 1bad           ✗ starts with digit
 -- @param $1 my-param       ✗ invalid character (hyphen)
 ```
+
+## Composite Type Parameters (SQL Files)
+
+When a parameter type is a known composite type, the parameter is treated as a single text value. The SQL is never rewritten — it stays exactly as written.
+
+**HTTP custom types** (auto-filled from HTTP calls):
+```sql
+-- @param $1 _response example_9.exchange_rate_api
+select ($1::example_9.exchange_rate_api).body;
+```
+The framework makes the HTTP call and passes the response as a composite text value automatically.
+
+**Client-sent composite types:**
+```sql
+-- @param $1 data my_composite_type
+select ($1::my_composite_type).field1, ($1::my_composite_type).field2;
+```
+The client sends the value as PostgreSQL composite text format: `?data=("val1","val2")`.
+
+If the type in `@param` is not a recognized PostgreSQL type or composite type, a warning is logged and the parameter keeps its original type from Describe.
 
 ## Behavior
 

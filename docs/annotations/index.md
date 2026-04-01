@@ -123,7 +123,7 @@ Each annotation has its own page with:
 
 ### Parameter Annotations
 
-- [PARAMETER_RENAME](./parameter-rename) - Rename and optionally retype parameters
+- [PARAM](./param) - Rename, retype, set defaults, and configure parameters
 - [PARAMETER_HASH](./parameter-hash) - Hash one parameter using another
 - [ENCRYPT](./encrypt-decrypt) - Encrypt parameter values before sending to PostgreSQL
 - [DECRYPT](./encrypt-decrypt) - Decrypt result column values before returning to client

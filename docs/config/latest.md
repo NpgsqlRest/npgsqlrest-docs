@@ -2648,7 +2648,20 @@ Replace `3.12.0` with your desired version number.
       // instead of the default flat structure {"id": 1, "name": "test"}.
       // Default is false for backward compatibility. Can also be enabled per-endpoint with the 'nested' annotation.
       //
-      "NestedJsonForCompositeTypes": false
+      "NestedJsonForCompositeTypes": false,
+      //
+      // When true, non-query commands (BEGIN, COMMIT, SET, DO blocks, etc.) in multi-command SQL files
+      // are still executed but excluded from the JSON response result keys.
+      // Default is true.
+      //
+      "SkipNonQueryCommands": true,
+      //
+      // When true, multi-command SQL file endpoints include the full SQL text in command logs.
+      // When false (default), only the file path and statement count are logged.
+      // Single-command SQL files always log the SQL text regardless of this setting.
+      // This only applies when LogCommands is true.
+      //
+      "LogCommandText": false
     }
   }
 }

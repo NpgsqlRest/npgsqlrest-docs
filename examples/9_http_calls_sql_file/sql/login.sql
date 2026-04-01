@@ -13,3 +13,4 @@ from example_9.users u
 where
     u.username = $1
     and u.password_hash = example_9.crypt($2, u.password_hash);
+

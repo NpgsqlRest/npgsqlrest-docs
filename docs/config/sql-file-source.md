@@ -241,6 +241,32 @@ NULL composites are serialized as `null` in nested mode, or as individual `null`
 This setting is also available in [Routine Options](./routine-options#nested-json-for-composite-types) for function/procedure endpoints. Each endpoint source has its own independent setting.
 :::
 
+## LogCommandText
+
+Controls whether multi-command SQL file endpoints include the full SQL text in debug command logs.
+
+**Default (`false`):** Only the file path and statement count are logged:
+
+```
+[DBG] -- POST http://127.0.0.1:8080/api/send-message
+-- $1 text = 'hello'
+SQL file: sql/send-message.sql (5 statements)
+```
+
+**With `LogCommandText: true`:** The full SQL body of all statements is logged.
+
+```json
+{
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "LogCommandText": true
+    }
+  }
+}
+```
+
+Single-command SQL file endpoints always log the SQL text regardless of this setting. This only applies when [`LogCommands`](./npgsqlrest#logcommands) is `true`.
+
 ## Quick Start Example
 
 1. Enable the SQL file source in `appsettings.json`:
@@ -271,7 +297,7 @@ select id, name, email from users where active = $1;
 ## Related
 
 - [Changelog v3.12.0](../guide/changelog/v3.12.0) - Release notes for the SQL file source feature
-- [PARAMETER_RENAME](../annotations/parameter-rename) - Rename positional parameters
+- [PARAM](../annotations/param) - Rename, retype, and configure parameters
 - [RESULT_NAME](../annotations/result-name) - Rename multi-command result keys
 - [NpgsqlRest Options](./npgsqlrest) - Core API generation settings
 - [CRUD Source](./crud) - CRUD endpoint generation for tables and views

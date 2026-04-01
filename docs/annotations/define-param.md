@@ -101,7 +101,7 @@ Specify a type when needed:
 
 ## Related
 
-- [PARAMETER_RENAME](./parameter-rename) — rename and retype parameters that are bound to SQL (`$N`)
+- [PARAM](./param) — rename, retype, and configure parameters that are bound to SQL (`$N`)
 - [USER_PARAMETERS](./user-parameters) — enable claim-to-parameter mapping
 - [Custom Parameters](./custom-parameters) — custom key-value annotation settings with `{param}` placeholders
 - [SQL File Source configuration](/config/sql-file-source) — enable and configure SQL file endpoints
