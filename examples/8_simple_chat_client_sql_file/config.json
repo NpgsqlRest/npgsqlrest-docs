@@ -1,10 +1,11 @@
 {
-  "ApplicationName": "8_simple_chat_client_sql_file",
+  "ApplicationName": "8_simple_chat_client",
 
   "StaticFiles": {
     "RootPath": "./8_simple_chat_client_sql_file/public"
   },
 
+  // Cookie authentication for simple login (bob and alice)
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
@@ -20,6 +21,10 @@
       "UseUserParameters": true
     },
 
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
     "SqlFileSource": {
       "Enabled": true,
       "FilePattern": "./8_simple_chat_client_sql_file/sql/**/*.sql"
@@ -31,6 +36,8 @@
 
     "ClientCodeGen": {
       "FilePath": "./8_simple_chat_client_sql_file/src/{0}Api.ts",
+      // Export event source clients for SSE endpoints so we can use them in the chat client 
+      // and listen for new messages.
       "ExportEventSources": true
     }
   }

@@ -1,4 +1,4 @@
-import { login, logout, sendMessage, createSendMessageEventSource, getMessages } from "./example8Api.ts";
+import { login, logout, sendMessage, createSendMessageEventSource, getMessages } from "./sqlApi.ts";
 
 const usernameInput = document.getElementById("username") as HTMLInputElement;
 const passwordInput = document.getElementById("password") as HTMLInputElement;

@@ -1,8 +1,8 @@
-// src/example8Api.ts
-var baseUrl = "http://127.0.0.1:8080";
-var createSendMessageEventSource = (id = "") => new EventSource(baseUrl + "/api/example-8/send-message/info?" + id);
+// src/sqlApi.ts
+var baseUrl = "";
+var createSendMessageEventSource = (id = "") => new EventSource(baseUrl + "/api/send-message/info?" + id);
 async function getMessages() {
-  const response = await fetch(baseUrl + "/api/example-8/get-messages", {
+  const response = await fetch(baseUrl + "/api/get-messages", {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -15,7 +15,7 @@ async function getMessages() {
   };
 }
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-8/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -26,7 +26,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-8/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {
@@ -47,7 +47,7 @@ async function sendMessage(request, onMessage, id = undefined, closeAfterMs = 10
     }
   }
   try {
-    const response = await fetch(baseUrl + "/api/example-8/send-message", {
+    const response = await fetch(baseUrl + "/api/send-message", {
       method: "POST",
       headers: {
         "X-NpgsqlRest-ID": executionId
@@ -56,6 +56,7 @@ async function sendMessage(request, onMessage, id = undefined, closeAfterMs = 10
     });
     return {
       status: response.status,
+      response: response.ok ? await response.json() : undefined,
       error: !response.ok && response.headers.get("content-length") !== "0" ? await response.json() : undefined
     };
   } finally {

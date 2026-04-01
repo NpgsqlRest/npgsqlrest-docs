@@ -1,0 +1,58 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/get-messages.sql
+//
+//  HTTP GET
+//  @authorize
+GET {{host}}/api/get-messages
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/send-message.sql
+//
+// HTTP POST
+// @authorize
+// @sse
+// @sse_scope authorize
+// @user_parameters
+// @param $1 messageText text
+// @param $2 _user_id text = null
+// @param $3 _user_name text = null
+// @void
+POST {{host}}/api/send-message
+content-type: application/json
+
+{
+    "messageText": "ABC",
+    "_user_id": "XYZ",
+    "_user_name": "IJK"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/login.sql
+//
+// HTTP POST
+// @login
+// @anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+
