@@ -18,3 +18,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 .idea
+examples/5_csv_basic_auth_sql_file/localhost.pfx

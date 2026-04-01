@@ -2,18 +2,22 @@
 HTTP GET
 @raw
 @separator ,
+@new_line \n
 @columns
-@basic_auth admin $2a$10$b73LXI5VuNOm7oue2RGYxeGLr2aJJHisrHCrBaFMsaHA8LHMVJhKu
+Content-Type: text/csv
+Content-Disposition: attachment; filename="sales_report.csv"
+@basic_auth admin lgjSqahngJF9DN0W+2vAf+EDgxSs14e9ag+DezupGdsftJJ8DUphu6cfroMB6Uqp
 @user_parameters
-@param $1 _username
+@param $1 _user_name text default null
 */
 select
-    s.order_id,
-    s.customer_name,
-    s.product,
-    s.quantity,
-    s.unit_price,
-    s.total,
-    s.order_date
-from example_5.sales s
-order by s.order_date desc;
+    $1 as exported_by, 
+    order_id,
+    customer_name,
+    product,
+    quantity,
+    unit_price,
+    total,
+    order_date
+from example_5.sales
+order by order_date;

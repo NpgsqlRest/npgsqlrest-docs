@@ -1,4 +1,4 @@
-import { login, logout, whoAmI, getUsers } from "./apiApi.ts";
+import { login, logout, whoAmI, getUsers } from "./sqlApi.ts";
 
 // DOM elements
 const usernameInput = document.getElementById("username") as HTMLInputElement;

@@ -15,39 +15,15 @@
 // )
 //
 // comment on function example_5_public.sales_report is 'HTTP GET
-// raw
-// separator ,
-// new_line \n
-// columns
+// @raw
+// @separator ,
+// @new_line \n
+// @columns
 // Content-Type: text/csv
 // Content-Disposition: attachment; filename="sales_report.csv"
-// basic_auth admin lgjSqahngJF9DN0W+2vAf+EDgxSs14e9ag+DezupGdsftJJ8DUphu6cfroMB6Uqp
-// user_params';
+// @basic_auth admin lgjSqahngJF9DN0W+2vAf+EDgxSs14e9ag+DezupGdsftJJ8DUphu6cfroMB6Uqp
+// @user_params';
 GET {{host}}/api/example-5-public/sales-report?userName=ABC
-
-###
-
-// function example_5_public.sales_report_public()
-// returns table(
-//     record text,
-//     record integer,
-//     record text,
-//     record text,
-//     record integer,
-//     record numeric(10,2),
-//     record numeric(10,2),
-//     record date,
-//     message text
-// )
-//
-// comment on function example_5_public.sales_report_public is 'HTTP GET
-// raw
-// separator ,
-// new_line \n
-// columns
-// Content-Type: text/csv
-// Content-Disposition: attachment; filename="sales_report.csv"';
-GET {{host}}/api/example-5-public/sales-report-public
 
 ###
 

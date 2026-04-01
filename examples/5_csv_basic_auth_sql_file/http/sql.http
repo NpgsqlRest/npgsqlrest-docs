@@ -1,0 +1,18 @@
+@host=https://localhost:8080;http://localhost:8081
+
+// SQL file: ../../npgsqlrest-docs/examples/5_csv_basic_auth_sql_file/sql/sales-report.sql
+//
+// HTTP GET
+// @raw
+// @separator ,
+// @new_line \n
+// @columns
+// Content-Type: text/csv
+// Content-Disposition: attachment; filename="sales_report.csv"
+// @basic_auth admin lgjSqahngJF9DN0W+2vAf+EDgxSs14e9ag+DezupGdsftJJ8DUphu6cfroMB6Uqp
+// @user_parameters
+// @param $1 _user_name text default null
+GET {{host}}/api/sales-report?_user_name=ABC
+
+###
+

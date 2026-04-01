@@ -1,4 +1,4 @@
-// src/apiApi.ts
+// src/sqlApi.ts
 var baseUrl = "";
 async function getUsers(parseRequest = (request) => request) {
   const response = await fetch(baseUrl + "/api/get-users", parseRequest({

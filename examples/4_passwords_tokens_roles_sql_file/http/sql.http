@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/who-am-i.sql
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/who-am-i.sql
 //
 //  HTTP GET
 //  @authorize
@@ -10,7 +10,7 @@ GET {{host}}/api/who-am-i
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/login.sql
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/login.sql
 //
 // HTTP POST
 // @login
@@ -30,7 +30,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/get-users.sql
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/get-users.sql
 //
 //  HTTP GET
 //  @authorize admin
@@ -38,7 +38,7 @@ GET {{host}}/api/get-users
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/api/logout.sql
+// SQL file: ../../npgsqlrest-docs/examples/4_passwords_tokens_roles_sql_file/sql/logout.sql
 //
 //  HTTP POST
 //  @logout

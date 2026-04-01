@@ -98,7 +98,7 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "./4_passwords_tokens_roles_sql_file/sql/api/**/*.sql"
+      "FilePattern": "./4_passwords_tokens_roles_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {

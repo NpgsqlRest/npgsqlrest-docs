@@ -1,20 +1,72 @@
 {
-  "ApplicationName": "5_csv_basic_auth_sql_file",
+  // see https://npgsqlrest.github.io/config/top-level.html#application-settings
+  "ApplicationName": "5_csv_basic_auth",
+  "StartupMessage": "NpgsqlRest Example 5: CSV Export with Basic Authentication over HTTPS, listening on https://127.0.0.1:8080/",
+
+  // ============================================================================
+  // SSL/HTTPS Configuration
+  // ============================================================================
+  // Basic Auth transmits credentials in base64 encoding (NOT encrypted).
+  // SSL/TLS is REQUIRED to protect credentials from being intercepted.
+  //
+  // Setup steps:
+  // 1. Generate development certificate:
+  //    dotnet dev-certs https --export-path ./5_csv_basic_auth/localhost.pfx --password dev123
+  // 2. Trust the certificate (optional, avoids browser warnings):
+  //    dotnet dev-certs https --trust
+  // 3. Start the application - it will listen on https://localhost:8080
+  // 4. Access: https://localhost:8080
+  // ============================================================================
+
+  // Listen on HTTPS (port 8080) and HTTP (port 8081)
+  // HTTP on 8081 is for Excel Power Query testing only - Excel doesn't support self-signed certs
+  // WARNING: Never expose HTTP Basic Auth endpoint publicly - credentials are NOT encrypted!
+  "Urls": "https://localhost:8080;http://localhost:8081",
 
   "Ssl": {
-    "Enabled": false
+    // Enable Kestrel HTTPS configuration
+    "Enabled": true,
+    // No HTTP redirect needed since we only have HTTPS
+    "UseHttpsRedirection": false,
+    // HSTS adds Strict-Transport-Security header - disable for development
+    "UseHsts": false
+  },
+
+  "Kestrel": {
+    "Endpoints": {
+      "Https": {
+        "Url": "https://localhost:8080",
+        "Certificate": {
+          // Development certificate exported from dotnet dev-certs
+          // Generate with: dotnet dev-certs https --export-path ./5_csv_basic_auth/localhost.pfx --password dev123
+          "Path": "./5_csv_basic_auth_sql_file/localhost.pfx",
+          "Password": "dev123"
+        },
+        // Use HTTP/1.1 only to avoid HTTP/2 connection cleanup errors on macOS
+        // The error "The encryption operation failed, Bad address" is a known
+        // race condition in Kestrel's HTTP/2 SSL stream cleanup - harmless but noisy
+        "Protocols": "Http1"
+      },
+      // HTTP endpoint for Excel Power Query testing (localhost only!)
+      // Excel doesn't trust self-signed certificates
+      "Http": {
+        "Url": "http://localhost:8081"
+      }
+    }
   },
 
   "StaticFiles": {
+    // Root path to the static files for this example
     "RootPath": "./5_csv_basic_auth_sql_file/public"
   },
 
   "NpgsqlRest": {
-    "RequiresAuthorization": true,
+    // Disable global authorization - we use basic_auth annotation per endpoint
+    "RequiresAuthorization": false,
 
-    "AuthenticationOptions": {
-      "DefaultAuthenticationType": "example_5",
-      "UseUserParameters": true
+    "HttpFileOptions": {
+      // Pattern output the generated HTTP files {1} placeholder is schema name
+      "NamePattern": "./5_csv_basic_auth_sql_file/http/{1}"
     },
 
     "SqlFileSource": {
@@ -22,12 +74,20 @@
       "FilePattern": "./5_csv_basic_auth_sql_file/sql/**/*.sql"
     },
 
-    "HttpFileOptions": {
-      "NamePattern": "./5_csv_basic_auth_sql_file/http/{1}"
+    "ClientCodeGen": {
+      "Enabled": false
     },
 
-    "ClientCodeGen": {
-      "FilePath": "./5_csv_basic_auth_sql_file/src/{0}Api.ts"
+    "AuthenticationOptions": {
+      // Required for user_params to work with basic_auth
+      // Sets Identity.IsAuthenticated = true after successful authentication
+      "DefaultAuthenticationType": "example_5",
+      "UseUserParameters": true,
+      "BasicAuth": {
+        // Warning: allows HTTP but logs a warning. Use "Required" in production.
+        // Set to "Warning" for local Excel testing (Excel doesn't trust self-signed certs)
+        "SslRequirement": "Warning"
+      }
     }
   }
 }

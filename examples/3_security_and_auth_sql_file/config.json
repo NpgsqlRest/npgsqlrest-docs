@@ -2,7 +2,7 @@
   "ApplicationName": "3_security_and_auth_sql_file",
 
   "StaticFiles": {
-    "RootPath": "../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/public"
+    "RootPath": "./3_security_and_auth_sql_file/public"
   },
 
   "Auth": {
@@ -27,15 +27,15 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/sql/**/*.sql"
+      "FilePattern": "./3_security_and_auth_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {
-      "NamePattern": "../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/http/{1}"
+      "NamePattern": "./3_security_and_auth_sql_file/http/{1}"
     },
 
     "ClientCodeGen": {
-      "FilePath": "../../npgsqlrest-docs/examples/3_security_and_auth_sql_file/src/{0}Api.ts"
+      "FilePath": "./3_security_and_auth_sql_file/src/{0}Api.ts"
     }
   }
 }

@@ -60,36 +60,3 @@ Content-Type: text/csv
 Content-Disposition: attachment; filename="sales_report.csv"
 @basic_auth admin lgjSqahngJF9DN0W+2vAf+EDgxSs14e9ag+DezupGdsftJJ8DUphu6cfroMB6Uqp
 @user_params';
-
--- ============================================================================
--- Public version WITHOUT authentication (for Excel/BI tool demos)
--- ============================================================================
--- This endpoint is publicly accessible - no authentication required
--- Use this for connecting Excel, Power BI, or other BI tools that have
--- difficulty with Basic Auth or self-signed certificates
-
-create function example_5_public.sales_report_public()
-returns table (
-    record example_5_public.sales_report_record,
-    message text
-)
-language sql
-set search_path = pg_catalog, pg_temp
-security definer
-as $$
-select 
-    (report.*)::example_5_public.sales_report_record,
-    'WARNING: This is a public endpoint without authentication. Data access is not logged.' as message
-from example_5_public.sales_report('public_user') report;
-$$;
-
-comment on function example_5_public.sales_report_public() is '
-HTTP GET
-@raw
-@separator ,
-@new_line \n
-@columns
-Content-Type: text/csv
-Content-Disposition: attachment; filename="sales_report.csv"';
-
-

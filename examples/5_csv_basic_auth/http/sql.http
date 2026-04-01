@@ -1,0 +1,16 @@
+@host=https://localhost:8080;http://localhost:8081
+
+// SQL file: ../../npgsqlrest-docs/examples/5_csv_basic_auth_sql_file/sql/sales-report.sql
+//
+// HTTP GET
+// @raw
+// @separator ,
+// @columns
+// @basic_auth admin $2a$10$b73LXI5VuNOm7oue2RGYxeGLr2aJJHisrHCrBaFMsaHA8LHMVJhKu
+// @user_parameters
+// @param $1 _username
+//  Shows the user parameter (e.g. from query string)
+GET {{host}}/api/sales-report?_username=ABC
+
+###
+
