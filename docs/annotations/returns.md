@@ -28,15 +28,22 @@ Available since version 3.12.0.
 
 ```
 @returns <composite_type_name>
+@returns <scalar_type>
+@returns void
 ```
 
-The type name can be schema-qualified (e.g., `public.my_type`) or unqualified (e.g., `my_type`).
+Supported values:
+- **Composite type name** — schema-qualified (e.g., `public.my_type`) or unqualified (e.g., `my_type`). Columns resolved from the type definition.
+- **Scalar type** — any built-in PostgreSQL type (e.g., `integer`, `text`, `boolean`, `jsonb`). Declares a single-column result. Only the first column from the query is used at runtime.
+- **`void`** — no columns, no results.
+
+**This annotation skips the PostgreSQL Describe step entirely for the annotated statement.** The statement's SQL is never sent to PostgreSQL during startup.
 
 ## When to Use
 
-The Describe step runs at startup to introspect each SQL statement's return columns. It fails when a statement references objects that don't exist yet — such as temp tables created at runtime inside a `DO` block.
-
-Use `@returns` to tell the system what columns the statement will return, bypassing Describe entirely for that statement.
+- **Composite types:** when the statement references objects that don't exist at startup (e.g., temp tables created inside DO blocks)
+- **Scalar types:** when you want to declare a single typed return value and ignore extra columns
+- **`void`:** when the statement returns no results (e.g., `INSERT`, `CREATE TEMP TABLE`, `set_config`)
 
 ## Example
 
@@ -72,13 +79,59 @@ create type my_result_type as (
 
 Without `@returns`, the `select * from _result` statement fails at startup because the temp table doesn't exist yet. With `@returns my_result_type`, the columns are resolved from the composite type definition in `pg_catalog`.
 
+### Scalar Type
+
+Declare a single typed column. Only the first column from the query is used at runtime — extra columns are ignored:
+
+```sql
+-- HTTP GET
+-- @returns integer
+select count(*) from users;
+```
+
+Returns: `[42]`
+
+With `@single`, returns a bare scalar value:
+
+```sql
+-- HTTP GET
+-- @returns integer
+-- @single
+select count(*) from users;
+```
+
+Returns: `42`
+
+Supported scalar types: `integer`, `text`, `boolean`, `jsonb`, `json`, `bigint`, `numeric`, `real`, `double precision`, `date`, `timestamp`, `timestamptz`, `uuid`, `bytea`, and all other built-in PostgreSQL types.
+
+### Void Statements
+
+Use `@returns void` to skip Describe for statements that return no results:
+
+```sql
+-- HTTP POST
+-- @param $1 key text
+-- @param $2 value text
+-- @returns void
+select set_config($1, $2, false);
+-- @result data
+select current_setting($1, true) as result;
+```
+
+The first statement's Describe is skipped entirely. In multi-command files, it produces a rows-affected count in the response. For single-command files, it makes the endpoint void (returns 204 No Content).
+
 ## Behavior
 
-- The composite type must exist in the database at startup
-- If the type is not found, an error is logged and the file is skipped or the process exits (depending on `ErrorMode`)
+- **The Describe step is skipped entirely** for annotated statements — the SQL is never sent to PostgreSQL during startup
+- For composite types: the type must exist in the database at startup. If not found, an error is logged and the file is skipped or exits (depending on `ErrorMode`)
+- For `void`: the statement is treated as returning no columns (zero-column result)
 - No parameter type inference happens for the skipped statement — other statements in the same multi-command file provide parameter types
 - At runtime, the actual query result must match the declared type's column structure — mismatches may produce incorrect output
 - Can be combined with other positional annotations like `@result`, `@single`, `@skip`
+
+::: tip @returns void vs @void
+For single-command SQL files, `@returns void` has the same runtime effect as [`@void`](./void) — both return 204 No Content. The difference: `@returns void` **skips the Describe step** (the SQL is never sent to PostgreSQL at startup), while `@void` still runs Describe and only changes the runtime response. Use `@returns void` when the statement would fail Describe (e.g., references a temp table). Use `@void` when Describe succeeds but you don't want any response.
+:::
 
 ## Related
 

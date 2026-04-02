@@ -7,7 +7,9 @@ import {
     aiAnalyze,
     cacheStats,
     cacheClear
-} from "./example10Api.ts";
+//} from "./example10Api.ts";
+} from "./sqlApi.ts";
+
 
 // DOM Elements
 const loginSection = document.getElementById("login-section")!;
@@ -140,7 +142,7 @@ async function handleSummarize() {
 
     showElement(analysisResult);
     if (result.status === 200) {
-        const data = result.response;
+        const data = result.response.result;
         let output = `=== SUMMARY ===\n\n`;
         output += `${data.summary}\n\n`;
         output += `Original length: ${data.original_length} chars\n`;
@@ -172,7 +174,7 @@ async function handleSentiment() {
 
     showElement(analysisResult);
     if (result.status === 200) {
-        const data = result.response;
+        const data = result.response.result;
         let output = `=== SENTIMENT ANALYSIS ===\n\n`;
         output += `Sentiment: ${(data.sentiment || "").toUpperCase()}\n`;
         output += `Score: ${data.score}\n`;
@@ -204,7 +206,7 @@ async function handleAnalyze() {
 
     showElement(analysisResult);
     if (result.status === 200) {
-        const data = result.response;
+        const data = result.response.result;
         let output = `=== FULL ANALYSIS ===\n\n`;
 
         if (data.summary) {

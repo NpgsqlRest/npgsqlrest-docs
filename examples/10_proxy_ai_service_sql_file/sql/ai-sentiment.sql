@@ -1,25 +1,36 @@
---------------------------------------------------------------------------------
--- Transform Proxy: Sentiment Analysis
---
--- Demonstrates transform mode with sentiment analysis:
--- - Proxies to AI service for sentiment analysis
--- - Stores results in database for later querying
--- - Returns enriched response with additional metadata
---------------------------------------------------------------------------------
+/*
+HTTP POST /ai/sentiment
+@authorize
+@proxy POST
 
-drop function if exists example_10.ai_sentiment;
-create function example_10.ai_sentiment(
-    _text text,
-    -- Proxy response parameters
-    _proxy_status_code int default null,
-    _proxy_body text default null,
-    _proxy_success boolean default null,
-    _proxy_error_message text default null
-)
-returns json
-language plpgsql
-as $$
+@param $1 text text
+
+@param $2 _proxy_status_code int default null
+@param $3 _proxy_body text default null
+@param $4 _proxy_success boolean default null
+@param $5 _proxy_error_message text default null
+*/
+
+begin;
+
+-- @skip
+create temp table _var on commit drop as
+select
+    $1::text as _text,
+    $2::int as _proxy_status_code,
+    $3::text as _proxy_body,
+    $4::boolean as _proxy_success,
+    $5::text as _proxy_error_message;
+
+do
+$$
 declare
+    _text text = (select _text from _var);
+    _proxy_status_code int = (select _proxy_status_code from _var);
+    _proxy_body text = (select _proxy_body from _var);
+    _proxy_success boolean = (select _proxy_success from _var);
+    _proxy_error_message text = (select _proxy_error_message from _var);
+
     _text_hash text;
     _cached record;
     _result json;
@@ -38,21 +49,25 @@ begin
             last_accessed_at = now()
         where text_hash = _text_hash;
 
-        return json_build_object(
+        create temp table _result_out on commit drop as
+        select json_build_object(
             'sentiment', _cached.sentiment,
             'score', _cached.sentiment_score,
             'confidence', _cached.sentiment_confidence,
             'cached', true,
             'cache_hits', _cached.accessed_count
-        );
+        ) as result;
+        return;
     end if;
 
     -- Handle errors
     if not _proxy_success then
-        return json_build_object(
+        create temp table _result_out on commit drop as
+        select json_build_object(
             'error', coalesce(_proxy_error_message, 'AI service unavailable'),
             'status_code', _proxy_status_code
-        );
+        ) as result;
+        return;
     end if;
 
     -- Parse response
@@ -76,19 +91,21 @@ begin
         accessed_count = example_10.analysis_cache.accessed_count + 1,
         last_accessed_at = now();
 
-    return json_build_object(
+    create temp table _result_out on commit drop as
+    select json_build_object(
         'sentiment', _result->>'sentiment',
         'score', (_result->>'score')::numeric,
         'confidence', (_result->>'confidence')::numeric,
         'text_length', (_result->>'text_length')::int,
         'model', _result->>'model',
         'cached', false
-    );
+    ) as result;
 end;
 $$;
 
-comment on function example_10.ai_sentiment is '
-HTTP POST /ai/sentiment
-@authorize
-@proxy POST
-';
+-- @returns json
+-- @single
+-- @result result
+select result from _result_out;
+
+end;

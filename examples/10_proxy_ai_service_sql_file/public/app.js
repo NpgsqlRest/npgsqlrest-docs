@@ -1,5 +1,5 @@
-// src/example10Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+// src/sqlApi.ts
+var baseUrl = "";
 async function aiAnalyze(request) {
   const response = await fetch(baseUrl + "/ai/analyze", {
     method: "POST",
@@ -13,10 +13,14 @@ async function aiAnalyze(request) {
 }
 async function aiHealth() {
   const response = await fetch(baseUrl + "/ai/health", {
-    method: "GET"
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
   });
   return {
     status: response.status,
+    response: response.ok ? await response.json() : undefined,
     error: !response.ok && response.headers.get("content-length") !== "0" ? await response.json() : undefined
   };
 }
@@ -44,7 +48,10 @@ async function aiSummarize(request) {
 }
 async function cacheClear() {
   const response = await fetch(baseUrl + "/cache/clear", {
-    method: "DELETE"
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    }
   });
   return {
     status: response.status,
@@ -66,7 +73,7 @@ async function cacheStats() {
   };
 }
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-10/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -77,7 +84,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-10/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {
@@ -189,7 +196,7 @@ async function handleSummarize() {
   setLoading(summarizeBtn, false, "Summarize");
   showElement(analysisResult);
   if (result.status === 200) {
-    const data = result.response;
+    const data = result.response.result;
     let output = `=== SUMMARY ===
 
 `;
@@ -226,7 +233,7 @@ async function handleSentiment() {
   setLoading(sentimentBtn, false, "Analyze Sentiment");
   showElement(analysisResult);
   if (result.status === 200) {
-    const data = result.response;
+    const data = result.response.result;
     let output = `=== SENTIMENT ANALYSIS ===
 
 `;
@@ -262,7 +269,7 @@ async function handleAnalyze() {
   setLoading(analyzeBtn, false, "Full Analysis");
   showElement(analysisResult);
   if (result.status === 200) {
-    const data = result.response;
+    const data = result.response.result;
     let output = `=== FULL ANALYSIS ===
 
 `;

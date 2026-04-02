@@ -1,28 +1,39 @@
---------------------------------------------------------------------------------
--- Transform Proxy: Text Summarization with Caching
---
--- This function demonstrates TRANSFORM mode:
--- - Has proxy response parameters (_proxy_body, _proxy_success, etc.)
--- - Upstream response is passed to this function for processing
--- - Function can enrich, transform, cache, or validate the response
---
--- Use case: Cache expensive AI calls, enrich with local data, audit logging
---------------------------------------------------------------------------------
+/*
+HTTP POST /ai/summarize
+@authorize
+@proxy POST
 
-drop function if exists example_10.ai_summarize;
-create function example_10.ai_summarize(
-    _text text,
-    _max_length int default 150,
-    -- Proxy response parameters (filled by NpgsqlRest from upstream response)
-    _proxy_status_code int default null,
-    _proxy_body text default null,
-    _proxy_success boolean default null,
-    _proxy_error_message text default null
-)
-returns json
-language plpgsql
-as $$
+@param $1 text text
+@param $2 maxLength int default 150
+
+@param $3 _proxy_status_code int default null
+@param $4 _proxy_body text default null
+@param $5 _proxy_success boolean default null
+@param $6 _proxy_error_message text default null
+*/
+
+begin;
+
+-- @skip
+create temp table _var on commit drop as
+select
+    $1::text as _text,
+    $2::int as _max_length,
+    $3::int as _proxy_status_code,
+    $4::text as _proxy_body,
+    $5::boolean as _proxy_success,
+    $6::text as _proxy_error_message;
+
+do
+$$
 declare
+    _text text = (select _text from _var);
+    _max_length int = (select _max_length from _var);
+    _proxy_status_code int = (select _proxy_status_code from _var);
+    _proxy_body text = (select _proxy_body from _var);
+    _proxy_success boolean = (select _proxy_success from _var);
+    _proxy_error_message text = (select _proxy_error_message from _var);
+
     _text_hash text;
     _cached json;
     _result json;
@@ -48,15 +59,19 @@ begin
             last_accessed_at = now()
         where text_hash = _text_hash;
 
-        return _cached;
+        create temp table _result_out on commit drop as
+        select _cached as result;
+        return;
     end if;
 
     -- Handle proxy errors
     if not _proxy_success then
-        return json_build_object(
+        create temp table _result_out on commit drop as
+        select json_build_object(
             'error', coalesce(_proxy_error_message, 'AI service unavailable'),
             'status_code', _proxy_status_code
-        );
+        ) as result;
+        return;
     end if;
 
     -- Parse and cache the response
@@ -71,18 +86,20 @@ begin
     );
 
     -- Return enriched response
-    return json_build_object(
+    create temp table _result_out on commit drop as
+    select json_build_object(
         'summary', _result->>'summary',
         'original_length', (_result->>'original_length')::int,
         'summary_length', (_result->>'summary_length')::int,
         'model', _result->>'model',
         'cached', false
-    );
+    ) as result;
 end;
 $$;
 
-comment on function example_10.ai_summarize is '
-HTTP POST /ai/summarize
-@authorize
-@proxy POST
-';
+-- @returns json
+-- @single
+-- @result result
+select result from _result_out;
+
+end;

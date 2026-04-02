@@ -2377,7 +2377,7 @@ Replace `3.12.0` with your desired version number.
       //
       // Default TypeScript type for JSON types
       //
-      "DefaultJsonType": "string",
+      "DefaultJsonType": "any",
       //
       // Use routine name instead of endpoint name when generating function names.
       //

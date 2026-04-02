@@ -5,7 +5,7 @@
     "upstream": "bun run ./10_proxy_ai_service_sql_file/upstream/server.ts",
     "dev": "cd .. && bun npgsqlrest ./config.json ./10_proxy_ai_service_sql_file/config.json",
     "start": "bun run upstream & sleep 1 && bun run dev",
-    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./10_proxy_ai_service_sql_file/sql_10",
-    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./10_proxy_ai_service_sql_file/sql_10"
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./10_proxy_ai_service_sql_file/migrations_10",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./10_proxy_ai_service_sql_file/migrations_10"
   }
 }

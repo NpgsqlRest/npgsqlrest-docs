@@ -89,6 +89,7 @@ void
 - No JSON wrapping, no result keys, no rows-affected counts
 - Works on all endpoint types: functions, procedures, CRUD, and SQL file endpoints
 - For multi-command SQL files, all statements execute sequentially — if any fails, the request fails
+- The Describe step still runs at startup — use [`@returns void`](./returns) instead if the statement would fail Describe
 
 ## Related
 

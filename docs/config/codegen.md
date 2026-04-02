@@ -47,7 +47,7 @@ Configuration for generating TypeScript/JavaScript client code for NpgsqlRest en
       "SkipFunctionNames": [],
       "SkipPaths": [],
       "SkipSchemas": [],
-      "DefaultJsonType": "string",
+      "DefaultJsonType": "any",
       "UseRoutineNameInsteadOfEndpoint": false,
       "ExportUrls": false,
       "SkipTypes": false,
@@ -113,7 +113,7 @@ These options allow customization of error handling in generated code. Void func
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `CreateSeparateTypeFile` | bool | `true` | Create separate `{name}Types.d.ts` file for global types. |
-| `DefaultJsonType` | string | `"string"` | Default TypeScript type for JSON types. |
+| `DefaultJsonType` | string | `"any"` | Default TypeScript type for JSON types. |
 | `SkipTypes` | bool | `false` | Skip type generation for pure JavaScript output (changes `.ts` to `.js`). |
 | `UniqueModels` | bool | `false` | Merge models with same fields/types into one (reduces generated models). |
 

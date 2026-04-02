@@ -1,0 +1,150 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-clear.sql
+//
+// HTTP DELETE /cache/clear
+// @authorize
+// @single
+DELETE {{host}}/cache/clear
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-analyze.sql
+//
+// HTTP POST /ai/analyze
+// @authorize
+// @proxy POST
+// @param $1 text text
+// @param $2 maxLength int default 150
+// @param $3 maxKeywords int default 5
+// @param $4 _proxy_status_code int default null
+// @param $5 _proxy_body text default null
+// @param $6 _proxy_success boolean default null
+// @param $7 _proxy_error_message text default null
+//  @skip
+//  @returns json
+//  @single
+//  @result result
+POST {{host}}/ai/analyze
+content-type: application/json
+
+{
+    "text": "ABC",
+    "maxLength": 2,
+    "maxKeywords": 3,
+    "_proxy_status_code": 4,
+    "_proxy_body": "XYZ",
+    "_proxy_success": true,
+    "_proxy_error_message": "ABC"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/login.sql
+//
+// HTTP POST
+// @login
+// @allow_anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-stats.sql
+//
+// HTTP GET /cache/stats
+// @authorize
+GET {{host}}/cache/stats
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-summarize.sql
+//
+// HTTP POST /ai/summarize
+// @authorize
+// @proxy POST
+// @param $1 text text
+// @param $2 maxLength int default 150
+// @param $3 _proxy_status_code int default null
+// @param $4 _proxy_body text default null
+// @param $5 _proxy_success boolean default null
+// @param $6 _proxy_error_message text default null
+//  @skip
+//  @returns json
+//  @single
+//  @result result
+POST {{host}}/ai/summarize
+content-type: application/json
+
+{
+    "text": "ABC",
+    "maxLength": 2,
+    "_proxy_status_code": 3,
+    "_proxy_body": "ABC",
+    "_proxy_success": false,
+    "_proxy_error_message": "IJK"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-health.sql
+//
+//  HTTP GET /ai/health
+//  @proxy
+//  @void
+GET {{host}}/ai/health
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-entries.sql
+//
+// HTTP GET /cache/entries
+// @authorize
+// @param $1 _limit int default 10
+GET {{host}}/cache/entries?_limit=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-sentiment.sql
+//
+// HTTP POST /ai/sentiment
+// @authorize
+// @proxy POST
+// @param $1 text text
+// @param $2 _proxy_status_code int default null
+// @param $3 _proxy_body text default null
+// @param $4 _proxy_success boolean default null
+// @param $5 _proxy_error_message text default null
+//  @skip
+//  @returns json
+//  @single
+//  @result result
+POST {{host}}/ai/sentiment
+content-type: application/json
+
+{
+    "text": "ABC",
+    "_proxy_status_code": 2,
+    "_proxy_body": "IJK",
+    "_proxy_success": true,
+    "_proxy_error_message": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+

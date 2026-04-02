@@ -1,10 +1,11 @@
 {
-  "ApplicationName": "10_proxy_ai_service_sql_file",
+  "ApplicationName": "10_proxy_ai_service",
 
   "StaticFiles": {
     "RootPath": "./10_proxy_ai_service_sql_file/public"
   },
 
+  // Cookie authentication for simple login (bob and alice)
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
@@ -13,21 +14,31 @@
   },
 
   "NpgsqlRest": {
-    "IncludeSchemas": ["example_10"],
+    "IncludeSchemas": [ "example_10" ],
     "RequiresAuthorization": true,
 
     "AuthenticationOptions": {
       "DefaultAuthenticationType": "example_10"
     },
 
+    // Enable proxy functionality
     "ProxyOptions": {
       "Enabled": true,
+      // Default host can be overridden per-endpoint with annotation
       "Host": "http://localhost:3001",
+      // Timeout for proxy requests
       "DefaultTimeout": "00:00:30",
+      // Forward request headers to upstream
       "ForwardHeaders": true,
+      // Headers to exclude from forwarding
       "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding"],
+      // Forward response headers from upstream
       "ForwardResponseHeaders": true,
       "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length"]
+    },
+
+    "RoutineOptions": {
+      "Enabled": false
     },
 
     "SqlFileSource": {

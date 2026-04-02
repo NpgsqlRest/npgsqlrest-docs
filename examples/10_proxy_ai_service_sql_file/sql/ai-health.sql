@@ -1,4 +1,5 @@
--- HTTP GET
--- @path /ai/health
+-- HTTP GET /ai/health
 -- @proxy
+-- @void
 select null;
+

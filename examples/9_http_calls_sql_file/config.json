@@ -2,7 +2,7 @@
   "ApplicationName": "9_http_calls",
 
   "StaticFiles": {
-    "RootPath": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/public"
+    "RootPath": "./9_http_calls_sql_file/public"
   },
 
   // Cookie authentication for simple login (bob and alice)
@@ -37,15 +37,15 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/sql/**/*.sql"
+      "FilePattern": "./9_http_calls_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {
-      "NamePattern": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/http/{1}"
+      "NamePattern": "./9_http_calls_sql_file/http/{1}"
     },
 
     "ClientCodeGen": {
-      "FilePath": "../../npgsqlrest-docs/examples/9_http_calls_sql_file/src/{0}Api.ts"
+      "FilePath": "./9_http_calls_sql_file/src/{0}Api.ts"
     }
   }
 }
