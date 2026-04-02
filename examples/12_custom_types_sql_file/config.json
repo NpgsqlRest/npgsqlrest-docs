@@ -1,13 +1,18 @@
 {
-  "ApplicationName": "12_custom_types_sql_file",
+  "ApplicationName": "12_custom_types",
 
   "StaticFiles": {
     "RootPath": "./12_custom_types_sql_file/public"
   },
 
   "NpgsqlRest": {
+    "IncludeSchemas": [ "example_12" ],
     "RequiresAuthorization": false,
     "QueryStringNullHandling": "EmptyString",
+
+    "RoutineOptions": {
+      "Enabled": false
+    },
 
     "SqlFileSource": {
       "Enabled": true,

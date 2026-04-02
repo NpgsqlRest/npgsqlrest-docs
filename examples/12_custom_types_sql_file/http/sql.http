@@ -1,0 +1,90 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-with-details.sql
+//
+// HTTP GET
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors-with-details?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-and-books.sql
+//
+// HTTP GET
+// @nested
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors-and-books?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-with-details-type.sql
+//
+// HTTP GET
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors-with-details-type?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-with-details-nested.sql
+//
+// HTTP GET
+// @nested
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors-with-details-nested?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors.sql
+//
+// HTTP GET
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-by-fields.sql
+//
+// HTTP GET
+// @param $1 author example_12.authors
+GET {{host}}/api/get-authors-by-fields?author=ABC
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/create-author.sql
+//
+// HTTP POST
+// @param $1 author example_12.authors
+POST {{host}}/api/create-author
+content-type: application/json
+
+{
+    "author": "(, 'John', 'Doe')"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-authors-with-details-type-nested.sql
+//
+// HTTP GET
+// @nested
+// @param $1 authorId int default null
+GET {{host}}/api/get-authors-with-details-type-nested?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-author-info.sql
+//
+// HTTP GET
+// @param $1 authorId int
+GET {{host}}/api/get-author-info?authorId=1
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/12_custom_types_sql_file/sql/get-author.sql
+//
+// HTTP GET
+// @param $1 authorId int
+GET {{host}}/api/get-author?authorId=1
+
+###
+

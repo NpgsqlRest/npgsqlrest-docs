@@ -54,7 +54,7 @@ The `@param` keyword is shared with the [PARAMETER_HASH](./parameter-hash) annot
 ```
 
 - `old_name`: The original parameter name (e.g., `$1`, `$2`, or `_old_name`)
-- `new_name`: The new parameter name for the HTTP API
+- `new_name`: The new parameter name for the HTTP API. **Used as-is** — no name conversion is applied. If you write `@param $1 authorId`, the HTTP parameter name is exactly `authorId`, not `author_id` or `author-id`.
 - `type`: Optional PostgreSQL type override (e.g., `integer`, `text`, `boolean`)
 
 Both `@param` and `@parameter` (long form) are supported.
@@ -169,6 +169,11 @@ This is essential for SQL files because positional parameters (`$1`, `$2`) must 
 -- @param $1 filter default null         -- SQL NULL (unquoted)
 -- @param $1 tag default 'null'          -- literal text "null" (quoted)
 -- @param $1 val default                 -- no value = NULL
+```
+
+Inline comments after the value are ignored. The parser consumes only the value token (or quoted string) and stops.
+
+```sql
 
 -- `=` can be used instead of `default` in all forms:
 -- @param $1 user_id = null

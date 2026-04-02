@@ -1,3 +1,7 @@
--- HTTP GET
--- @param $1 id
-select * from example_12.authors where id = $1::int;
+/*
+HTTP GET
+@param $1 authorId int
+*/
+select author_id, first_name, last_name
+from example_12.authors
+where author_id = $1;
