@@ -20,11 +20,16 @@ head:
 
 # Comment Annotations Guide
 
-NpgsqlRest uses PostgreSQL's built-in [COMMENT](https://www.postgresql.org/docs/current/sql-comment.html) system to configure API endpoints declaratively. This guide explains how comment annotations work and how to use them effectively.
+NpgsqlRest uses comment annotations to configure API endpoints declaratively. Annotations work in two places:
+
+- **PostgreSQL functions/procedures** — via the built-in [COMMENT](https://www.postgresql.org/docs/current/sql-comment.html) system (`COMMENT ON FUNCTION ...`)
+- **SQL files** — via standard SQL comments (`--` line comments and `/* */` block comments) directly in `.sql` files. See the [SQL File Endpoints Guide](./sql-files).
+
+All annotations work identically in both contexts. This guide explains how they work and how to use them effectively.
 
 ## How Annotations Work
 
-Comment annotations are special keywords placed in PostgreSQL comments that control how endpoints are generated and configured. The annotation parser reads comments line by line, looking for recognized keywords at the start of each line.
+Comment annotations are special keywords placed in comments that control how endpoints are generated and configured. The annotation parser reads comments line by line, looking for recognized keywords at the start of each line.
 
 ### Basic Rules
 

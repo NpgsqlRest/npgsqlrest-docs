@@ -1,15 +1,21 @@
 {
-  "ApplicationName": "14_table_format_sql_file",
+  "ApplicationName": "14_table_format",
+
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
+  "StartupMessage": "NpgsqlRest v{version} - {application}, {environment} configuration, loaded in {time}, listening on http://localhost:8080",
+  // Passkey settins doesnt work with IP addresses, use localhost or domain name
 
   "StaticFiles": {
-    "RootPath": "./14_table_format_sql_file/public"
+    "RootPath": "../../npgsqlrest-docs/examples/14_table_format_sql_file/public"
   },
-
+  
   "Stats": {
     "Enabled": true,
-    "OutputFormat": "html"
+    "OutputFormat": "html",
+    "SchemaSimilarTo": "example_14"
   },
 
+  // Cookie authentication for simple login (bob and alice)
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
@@ -31,17 +37,21 @@
       "ExcelKey": "excel"
     },
 
+    "RoutineOptions": {
+      "Enabled": false
+    },
+
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "./14_table_format_sql_file/sql/**/*.sql"
+      "FilePattern": "../../npgsqlrest-docs/examples/14_table_format_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {
-      "NamePattern": "./14_table_format_sql_file/http/{1}"
+      "NamePattern": "../../npgsqlrest-docs/examples/14_table_format_sql_file/http/{1}"
     },
 
     "ClientCodeGen": {
-      "FilePath": "./14_table_format_sql_file/src/{0}Api.ts"
+      "FilePath": "../../npgsqlrest-docs/examples/14_table_format_sql_file/src/{0}Api.ts"
     }
   }
 }

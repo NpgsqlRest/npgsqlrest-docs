@@ -2,11 +2,11 @@
 HTTP GET
 @authorize
 @define_param format text
-@define_param excel_file_name text
-@define_param excel_sheet text
+@define_param excelFileName text
+@define_param excelSheet text
 @table_format = {format}
-@excel_file_name = {excel_file_name}
-@excel_sheet = {excel_sheet}
+@excel_file_name = {excelFileName}
+@excel_sheet = {excelSheet}
 @tsclient_url_only = true
 */
 select * from (values

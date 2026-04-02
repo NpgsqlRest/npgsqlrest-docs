@@ -32,11 +32,11 @@ Before starting, ensure you have:
 
 ## Step 1: Create Your First Endpoint
 
-NpgsqlRest can create endpoints from plain SQL files or from PostgreSQL functions. Choose whichever approach suits your use case — both are fully supported.
+NpgsqlRest can create endpoints from plain SQL files or from PostgreSQL functions. **SQL files are the recommended approach** — they're simpler to set up and don't require any database DDL.
 
-### Option A: SQL File
+### Option A: SQL File (Recommended)
 
-SQL file endpoints are not enabled by default. First, enable them in your `appsettings.json` (or create one — see Step 4):
+SQL file endpoints need to be enabled in your `appsettings.json` (or create one — see Step 4):
 
 ```json
 {
@@ -199,6 +199,8 @@ Now you can start NpgsqlRest without any command line arguments:
 
 Now that you have NpgsqlRest running:
 
+- [SQL File Source Tutorial](/blog/sql-file-source-rest-api-from-plain-sql) - Complete guide to building REST APIs from plain SQL files
+- [SQL File Source Configuration](../config/sql-file-source) - All SQL file source options
 - [Comment Annotations Guide](./annotations) - Use SQL comments to configure endpoints
 - [Annotations Reference](../annotations/) - Complete reference of all annotations
 - [Configuration Reference](../config/) - Complete reference for all configuration options

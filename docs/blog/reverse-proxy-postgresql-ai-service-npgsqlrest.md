@@ -747,6 +747,10 @@ Plus the upstream service remains identical - NpgsqlRest adds the gateway layer 
 
 The Reverse Proxy feature extends NpgsqlRest beyond a database-to-API bridge into a full API gateway - preserving the annotation-driven, SQL-first workflow while adding powerful routing, transformation, and caching capabilities.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service"
   :documentation="[

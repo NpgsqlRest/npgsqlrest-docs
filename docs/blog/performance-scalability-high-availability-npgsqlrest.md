@@ -1026,6 +1026,10 @@ The declarative approach means you describe *what* you want, not *how* to implem
 - [rate_limiter_policy annotation](../annotations/rate-limiter-policy) - Per-endpoint rate limiting
 - [Npgsql Failover and Load Balancing](https://www.npgsql.org/doc/failover-and-load-balancing.html) - Npgsql multi-host documentation
 
+::: tip SQL File Source
+All performance features in this post — caching, retry strategies, rate limiting, timeouts — also work with [SQL file endpoints](/guide/sql-files).
+:::
+
 <BlogNav
   :get-started="[
     { text: 'Quick Start Guide', href: '/guide/quick-start' },

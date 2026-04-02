@@ -567,6 +567,10 @@ To add image uploads to your NpgsqlRest application:
 
 The same function code works for all three storage strategies - only the annotation changes.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/6_image_uploads_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/6_image_uploads"
   :get-started="[

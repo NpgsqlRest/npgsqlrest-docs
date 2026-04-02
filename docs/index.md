@@ -2,7 +2,7 @@
 layout: home
 title: "NpgsqlRest - Automatic REST API for PostgreSQL"
 titleTemplate: false
-description: "Create high-performance REST APIs for PostgreSQL databases in minutes. Auto-generate endpoints from SQL files, functions, tables, and views with built-in authentication, caching, and TypeScript code generation."
+description: "SQL is declarative — your API should be too. Declare caching, auth, retries, rate limiting as SQL annotations. Put PostgreSQL at the dead center of your architecture."
 head:
   - - meta
     - name: keywords
@@ -15,7 +15,7 @@ head:
       content: NpgsqlRest - Automatic PostgreSQL Web Server
   - - meta
     - property: og:description
-      content: Why fight the database when you can embrace it?
+      content: "SQL is declarative — your API should be too. Put PostgreSQL at the dead center of your architecture."
   - - meta
     - name: twitter:card
       content: summary
@@ -26,7 +26,7 @@ head:
 hero:
   name: NpgsqlRest
   text: Automatic PostgreSQL Web Server
-  tagline: Create professional, high-performance HTTP REST APIs for PostgreSQL databases in minutes. Write plain SQL files — get REST endpoints automatically.
+  tagline: "SQL is declarative — your API should be too. Write SQL, annotate it with comments to declare caching, auth, retries, rate limiting, and everything in between. PostgreSQL is the architecture."
   actions:
     - theme: brand
       text: Get Started
@@ -40,10 +40,10 @@ features:
     title: Top Performance, Native Executables, Low Latency
 
   - icon: 📝
-    title: Simple, Declarative Approach with Annotations
+    title: Declarative Annotations for Backend Features
 
   - icon: 🐘
-    title: Database First, No N+1 Problems, No Type Mismatch
+    title: PostgreSQL Is the Architecture, Not a Detail
 
   - icon: 🔄
     title: Code Generation and End-to-End Type Safety
@@ -56,16 +56,16 @@ features:
 <div style="display: flex; flex-direction: column; align-items: center; margin: 2rem 0;">
   <img src="/clean.png" alt="NpgsqlRest Architecture - PostgreSQL at the center with automatic REST API, TypeScript generation, authentication, caching, and more" style="max-width: min(400px, 100%);" />
   <p style="font-style: italic; color: var(--vp-c-text-2); margin-top: 0.75rem; font-size: 0.9rem; text-align: center;">
-    Clean PostgreSQL Architecture - PostgreSQL First Architecture - PostgreSQL Driven Architecture
+    PostgreSQL is the architecture — not a detail to abstract away
   </p>
 </div>
 
 <div style="max-width: 640px; margin: 1.5rem auto; padding: 0 1rem;">
   <ul style="color: var(--vp-c-text-2); padding-left: 1.5rem; margin: 0; list-style: none;">
-    <li>✓ <strong>Schema as contract</strong> — SQL files, functions, tables, and views become REST endpoints</li>
-    <li>✓ <strong>SQL comments as config</strong> — Routes, auth, caching declared where the logic lives</li>
+    <li>✓ <strong>Declare, don't code</strong> — Caching, auth, retries, rate limiting — all declared as SQL annotations</li>
+    <li>✓ <strong>PostgreSQL at the center</strong> — The opposite of Clean Architecture: the database drives everything</li>
     <li>✓ <strong>Types flow outward</strong> — PostgreSQL types generate TypeScript clients automatically</li>
-    <li>✓ <strong>No middle tier</strong> — No ORM mismatch, no N+1 queries, no boilerplate</li>
+    <li>✓ <strong>No middle tier</strong> — No controllers, no models, no mapping layers, no boilerplate</li>
   </ul>
 </div>
 
@@ -75,7 +75,7 @@ features:
 </h2>
 
 <p style="text-align: center; color: var(--vp-c-text-2); margin-bottom: 1.5rem;">
-  Simple comment annotations turn SQL files and PostgreSQL functions into fully-featured REST endpoints.
+  Declare what you want from your endpoint — caching, authorization, timeouts, retries, rate limiting — right where the SQL lives.
 </p>
 
 <h3 id="sql-file-example" tabindex="-1" style="text-align: center; margin-top: 1rem; margin-bottom: 0.5rem;">
@@ -99,6 +99,10 @@ from users
 where $1 is null or department_id = $1;
 ```
 
+</div>
+
+<div style="text-align: center; margin: 1rem 0;">
+  <a href="/guide/sql-files" style="color: var(--vp-c-brand-1); font-weight: 500;">SQL File Endpoints Guide →</a>
 </div>
 
 <h3 id="function-example" tabindex="-1" style="text-align: center; margin-top: 1.5rem; margin-bottom: 0.5rem;">
@@ -144,16 +148,25 @@ HTTP GET /users/
   <a class="header-anchor" href="#blog" aria-label="Permalink to &quot;Blog&quot;">​</a>
 </h2>
 
-<div class="blog-links">
-  <a href="/blog/excel-export-table-format-postgresql-npgsqlrest" class="featured">
+<div class="blog-links" style="display: flex; justify-content: center; margin-bottom: 2rem;">
+  <a href="/blog/sql-rest-api" class="featured" style="border: 3px outset var(--vp-c-brand-1); width: 75%;">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+    <strong style="font-size: 1.15em;">SQL REST API</strong>
+    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
+  </a>
+</div>
+
+<div class="blog-links">
+  <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <strong>REST APIs from Plain SQL Files: The Complete Guide to SQL File Source</strong>
+    <span>Build REST APIs directly from .sql files - no functions, no procedures, no boilerplate. Multi-command endpoints, automatic parameter inference, and TypeScript generation</span>
+  </a>
+  <a href="/blog/excel-export-table-format-postgresql-npgsqlrest" class="featured">
     <strong>Excel Exports Done Right: Zero-Allocation Streaming from PostgreSQL</strong>
     <span>Stream .xlsx exports directly from PostgreSQL with constant memory - zero allocations, native types, one SQL annotation</span>
-  </a>
-  <a href="/blog/passkey-sql-auth" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
-    <strong>Implementing WebAuthn Passkeys with Pure SQL</strong>
-    <span>Passwordless authentication using device biometrics - complete SQL-based passkey registration, login, and credential management</span>
   </a>
   <a href="/blog/postgresql-rest-api-benchmark-2026" class="featured">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">

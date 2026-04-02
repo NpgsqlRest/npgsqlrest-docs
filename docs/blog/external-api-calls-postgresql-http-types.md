@@ -728,6 +728,10 @@ The Financial Dashboard example demonstrates aggregating two external APIs into 
 
 **The code you don't write has no bugs.** HTTP Types let you focus on business logic while NpgsqlRest handles the plumbing.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls"
   :documentation="[

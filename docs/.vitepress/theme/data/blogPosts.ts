@@ -7,6 +7,7 @@ export interface BlogPost {
 }
 
 export const blogPosts: BlogPost[] = [
+  { title: 'SQL REST API', path: '/blog/sql-rest-api' },
   { title: 'Excel Exports Done Right', path: '/blog/excel-export-table-format-postgresql-npgsqlrest' },
   { title: 'Passkey SQL Auth', path: '/blog/passkey-sql-auth' },
   { title: 'Custom Types & Multiset', path: '/blog/custom-types-multiset-rest-api' },
@@ -24,6 +25,5 @@ export const blogPosts: BlogPost[] = [
   { title: 'Zero to CRUD API', path: '/blog/zero-to-crud-api-postgresql-tables-npgsqlrest' },
   { title: 'NpgsqlRest vs PostgREST vs Supabase', path: '/blog/npgsqlrest-vs-postgrest-supabase-comparison' },
   { title: 'Optimization Labels 101', path: '/blog/optimization-labels-101' },
-  { title: 'The NpgsqlRest Story', path: '/blog/npgsqlrest-story-told-without-ai' },
   { title: 'What Have Stored Procedures Done for Us?', path: '/blog/what-have-stored-procedures-ever-done-for-us' },
 ]

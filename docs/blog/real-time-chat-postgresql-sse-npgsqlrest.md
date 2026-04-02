@@ -611,6 +611,10 @@ The key benefits:
 
 For chat, notifications, live dashboards, and most real-time use cases, this approach eliminates complexity while maintaining security and scalability.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/8_simple_chat_client_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/8_simple_chat_client"
   :get-started="[

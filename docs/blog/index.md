@@ -4,14 +4,27 @@ title: Blog
 
 # Blog Posts & Tutorials
 
-<div class="blog-links">
-  <a href="/blog/excel-export-table-format-postgresql-npgsqlrest" class="featured">
+<div class="blog-links" style="display: flex; justify-content: center; margin-bottom: 2rem;">
+  <a href="/blog/sql-rest-api" class="featured" style="border: 3px outset var(--vp-c-brand-1); width: 75%;">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+    <strong style="font-size: 1.15em;">SQL REST API</strong>
+    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
+  </a>
+</div>
+
+<div class="blog-links">
+  <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <strong>REST APIs from Plain SQL Files: The Complete Guide to SQL File Source</strong>
+    <span>Build REST APIs directly from .sql files - no functions, no procedures, no boilerplate. Multi-command endpoints, automatic parameter inference, and TypeScript generation</span>
+  </a>
+  <a href="/blog/excel-export-table-format-postgresql-npgsqlrest" class="featured">
     <strong>Excel Exports Done Right: Zero-Allocation Streaming from PostgreSQL</strong>
     <span>Stream .xlsx exports directly from PostgreSQL with constant memory - zero allocations, native types, one SQL annotation</span>
   </a>
   <a href="/blog/passkey-sql-auth" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <strong>Implementing WebAuthn Passkeys with Pure SQL</strong>
     <span>Passwordless authentication using device biometrics - complete SQL-based passkey registration, login, and credential management</span>
   </a>
@@ -88,9 +101,5 @@ title: Blog
   <a href="/blog/what-have-stored-procedures-ever-done-for-us">
     <strong>What Have PostgreSQL Functions Ever Done for Us?</strong>
     <span>Apart from security, performance, maintainability, testability, and zero boilerplate code, what have they really done for us?</span>
-  </a>
-  <a href="/blog/npgsqlrest-story-told-without-ai">
-    <strong>NpgsqlRest Story Told Without AI</strong>
-    <span>The story of NpgsqlRest told without any help of any AI</span>
   </a>
 </div>

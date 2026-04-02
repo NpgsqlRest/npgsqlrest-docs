@@ -674,6 +674,10 @@ No expensive BI licenses. No complex ETL pipelines. No data warehouses to manage
 
 That's what "database as the application" really means.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/5_csv_basic_auth_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/5_csv_basic_auth"
   :documentation="[

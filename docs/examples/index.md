@@ -21,6 +21,8 @@ head:
 
 This section provides hands-on examples demonstrating NpgsqlRest features. Each example builds on the previous one, progressively introducing more advanced concepts.
 
+**New to NpgsqlRest?** Start with the [SQL File examples](#sql-file-examples-sqlfilesource) — they're the recommended way to build endpoints and don't require any PostgreSQL function definitions.
+
 All examples are available in the [examples repository on GitHub](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples).
 
 ## Prerequisites
@@ -62,6 +64,10 @@ bun run dev
 
 ## Available Examples
 
+### Function-Based Examples (RoutineSource)
+
+These examples use PostgreSQL functions and procedures as the endpoint source:
+
 | Example | Description | Related Blog Post |
 |---------|-------------|-------------------|
 | [1_my_first_function](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/1_my_first_function) | The basics: creating a PostgreSQL function and exposing it as an HTTP endpoint with automatic TypeScript client generation | [End-to-End Type Checking](/blog/end-to-end-static-type-checking-postgresql-typescript) |
@@ -75,8 +81,28 @@ bun run dev
 | [9_http_calls](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls) | External API calls from PostgreSQL using HTTP custom types defined in type comments | [External API Calls](/blog/external-api-calls-postgresql-http-types) |
 | [10_proxy_ai_service](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service) | Reverse proxy with transform mode for caching AI responses and external service integration | [Reverse Proxy & AI Service](/blog/reverse-proxy-postgresql-ai-service-npgsqlrest) |
 | [11_crud_auto_api](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/11_crud_auto_api) | Auto-generate REST CRUD endpoints from PostgreSQL tables with whitelist patterns | [Zero to CRUD API](/blog/zero-to-crud-api-postgresql-tables-npgsqlrest) |
+| [12_custom_types](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types) | Custom PostgreSQL composite types and multiset returns for complex nested JSON responses | [Custom Types & Multiset](/blog/custom-types-multiset-rest-api) |
 | [13_passkey](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/13_passkey) | WebAuthn passkey authentication with pure SQL: passwordless login using device biometrics | [Passkey SQL Auth](/blog/passkey-sql-auth) |
 | [14_table_format](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format) | Excel export and stats endpoints with HTML table format output and cookie authentication | [Excel Exports Done Right](/blog/excel-export-table-format-postgresql-npgsqlrest) |
+
+### SQL File Examples (SqlFileSource) <Badge type="tip" text="v3.12.0" />
+
+These examples use the new [SQL File Source](/config/sql-file-source) plugin — endpoints are generated directly from `.sql` files without needing PostgreSQL functions. Each is the SQL File equivalent of the function-based example above:
+
+| Example | Description | Function-Based Equivalent |
+|---------|-------------|---------------------------|
+| [1_my_first_function_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/1_my_first_function_sql_file) | The basics: creating an endpoint from a `.sql` file with automatic TypeScript client generation | [1_my_first_function](#) |
+| [2_static_type_checking_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking_sql_file) | Static type safety with SQL File Source — catching breaking changes at build time | [2_static_type_checking](#) |
+| [3_security_and_auth_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/3_security_and_auth_sql_file) | Database-level security with cookie-based authentication using SQL files | [3_security_and_auth](#) |
+| [4_passwords_tokens_roles_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/4_passwords_tokens_roles_sql_file) | Password verification, JWT/Bearer tokens, and RBAC using SQL files | [4_passwords_tokens_roles](#) |
+| [5_csv_basic_auth_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/5_csv_basic_auth_sql_file) | CSV exports with HTTP Basic Auth using SQL files | [5_csv_basic_auth](#) |
+| [6_image_uploads_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/6_image_uploads_sql_file) | Secure image uploads with file system storage and Large Objects using SQL files | [6_image_uploads](#) |
+| [7_csv_excel_uploads_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads_sql_file) | CSV and Excel file ingestion with row-by-row processing using SQL files | [7_csv_excel_uploads](#) |
+| [8_simple_chat_client_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/8_simple_chat_client_sql_file) | Real-time chat application using SSE and SQL files | [8_simple_chat_client](#) |
+| [9_http_calls_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls_sql_file) | External API calls from PostgreSQL using SQL files | [9_http_calls](#) |
+| [10_proxy_ai_service_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service_sql_file) | Reverse proxy with AI response caching using SQL files | [10_proxy_ai_service](#) |
+| [12_custom_types_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types_sql_file) | Custom composite types and nested JSON responses using SQL files | [12_custom_types](#) |
+| [14_table_format_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format_sql_file) | Excel export and stats endpoints with HTML table format using SQL files | [14_table_format](#) |
 
 ## Available Commands
 

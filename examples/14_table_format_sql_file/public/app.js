@@ -1,4 +1,4 @@
-// src/example14Api.ts
+// src/sqlApi.ts
 var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";
@@ -7,9 +7,9 @@ var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   }
   return `${key}=${encodeURIComponent(value)}`;
 }).join("&");
-var getDataUrl = (request) => baseUrl + "/api/example-14/get-data" + parseQuery(request);
+var getDataUrl = (request) => baseUrl + "/api/get-data" + parseQuery(request);
 async function login(request) {
-  const response = await fetch(baseUrl + "/api/example-14/login", {
+  const response = await fetch(baseUrl + "/api/login", {
     method: "POST",
     body: JSON.stringify(request)
   });
@@ -20,7 +20,7 @@ async function login(request) {
   };
 }
 async function logout() {
-  const response = await fetch(baseUrl + "/api/example-14/logout", {
+  const response = await fetch(baseUrl + "/api/logout", {
     method: "POST"
   });
   return {

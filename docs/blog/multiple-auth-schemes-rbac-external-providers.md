@@ -674,6 +674,10 @@ The code you don't write has no bugs. Authentication is too important to get wro
 
 Combined with [database-level security](/blog/database-level-security-postgresql-authentication) (Principle of Least Privilege, SECURITY DEFINER, search path protection) and [end-to-end type safety](/blog/end-to-end-static-type-checking-postgresql-typescript), you get a complete, secure, performant application stack that would take months to build from scratch.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/4_passwords_tokens_roles_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/4_passwords_tokens_roles"
   :get-started="[

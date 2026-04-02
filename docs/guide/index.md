@@ -36,11 +36,11 @@ To get started, you need:
 
 NpgsqlRest uses SQL comment annotations to configure API endpoints declaratively. This approach keeps your API configuration close to your SQL logic.
 
-NpgsqlRest creates REST endpoints from two types of sources:
+NpgsqlRest creates REST endpoints from three types of sources:
 
-### Plain SQL Script Files
+### Plain SQL Files <Badge type="tip" text="Flagship" />
 
-Place `.sql` files containing PostgreSQL commands in a directory, and NpgsqlRest creates REST endpoints automatically. Parameter types and return columns are inferred via PostgreSQL's wire protocol — no functions needed:
+The primary way to create endpoints. Place `.sql` files containing PostgreSQL commands in a directory, and NpgsqlRest creates REST endpoints automatically. Parameter types and return columns are inferred via PostgreSQL's wire protocol — no functions, no procedures, no boilerplate:
 
 ```sql
 -- sql/get_users.sql
@@ -66,11 +66,11 @@ update orders set status = 'processing' where id = $1;
 select id, status from orders where id = $1;
 ```
 
-See the [SQL File Source configuration](/config/sql-file-source) for details.
+See the [SQL File Source configuration](/config/sql-file-source) for details and the [complete SQL File Source tutorial](/blog/sql-file-source-rest-api-from-plain-sql) for a hands-on guide.
 
 ### PostgreSQL Routines (Functions and Procedures)
 
-NpgsqlRest generates endpoints from PostgreSQL functions and procedures using the built-in `COMMENT` system:
+NpgsqlRest also generates endpoints from PostgreSQL functions and procedures using the built-in `COMMENT` system:
 
 ```sql
 create function get_user_data(id int)

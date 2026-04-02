@@ -35,6 +35,8 @@ const blogPostsSidebar = [
     text: 'Tutorials',
     collapsed: false,
     items: [
+      { text: 'SQL REST API', link: '/blog/sql-rest-api' },
+      { text: 'SQL File Source', link: '/blog/sql-file-source-rest-api-from-plain-sql' },
       { text: 'Zero to CRUD API', link: '/blog/zero-to-crud-api-postgresql-tables-npgsqlrest' },
       { text: 'Database-Level Security', link: '/blog/database-level-security-postgresql-authentication' },
       { text: 'Multiple Auth Schemes & RBAC', link: '/blog/multiple-auth-schemes-rbac-external-providers' },
@@ -58,7 +60,6 @@ const blogPostsSidebar = [
       { text: 'Optimization Labels 101', link: '/blog/optimization-labels-101' },
       { text: 'What Have Stored Procedures Done for Us?', link: '/blog/what-have-stored-procedures-ever-done-for-us' },
       { text: 'The Power of Simplicity', link: '/blog/the-power-of-simplicity' },
-      { text: 'The NpgsqlRest Story', link: '/blog/npgsqlrest-story-told-without-ai' },
     ]
   },
   {
@@ -347,6 +348,7 @@ export default defineConfig({
             { text: 'Overview', link: '/guide/' },
             { text: 'Installation', link: '/guide/installation' },
             { text: 'Quick Start', link: '/guide/quick-start' },
+            { text: 'SQL File Endpoints', link: '/guide/sql-files' },
             { text: 'Configuration Guide', link: '/guide/configuration' },
             { text: 'Comment Annotations Guide', link: '/guide/annotations' },
             { text: 'FAQ & Troubleshooting', link: '/guide/faq' }

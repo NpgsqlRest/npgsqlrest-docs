@@ -795,6 +795,10 @@ The `text[]` approach means your row function receives whatever data is in the f
 
 This covers virtually all CSV and Excel import scenarios - from simple data loads to complex ETL pipelines - with minimal code and maximum flexibility.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads"
   :get-started="[

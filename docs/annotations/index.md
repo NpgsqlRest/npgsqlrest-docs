@@ -22,6 +22,10 @@ head:
 
 Complete reference for all NpgsqlRest comment annotations. For an introduction to how annotations work, see the [Comment Annotations Guide](../guide/annotations).
 
+::: info
+All annotations work in both PostgreSQL function/procedure comments (`COMMENT ON FUNCTION ...`) and [SQL file endpoints](../guide/sql-files) (`--` and `/* */` comments in `.sql` files). The "SQL File Annotations" section below lists annotations that are specific to SQL files.
+:::
+
 ## How to Use This Reference
 
 Each annotation has its own page with:

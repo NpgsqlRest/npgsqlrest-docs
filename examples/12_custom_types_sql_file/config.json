@@ -6,7 +6,6 @@
   },
 
   "NpgsqlRest": {
-    "IncludeSchemas": [ "example_12" ],
     "RequiresAuthorization": false,
     "QueryStringNullHandling": "EmptyString",
 

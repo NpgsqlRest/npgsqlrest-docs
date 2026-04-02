@@ -45,10 +45,12 @@ Choosing the right tool to expose your PostgreSQL database as a REST API can sig
 | **What It Is** | Complete platform in a single binary | Standalone executable/Docker | Backend-as-a-Service platform |
 | **Core Focus** | SQL files + functions as REST endpoints | Table/View-centric REST API | Complete backend platform |
 | **Best For** | SQL-first APIs, self-hosted full-stack | Flexible client-side queries | Managed hosting with dashboard |
-| **Performance** | 4,588 req/s (100 VU) | 1,749 req/s (100 VU) | Uses PostgREST internally |
+| **Performance** | 4,588 req/s (100 VU)¹ | 1,749 req/s (100 VU)¹ | Uses PostgREST internally |
 | **Deployment** | Single binary (~30MB), any cloud | Single binary (~20MB) | Managed cloud or complex self-host |
 | **Self-Hosting** | Simple (single binary) | Simple | Complex (7+ services) |
 | **Learning Curve** | Low (SQL comments) | Medium (RLS policies) | Medium (platform concepts) |
+
+¹ Benchmarked on a single PostgreSQL function returning a simple result set. See the [full benchmark methodology](/blog/postgresql-rest-api-benchmark-2026) for details. Performance will vary with query complexity and workload type.
 
 ## Architecture Comparison
 
@@ -312,6 +314,8 @@ See [Custom Types and Multiset for Nested JSON](/blog/custom-types-multiset-rest
 NpgsqlRest also offers **[claims-to-parameters mapping](/annotations/user-parameters)** - user claims (user ID, roles, custom claims) are automatically injected as function parameters by configurable name matching, with type safety enforced by PostgreSQL. PostgREST and Supabase only support accessing claims via `current_setting()` or `auth.jwt()` context functions, requiring manual casting within your SQL code.
 
 PostgREST only supports JWT - you need an external auth server like GoTrue (which is what Supabase uses).
+
+**Architectural difference**: PostgREST and Supabase rely on **Row Level Security (RLS)** as their primary authorization mechanism — you write DDL policies on tables that filter rows based on the authenticated user's JWT claims. These policies must be created on the server via migrations and are evaluated on every query. NpgsqlRest takes a different approach: authorization is declared via **comment annotations** (`@authorize`, `@allow_anonymous`, `@basic_auth`, etc.) directly on each endpoint — no RLS needed, no DDL, and each endpoint is individually configurable. For a deeper look at NpgsqlRest's authentication approach, see [Database-Level Security: PostgreSQL Authentication](/blog/database-level-security-postgresql-authentication) and [Multiple Auth Schemes, RBAC & External Providers](/blog/multiple-auth-schemes-rbac-external-providers).
 
 ### File Handling
 
@@ -599,7 +603,7 @@ NpgsqlRest keeps external service orchestration **inside PostgreSQL** with decla
 
 | Feature | NpgsqlRest | PostgREST | Supabase |
 |---------|:----------:|:---------:|:--------:|
-| **Per-endpoint configuration in DB** | ✅ | ❌ | ❌ |
+| **Per-endpoint configuration in SQL comments** | ✅ | ❌ | ❌ |
 | Server-side resolved parameters | ✅ | ❌ | ❌ |
 | Custom response headers | ✅ | ✅ | ✅ |
 | Request header forwarding | ✅ | ✅ | ✅ |
@@ -707,7 +711,7 @@ HTTP GET /users/{p_id}
 
 Everything is configured through **SQL comments** directly on your functions and tables. This keeps API configuration close to the implementation and version-controlled with your schema.
 
-**This is a unique NpgsqlRest feature**: every endpoint can be individually configured with its own caching policy, rate limiting, authentication requirements, timeout, retry strategy, and more—all stored in the database alongside your code. PostgREST and Supabase apply configuration globally or require external tools for per-endpoint customization.
+**This is a unique NpgsqlRest feature**: every endpoint can be individually configured with its own caching policy, rate limiting, authentication requirements, timeout, retry strategy, and more—all declared in SQL comments — either in your SQL files or on database objects. PostgREST and Supabase apply configuration globally or require external tools for per-endpoint customization.
 
 ### PostgREST: External Configuration + RLS
 

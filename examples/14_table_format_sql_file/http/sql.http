@@ -1,0 +1,43 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ../../npgsqlrest-docs/examples/14_table_format_sql_file/sql/get-data.sql
+//
+// HTTP GET
+// @authorize
+// @define_param format text
+// @define_param excelFileName text
+// @define_param excelSheet text
+// @table_format = {format}
+// @excel_file_name = {excelFileName}
+// @excel_sheet = {excelSheet}
+// @tsclient_url_only = true
+GET {{host}}/api/get-data?format=ABC&excelFileName=XYZ&excelSheet=IJK
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/14_table_format_sql_file/sql/login.sql
+//
+// HTTP POST
+// @login
+// @allow_anonymous
+// @param $1 username
+// @param $2 password
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ../../npgsqlrest-docs/examples/14_table_format_sql_file/sql/logout.sql
+//
+//  HTTP POST
+//  @logout
+//  @authorize
+POST {{host}}/api/logout
+
+###
+

@@ -616,6 +616,10 @@ Combined with NpgsqlRest's [end-to-end type safety](/blog/end-to-end-static-type
 
 The database is your most trusted component - treat it that way.
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/3_security_and_auth_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/3_security_and_auth"
   :get-started="[

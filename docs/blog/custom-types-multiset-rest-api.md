@@ -875,6 +875,10 @@ That is a lot of code that I did not have to write myself. Plus, there is also t
 
 I built this project to save me time and effort, and it does exactly that. I hope you find it useful as well. If you do, give it a star on GitHub!
 
+::: tip SQL File Source
+Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types_sql_file).
+:::
+
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types"
   :get-started="[
