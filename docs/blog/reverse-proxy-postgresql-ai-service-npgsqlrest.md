@@ -153,7 +153,7 @@ flowchart TB
     N --> TR["Transform Proxy
     DB + Cache · AI, APIs"]
     N --> RE["Regular Endpoint
-    DB Only · CRUD"]
+    DB Only · SQL/Functions"]
 
     PT --> U1["Upstream Service
     (AI Server)"]

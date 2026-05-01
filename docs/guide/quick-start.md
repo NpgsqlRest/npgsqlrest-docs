@@ -200,6 +200,7 @@ Now you can start NpgsqlRest without any command line arguments:
 Now that you have NpgsqlRest running:
 
 - [SQL File Source Tutorial](/blog/sql-file-source-rest-api-from-plain-sql) - Complete guide to building REST APIs from plain SQL files
+- [TypeScript Code Generation Walkthrough](/blog/typescript-codegen-walkthrough) - Generate typed `fetch()` clients and TypeScript interfaces from your SQL with end-to-end type safety
 - [SQL File Source Configuration](../config/sql-file-source) - All SQL file source options
 - [Comment Annotations Guide](./annotations) - Use SQL comments to configure endpoints
 - [Annotations Reference](../annotations/) - Complete reference of all annotations

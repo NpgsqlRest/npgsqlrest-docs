@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.12.0.
+This is the latest default configuration reference for NpgsqlRest version 3.16.1.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.12.0):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.12.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.12.0/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.12.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.12.0/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 3.16.1):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.1/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.1/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.1/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.1/NpgsqlRestClient/appsettings.json)
 
-Replace `3.12.0` with your desired version number.
+Replace `3.16.1` with your desired version number.
 :::
 
 ```json
@@ -364,11 +364,12 @@ Replace `3.12.0` with your desired version number.
     //
     // Authentication scheme name for cookie authentication. Set to null to use default.
     //
-    "CookieAuthScheme": null,
+    "CookieAuthScheme": "Cookies",
     //
-    // Number of days the cookie remains valid.
+    // Cookie validity duration in Postgres interval syntax: e.g. "14 days", "12 hours", "30 minutes".
+    // Set to null to fall back to the framework default (14 days).
     //
-    "CookieValidDays": 14,
+    "CookieValid": "14 days",
     //
     // Custom name for the authentication cookie. Set to null to use default.
     //
@@ -390,17 +391,39 @@ Replace `3.12.0` with your desired version number.
     //
     "CookieHttpOnly": true,
     //
+    // Controls the SameSite attribute on the authentication cookie. Accepted values:
+    //   "Strict"      — cookie sent only on same-site requests. Most restrictive; CSRF-safe.
+    //   "Lax"         — cookie sent on same-site requests and top-level cross-site GETs (default).
+    //   "None"        — cookie sent on all cross-site requests. REQUIRED for cross-origin SPAs /
+    //                   mobile clients calling this API from a different origin. Browsers drop
+    //                   "SameSite=None" cookies without the Secure attribute, so CookieSecure
+    //                   must be set to "Always".
+    //   "Unspecified" — omit the SameSite attribute entirely (legacy browser behavior).
+    // Set to null to use ASP.NET Core's default (typically "Lax").
+    //
+    "CookieSameSite": null,
+    //
+    // Controls when the cookie's Secure attribute is set. Accepted values:
+    //   "SameAsRequest" — Secure is set only when the request itself is HTTPS (default).
+    //   "Always"        — Secure is always set; browsers only send the cookie over HTTPS. REQUIRED
+    //                     alongside CookieSameSite="None" for cross-origin auth.
+    //   "None"          — Secure is never set; cookies are sent over HTTP as well as HTTPS.
+    // Set to null to use ASP.NET Core's default ("SameAsRequest").
+    //
+    "CookieSecure": null,
+    //
     // Enable Microsoft Bearer Token Auth (proprietary format, not JWT)
     //
     "BearerTokenAuth": false,
     //
     // Authentication scheme name for bearer token authentication. Set to null to use default.
     //
-    "BearerTokenAuthScheme": null,
+    "BearerTokenAuthScheme": "BearerToken",
     //
-    // Number of hours before bearer token expires.
+    // Bearer token expiration in Postgres interval syntax: e.g. "1 hour", "30 minutes", "2 days".
+    // Set to null to fall back to the framework default (1 hour).
     //
-    "BearerTokenExpireHours": 1,
+    "BearerTokenExpire": "1 hour",
     // POST { "refresh": "{{refreshToken}}" }
     "BearerTokenRefreshPath": "/api/token/refresh",
     //
@@ -408,9 +431,9 @@ Replace `3.12.0` with your desired version number.
     //
     "JwtAuth": false,
     //
-    // Authentication scheme name for JWT authentication. Set to null to use default "JwtBearer".
+    // Authentication scheme name for JWT authentication. Set to null to fall back to the framework default.
     //
-    "JwtAuthScheme": null,
+    "JwtAuthScheme": "Bearer",
     //
     // Secret key used to sign JWT tokens. Must be at least 32 characters for HS256.
     // IMPORTANT: Use a strong, unique secret in production. Store securely (e.g., environment variable).
@@ -425,13 +448,15 @@ Replace `3.12.0` with your desired version number.
     //
     "JwtAudience": null,
     //
-    // Number of minutes before JWT access token expires. Default is 60 minutes.
+    // JWT access token expiration in Postgres interval syntax: e.g. "60 minutes", "1 hour", "30 seconds".
+    // Set to null to fall back to the framework default (60 minutes).
     //
-    "JwtExpireMinutes": 60,
+    "JwtExpire": "60 minutes",
     //
-    // Number of days before JWT refresh token expires. Default is 7 days.
+    // JWT refresh token expiration in Postgres interval syntax: e.g. "7 days", "168 hours", "1 week".
+    // Set to null to fall back to the framework default (7 days).
     //
-    "JwtRefreshExpireDays": 7,
+    "JwtRefreshExpire": "7 days",
     //
     // Validate the issuer (iss) claim. Set to true if JwtIssuer is configured.
     //
@@ -458,7 +483,53 @@ Replace `3.12.0` with your desired version number.
     // Returns new access token and refresh token pair.
     //
     "JwtRefreshPath": "/api/jwt/refresh",
-    // 
+    //
+    // Named additional authentication schemes. Each entry registers a fully-fledged ASP.NET Core
+    // authentication scheme alongside the main one. A login function returning a scheme name in its
+    // `scheme` column signs the user in under that scheme — useful for "short-lived sensitive
+    // session", "separate admin scope", or "different JWT signing key per scope" patterns alongside
+    // the normal long-lived primary scheme.
+    //
+    // Each scheme has a `Type`: `Cookies`, `BearerToken`, or `Jwt`. Schemes inherit any unset field
+    // from the root Auth section so blocks stay small. See the type-specific override fields below.
+    //
+    // Validation: scheme name must not collide with the main scheme names (CookieAuthScheme,
+    // BearerTokenAuthScheme, JwtAuthScheme). Explicit `CookieName` values must be unique across all
+    // schemes. Refresh paths (BearerTokenRefreshPath / JwtRefreshPath) must be unique across all
+    // schemes that define one. Disabled schemes (`Enabled: false`) are skipped at startup.
+    //
+    "Schemes": {
+      // Example: a short-lived single-session cookie for sensitive operations (admin area, payment flow).
+      // Login functions can return `'short_session'` in the scheme column to sign users in under this scheme.
+      "short_session": {
+        "Type": "Cookies",
+        "Enabled": false,
+        "CookieValid": "1 hour",
+        "CookieMultiSessions": false
+      },
+      // Example: a separate Microsoft bearer-token scheme with a shorter expiration than the main one.
+      // Each scheme can declare its own refresh path; if set, it must be unique across schemes.
+      "api_token": {
+        "Type": "BearerToken",
+        "Enabled": false,
+        "BearerTokenExpire": "30 minutes",
+        "BearerTokenRefreshPath": "/api/api-token/refresh"
+      },
+      // Example: a separate JWT scheme with its own signing secret (different blast radius from the
+      // main JWT) and a much shorter access-token expiration. Inherits any unset JWT field from the
+      // root Auth section. JwtSecret must be ≥32 characters for HS256.
+      "admin_jwt": {
+        "Type": "Jwt",
+        "Enabled": false,
+        "JwtSecret": null,
+        "JwtIssuer": null,
+        "JwtAudience": null,
+        "JwtExpire": "5 minutes",
+        "JwtRefreshExpire": "1 hour",
+        "JwtRefreshPath": "/api/admin-jwt/refresh"
+      }
+    },
+    //
     // Enable external auth providers
     //
     "External": {
@@ -1504,7 +1575,70 @@ Replace `3.12.0` with your desired version number.
     // Set this shorter than DefaultExpiration to refresh local cache more frequently from Redis.
     // Accepts PostgreSQL interval format.
     //
-    "HybridCacheLocalCacheExpiration": null
+    "HybridCacheLocalCacheExpiration": null,
+    //
+    // Named caching profiles. Endpoints opt into a profile via the `cache_profile <name>` comment annotation;
+    // the profile then supplies the cache backend, default expiration, default key parameters, and per-parameter
+    // skip-cache conditions. Endpoints WITHOUT `cache_profile` continue to use the root cache configured above.
+    //
+    // Each profile object supports:
+    //   - "Enabled" (bool, default false): set to true to register the profile. Disabled profiles are ignored.
+    //   - "Type": "Memory" | "Redis" | "Hybrid" (required when enabled). Backends are pooled — all profiles of the
+    //     same type share one instance (one Memory cache, one Redis connection, one HybridCache singleton).
+    //     A backend is only instantiated if its type is used by the root or some enabled profile.
+    //   - "Expiration": PostgreSQL interval (e.g. "30 seconds", "5 minutes"); used as the default when the
+    //     endpoint has no `cache_expires` annotation. The annotation overrides this.
+    //   - "Parameters": cache-key parameter list with three semantics:
+    //       null/missing  → use ALL routine parameters (different requests → different entries).
+    //       []            → URL-only cache (one entry per endpoint, regardless of inputs).
+    //       ["x", "y"]    → use only these named parameters as the key.
+    //     The endpoint's `cached p1, p2` annotation overrides this list.
+    //   - "When": optional list of conditional rules. Each rule has:
+    //       - "Parameter": routine parameter name to inspect.
+    //       - "Value": scalar (exact match) or array (OR over entries). JSON null matches .NET null/DBNull (NOT empty string).
+    //       - "Then": "skip" → bypass the cache for this request; or a PostgreSQL interval like "30 seconds" → use this
+    //                 as the TTL override when writing.
+    //     Rules are evaluated in declaration order; first match wins. No match → fall through to "Expiration" above.
+    //     A rule's Parameter must be in the profile's "Parameters" list (or in the endpoint's @cached annotation),
+    //     otherwise the rule is dropped at startup with a Warning.
+    //
+    // Common patterns:
+    //   - Skip cache when a date is null (always-fresh data):
+    //       "When": [ { "Parameter": "to", "Value": null, "Then": "skip" } ]
+    //   - Tiered TTL by user role:
+    //       "When": [
+    //         { "Parameter": "tier", "Value": "free", "Then": "5 minutes" },
+    //         { "Parameter": "tier", "Value": "pro",  "Then": "1 hour" }
+    //       ]
+    //
+    // Unknown profile names referenced by `@cache_profile` cause startup to fail with a single error listing all
+    // typos and the offending endpoints. Unused profiles (registered but not referenced) log an Information warning.
+    //
+    // Three disabled example profiles below show all three Types and all four profile fields. Flip "Enabled": true
+    // on the one(s) you want to use.
+    //
+    "Profiles": {
+      "fast_memory": {
+        "Enabled": false,
+        "Type": "Memory",
+        "Expiration": "30 seconds",
+        "Parameters": ["user_id"]
+      },
+      "shared_redis": {
+        "Enabled": false,
+        "Type": "Redis",
+        "Expiration": "1 hour"
+      },
+      "date_range_hybrid": {
+        "Enabled": false,
+        "Type": "Hybrid",
+        "Expiration": "5 minutes",
+        "Parameters": ["from", "to"],
+        "When": [
+          { "Parameter": "to", "Value": null, "Then": "skip" }
+        ]
+      }
+    }
   },
 
   //
@@ -1558,45 +1692,92 @@ Replace `3.12.0` with your desired version number.
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
-    // Policy types: FixedWindow, SlidingWindow, BucketWindow, Concurrency
-    "Policies": [{
-        // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#fixed
+    //
+    // Named rate-limiter policies. The object key is the policy name (referenced from endpoints via the
+    // `rate_limiter_policy <name>` comment annotation, or used as `DefaultPolicy` above).
+    //
+    // Each policy has a `Type` of FixedWindow, SlidingWindow, TokenBucket, or Concurrency, and a set of
+    // type-specific tuning fields. Set `"Enabled": true` to register the policy at startup.
+    //
+    // **Breaking change in 3.13.0**: this section was previously an array of objects with explicit `"Name"`
+    // properties. It is now an object keyed by policy name, matching `ValidationOptions:Rules` and
+    // `CacheOptions:Profiles`. Migrate by moving each policy's `Name` value to be the JSON key and dropping
+    // the `Name` field.
+    //
+    "Policies": {
+      // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#fixed
+      "fixed": {
         "Type": "FixedWindow",
         "Enabled": false,
-        "Name": "fixed",
         "PermitLimit": 100,
         "WindowSeconds": 60,
         "QueueLimit": 10,
         "AutoReplenishment": true
-    }, {
-        // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#sliding-window-limiter
+        // To partition this policy (per-user, per-IP, etc.) so each request gets its own bucket
+        // instead of sharing a single global one, add a "Partition" block. See the "per_user"
+        // policy below for a complete example.
+      },
+      // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#sliding-window-limiter
+      "sliding": {
         "Type": "SlidingWindow",
         "Enabled": false,
-        "Name": "sliding",
         "PermitLimit": 100,
         "WindowSeconds": 60,
         "SegmentsPerWindow": 6,
         "QueueLimit": 10,
         "AutoReplenishment": true
-    }, {
-        // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#token-bucket-limiter
+      },
+      // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#token-bucket-limiter
+      "bucket": {
         "Type": "TokenBucket",
         "Enabled": false,
-        "Name": "bucket",
         "TokenLimit": 100,
         "TokensPerPeriod": 10,
         "ReplenishmentPeriodSeconds": 10,
         "QueueLimit": 10,
         "AutoReplenishment": true
-    }, {
-        // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#concurrency-limiter
+      },
+      // see https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#concurrency-limiter
+      "concurrency": {
         "Type": "Concurrency",
         "Enabled": false,
-        "Name": "concurrency",
         "PermitLimit": 10,
         "QueueLimit": 5,
         "OldestFirst": true
-    }]
+      },
+      //
+      // Example of a partitioned policy. With "Partition" set, each request resolves a partition key
+      // (per-user, per-IP, etc.) and gets its own bucket. Without "Partition", all requests under a
+      // policy share a single global bucket. Any of the four limiter Types above can be partitioned —
+      // FixedWindow is shown here only because it is the most common.
+      //
+      // Sources (ordered) — first source returning a non-empty key wins. Fallback "unpartitioned"
+      // is used if no source matches. Source types:
+      //   { "Type": "Claim",     "Name": "<claim type>" }
+      //   { "Type": "IpAddress" }
+      //   { "Type": "Header",    "Name": "<header name>" }
+      //   { "Type": "Static",    "Value": "<literal key>" }   ← terminal fallback
+      //
+      // BypassAuthenticated (bool, default false) — when true, authenticated users skip rate
+      // limiting entirely. Evaluated before Sources, useful for "throttle anonymous only".
+      //
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "QueueLimit": 10,
+        "AutoReplenishment": true,
+        "Partition": {
+          "Sources": [
+            { "Type": "Claim",     "Name": "name_identifier" },
+            { "Type": "IpAddress" },
+            { "Type": "Static",    "Value": "anonymous" }
+          ],
+          "BypassAuthenticated": false
+        }
+      }
+    }
   },
   
   //
@@ -1775,6 +1956,43 @@ Replace `3.12.0` with your desired version number.
     //
     "RequestHeadersParameterName": "_headers",
     //
+    // When true, EVERY request is wrapped in an explicit BEGIN/COMMIT, and all `set_config` calls switch to the
+    // transaction-local form (`is_local=true`).
+    // Required when using a connection pooler in transaction mode (PgBouncer transaction-pool, AWS RDS Proxy in transaction mode,
+    // Supabase Pooler) — without this, the backend can be reused across unrelated requests, allowing GUC state (and the routine
+    // call itself) to leak or split mid-request. Default false to preserve existing behavior; safe to leave off when using Npgsql's native pool only.
+    //
+    "WrapInTransaction": false,
+    //
+    // Controls how JSON datetime strings are interpreted when bound to timestamp / timestamptz / time / timetz parameters.
+    // When true (default since 3.16.1), Z- and offset-bearing strings are converted to UTC, and naive strings (no offset, no Z)
+    // are assumed UTC. Stored values are then identical regardless of the host process's TZ environment.
+    // When false, the legacy pre-3.16.1 behavior is restored: DateTime.TryParse interprets the string in the host's local time
+    // zone, which silently shifts stored values by the host's UTC offset on non-UTC hosts. Only set to false if you have callers
+    // that depend on host-local interpretation of naive datetime strings and you cannot update them to send Z-suffixed values.
+    //
+    "JsonTimestampsAreUtc": true,
+    //
+    // SQL commands executed after any context is set but before the main routine call. Run in the same batch as the
+    // context `set_config` calls (no extra round-trip). Each entry can be either:
+    //   - A raw SQL string (always runs, no parameters), or
+    //   - An object with `Enabled`, `Sql`, and optional `Parameters`. Object entries are gated by `Enabled` (default false) —
+    //     set `"Enabled": true` to activate.
+    // Each parameter has a `Source` (Claim, RequestHeader, or IpAddress) and an optional `Name` (claim type or header name;
+    // ignored for IpAddress). Values are bound at request time via parameterized SQL.
+    // Common use case: setting `search_path` from a tenant claim for multi-tenant deployments.
+    // Combine with `WrapInTransaction = true` for transaction-local scoping (required for connection poolers in transaction mode).
+    //
+    "BeforeRoutineCommands": [
+      {
+        "Enabled": false,
+        "Sql": "select set_config('search_path', $1, true)",
+        "Parameters": [
+          { "Source": "Claim", "Name": "tenant_id" }
+        ]
+      }
+    ],
+    //
     // Add the unique NpgsqlRest instance id request header with this name to the response or set to null to ignore.
     //
     "InstanceIdRequestHeaderName": null,
@@ -1798,6 +2016,13 @@ Replace `3.12.0` with your desired version number.
     //
     "ServerSentEventsResponseHeaders": {
     },
+    //
+    // When true (default), log a one-time warning per endpoint when a RAISE at the configured SSE notice level fires inside a routine
+    // that has no @sse or @sse_publish annotation. Notices are logged but NOT broadcast to SSE subscribers; the warning surfaces the
+    // likely missing annotation. Inactive when no endpoint in the build participates in SSE publishing — projects that don't use SSE
+    // pay zero overhead and see no warnings.
+    //
+    "WarnUnboundServerSentEventsNotices": true,
     //
     // Options for handling PostgreSQL routines (functions and procedures)
     //
@@ -2288,7 +2513,42 @@ Replace `3.12.0` with your desired version number.
           "ApiKeyLocation": "Cookie",
           "Description": "Cookie-based authentication"
         }*/
-      ]
+      ],
+      //
+      // Filters that control which endpoints appear in the OpenAPI document. The HTTP endpoints
+      // themselves are unaffected — only their inclusion in the generated spec is. Combine with
+      // the per-routine `openapi hide` / `openapi tag <name>` comment annotations for fine-grained
+      // control. Use case: expose a partner-facing document that hides the internal anonymous
+      // surface (health, login, probes) and the internal-only schemas.
+      //
+      // Schema allow-list. When non-empty, only endpoints whose routine schema appears here are
+      // documented. Empty array (default) = document every schema.
+      //
+      "IncludeSchemas": [/* "partner" */],
+      //
+      // Schema deny-list. Any endpoint whose routine schema appears here is skipped. Applied
+      // alongside IncludeSchemas — both must pass. Empty array (default) = no schema exclusions.
+      //
+      "ExcludeSchemas": [/* "internal" */],
+      //
+      // PostgreSQL-style SIMILAR TO pattern matched against the routine NAME. When set, only
+      // routines whose name matches are documented. `_` matches one char, `%` matches any
+      // sequence; the rest of SIMILAR TO syntax (`|`, `*`, `+`, `?`, `(...)`, `[...]`) is
+      // supported. Anchored (must cover the whole name). Default null = no name filter.
+      //
+      "NameSimilarTo": null,
+      //
+      // PostgreSQL-style SIMILAR TO pattern matched against the routine NAME for EXCLUSION.
+      // Matches are skipped. Same syntax as NameSimilarTo. Applied alongside it — both must
+      // pass. Default null = no name exclusion.
+      //
+      "NameNotSimilarTo": null,
+      //
+      // When true, only authenticated endpoints (those that require authorization) are
+      // documented. Anonymous endpoints — typically health, login, probes — are omitted. Useful
+      // for partner-facing documents. Default false = document everything.
+      //
+      "RequiresAuthorizationOnly": false
     },
     
     //
@@ -2524,82 +2784,6 @@ Replace `3.12.0` with your desired version number.
     },
 
     //
-    // CRUD endpoints for the PostgreSQL tables and views.
-    //
-    "CrudSource": {
-      //
-      // Enable or disable the creation of the endpoints for the PostgreSQL tables and views.
-      //
-      "Enabled": false,
-      //
-      // Filter schema names similar to this parameter or `null` to ignore this parameter.
-      //
-      "SchemaSimilarTo": null,
-      //
-      // Filter schema names NOT similar to this parameter or `null` to ignore this parameter.
-      //
-      "SchemaNotSimilarTo": null,
-      //
-      // List of schema names to be included or `null` to ignore this parameter.
-      //
-      "IncludeSchemas": null,
-      //
-      // List of schema names to be excluded or `null` to ignore this parameter.
-      //
-      "ExcludeSchemas": null,
-      //
-      // Filter names similar to this parameter or `null` to ignore this parameter.
-      //
-      "NameSimilarTo": null,
-      //
-      // Filter names NOT similar to this parameter or `null` to ignore this parameter.
-      //
-      "NameNotSimilarTo": null,
-      //
-      // List of names to be included or `null` to ignore this parameter.
-      //
-      "IncludeNames": null,
-      //
-      // List of names to be excluded or `null` to ignore this parameter.
-      //
-      "ExcludeNames": null,
-      //
-      // Configure how the comment annotations will behave. `Ignore` will create all endpoints and ignore comment annotations. `ParseAll` will create all endpoints and parse comment annotations to alter the endpoint. `OnlyWithHttpTag` (default) will only create endpoints that contain the `HTTP` tag in the comments and then parse comment annotations.
-      //
-      "CommentsMode": "OnlyWithHttpTag",
-      //
-      // URL pattern for all "returning" endpoints. Parameter is the original URL. Parameter placeholder {0} is default URL.
-      //
-      "ReturningUrlPattern": "{0}/returning",
-      //
-      // URL pattern for all "do nothing" endpoints. Parameter is the original URL. Parameter placeholder {0} is default URL.
-      //
-      "OnConflictDoNothingUrlPattern": "{0}/on-conflict-do-nothing",
-      //
-      // URL pattern for all "do nothing returning " endpoints. Parameter is the original URL. Parameter placeholder {0} is default URL.
-      //
-      "OnConflictDoNothingReturningUrlPattern": "{0}/on-conflict-do-nothing/returning",
-      //
-      // URL pattern for all "do update" endpoints. Parameter is the original URL. Parameter placeholder {0} is default URL.
-      //
-      "OnConflictDoUpdateUrlPattern": "{0}/on-conflict-do-update",
-      //
-      // URL pattern for all "do update returning" endpoints. Parameter is the original URL. Parameter placeholder {0} is default URL.
-      //
-      "OnConflictDoUpdateReturningUrlPattern": "{0}/on-conflict-do-update/returning",
-      //
-      // Set of flags to enable or disable the creation of the CRUD endpoints for the specific types of the PostgreSQL tables and views. 
-      //
-      // Possible values are: 
-      // Select, Update, UpdateReturning, Insert, InsertReturning, InsertOnConflictDoNothing, InsertOnConflictDoUpdate, InsertOnConflictDoNothingReturning, 
-      // InsertOnConflictDoUpdateReturning, Delete, DeleteReturning, All
-      //
-      "CrudTypes": [
-        "All"
-      ]
-    },
-
-    //
     // SQL file source for generating REST API endpoints from .sql files.
     // Each SQL file must contain exactly one statement.
     //
@@ -2689,7 +2873,6 @@ Replace `3.12.0` with your desired version number.
 
 ### Features
 
-- [CRUD](./crud) - Automatic CRUD endpoint generation for tables
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation
 - [HTTP Files](./http-files) - HTTP test file generation
 - [Code Generation](./codegen) - Client code generation (TypeScript, etc.)

@@ -203,8 +203,9 @@ All three frameworks handle PostgreSQL types correctly.
 | **SQL files as endpoints** | **✅** | **❌** | **❌** |
 | **Multi-command SQL batch execution** | **✅** | **❌** | **❌** |
 | Functions as endpoints | ✅ | ✅ | ✅ |
-| Tables as endpoints | ✅ | ✅ | ✅ |
-| Views as endpoints | ✅ | ✅ | ✅ |
+| Procedures as endpoints | ✅ | ✅ | ✅ |
+| Tables as endpoints | ❌ | ✅ | ✅ |
+| Views as endpoints | ❌ | ✅ | ✅ |
 | Function overloading | ✅ | ✅ | ✅ |
 | Custom URL paths | ✅ | ❌ | ❌ |
 | Path parameters (`/users/{id}`) | ✅ | ❌ | ❌ |
@@ -218,16 +219,14 @@ All three frameworks handle PostgreSQL types correctly.
 
 | Feature | NpgsqlRest | PostgREST | Supabase |
 |---------|:----------:|:---------:|:--------:|
-| Basic CRUD (SELECT/INSERT/UPDATE/DELETE) | ✅ | ✅ | ✅ |
-| INSERT RETURNING | ✅ | ✅ | ✅ |
-| ON CONFLICT (upsert) | ✅ | ✅ | ✅ |
+| Auto-generated CRUD endpoints over tables/views | ❌ | ✅ | ✅ |
 | Client-side filtering operators | ❌ | ✅ (28+ operators) | ✅ |
 | Client-side resource embedding | ❌ | ✅ | ✅ |
 | Client-side aggregates | ❌ | ✅ | ✅ |
 | Client-side column selection | ❌ | ✅ | ✅ |
 | Client-side ordering/pagination | ❌ | ✅ | ✅ |
 
-PostgREST and Supabase allow **clients to compose queries** against tables:
+NpgsqlRest deliberately does not auto-generate CRUD endpoints over tables and views — endpoints come from explicit SQL files or PostgreSQL routines. PostgREST and Supabase allow **clients to compose queries** against tables:
 - Resource embedding automatically joins related tables based on foreign keys
 - 28+ filtering operators including `like`, `ilike`, `in`, `fts` (full-text search), range operators
 - Aggregate functions with automatic GROUP BY
@@ -239,7 +238,7 @@ NpgsqlRest takes a different approach: write the SQL yourself — either as a SQ
 - **Security by design** — you expose exactly what you intend, not an entire table with filters
 - **Predictable performance** — no surprise queries that scan entire tables or create N+1 problems
 
-> **Author's note:** Table/view endpoints exist for convenience, but I consider exposing raw tables directly to be a questionable engineering practice. SQL files and functions provide a proper API contract, encapsulate business logic, and give you full control over what data is exposed and how. — *Vedran Bilopavlović, NpgsqlRest author*
+> **Author's note:** Earlier versions of NpgsqlRest shipped a `CrudSource` plugin that auto-generated CRUD endpoints over tables and views. I removed it from the standalone client in v3.14.0 — exposing raw tables directly is a questionable engineering practice. SQL files and functions provide a proper API contract, encapsulate business logic, and give you full control over what data is exposed and how. The plugin still ships as a NuGet package for embedded library use, but it is no longer wired into the default client. — *Vedran Bilopavlović, NpgsqlRest author*
 
 **Choose PostgREST** if you want clients to compose their own queries against tables.
 **Choose NpgsqlRest** if you prefer well-defined server-side endpoints with explicit query logic.
@@ -293,9 +292,11 @@ See [Custom Types and Multiset for Nested JSON](/blog/custom-types-multiset-rest
 | **Other Features** | | | |
 | Custom login/logout functions | ✅ | ❌ | ✅ |
 | Multiple auth schemes simultaneously | ✅ | ❌ | ✅ |
+| Named additional auth schemes (different TTL/scope per scheme) | ✅ | ❌ | ❌ |
 | Role-based access control | ✅ | ✅ | ✅ |
 | Claims to PostgreSQL context | ✅ | ✅ | ✅ |
 | Claims to PostgreSQL parameters | ✅ | ❌ | ❌ |
+| Auth time fields in interval format (`"14 days"`, `"5 minutes"`) | ✅ | ❌ | ❌ |
 
 ⚠️ = Requires third-party integration
 
@@ -316,6 +317,8 @@ NpgsqlRest also offers **[claims-to-parameters mapping](/annotations/user-parame
 PostgREST only supports JWT - you need an external auth server like GoTrue (which is what Supabase uses).
 
 **Architectural difference**: PostgREST and Supabase rely on **Row Level Security (RLS)** as their primary authorization mechanism — you write DDL policies on tables that filter rows based on the authenticated user's JWT claims. These policies must be created on the server via migrations and are evaluated on every query. NpgsqlRest takes a different approach: authorization is declared via **comment annotations** (`@authorize`, `@allow_anonymous`, `@basic_auth`, etc.) directly on each endpoint — no RLS needed, no DDL, and each endpoint is individually configurable. For a deeper look at NpgsqlRest's authentication approach, see [Database-Level Security: PostgreSQL Authentication](/blog/database-level-security-postgresql-authentication) and [Multiple Auth Schemes, RBAC & External Providers](/blog/multiple-auth-schemes-rbac-external-providers).
+
+**Named additional auth schemes** (NpgsqlRest 3.13.0): NpgsqlRest can register multiple named authentication schemes alongside the main one — e.g., a normal 14-day cookie session for general use plus a 1-hour single-session cookie for sensitive operations (recovery codes, admin areas, payment flows). Each scheme has its own `Type` (`Cookies`, `BearerToken`, or `Jwt`), expiration, and (for JWT) signing secret. Login functions select the scheme by returning its name in the `scheme` column. PostgREST supports only a single JWT scheme with one secret. Supabase Auth uses a single GoTrue session model with one cookie configuration — Supabase docs explicitly note that shortening the cookie's `Max-Age` "results in a degraded user experience," so step-up authentication for sensitive operations must be implemented at the application layer.
 
 ### File Handling
 
@@ -370,21 +373,71 @@ PostgREST has **no file upload support**. Supabase requires a separate Storage s
 | Response caching (Redis) | ✅ | ❌ | ❌ |
 | Hybrid cache with stampede protection | ✅ | ❌ | ❌ |
 | Cache invalidation endpoints | ✅ | ❌ | ❌ |
-| Rate limiting | ✅ | ❌ | ✅ |
+| Named cache profiles (per-endpoint) | ✅ | ❌ | ❌ |
+| Conditional caching (When rules: dynamic TTL, skip-on-condition) | ✅ | ❌ | ❌ |
+| Rate limiting | ✅ | ❌ | ⚠️ |
 | Multiple rate limit algorithms | ✅ | ❌ | ❌ |
+| Partitioned rate limiting (per-user/IP/header) | ✅ | ❌ | ❌ |
 | Connection pooling | ✅ | ✅ | ✅ |
+| Transaction-mode pooler compatibility (PgBouncer/RDS Proxy/Supavisor) | ✅ | ✅ | ✅ |
 | Command retry with backoff | ✅ | ❌ | ❌ |
 | Connection retry with configurable delays | ✅ | ❌ | ❌ |
 | Multi-host failover | ✅ | ❌ | ✅ |
 | Request compression | ✅ | ✅ | ✅ |
 | Response compression (Gzip/Brotli) | ✅ | ✅ | ✅ |
 
+⚠️ Supabase has rate limiting at the managed cloud edge layer, but it is not configurable per-endpoint or as a policy.
+
 NpgsqlRest includes **enterprise-grade performance features**:
 - Three caching modes: Memory, Redis, and Hybrid with stampede protection
+- **Named cache profiles** with `When` rules — different TTLs based on input shape, conditional cache bypass, per-endpoint policy selection via `@cache_profile` annotation
 - Four rate limiting algorithms: Fixed window, sliding window, token bucket, concurrency
+- **Partitioned rate limiting** — per-user, per-IP, or per-header buckets via `Partition` block, with `BypassAuthenticated` for "throttle anonymous only" patterns
 - Automatic retry with exponential backoff for transient failures
 - Connection retry with configurable delay sequences and PostgreSQL error code matching (e.g., connection lost, too many connections, server starting up)
 - Multi-host failover with read replica support
+
+**Caching architectural difference**: PostgREST has no built-in response caching ([active issue #4460](https://github.com/PostgREST/postgrest/issues/4460) proposing a SIEVE-based in-memory cache), so caching must be handled by an upstream reverse proxy or CDN. Supabase has CDN caching for storage assets only — API response caching requires manual implementation (Next.js cache helpers, revalidation webhooks, or external Redis). NpgsqlRest is the only one with first-class response caching including conditional rules: a single endpoint can serve historical queries cached for 1 hour, "until-now" queries cached for 5 minutes, and `live=true` queries that bypass the cache entirely — all declared in JSON config, no SQL changes.
+
+**Rate limiting architectural difference**: PostgREST has no built-in rate limiting ([issue #785](https://github.com/PostgREST/postgrest/issues/785) — the official position is that rate limiting belongs at the gateway level, not in PostgREST). Supabase has edge-level rate limiting in their managed cloud, but it is not configurable per-endpoint or as a partitioned policy. NpgsqlRest's `Partition` block resolves a key per request from claims/IP/headers, so each authenticated user gets their own bucket — without writing custom middleware or fronting the service with Nginx/Kong.
+
+### Connection Pooler Compatibility & Multi-Tenancy
+
+| Feature | NpgsqlRest | PostgREST | Supabase |
+|---------|:----------:|:---------:|:--------:|
+| Per-request transaction wrapping (opt-in) | ✅ | ✅ | ✅ |
+| Pre-routine SQL execution hook | ✅ | ✅ | ✅ |
+| Multiple pre-routine commands per request | ✅ | ❌ | ❌ |
+| Parameterized pre-routine SQL with claim/header/IP binding | ✅ | ❌ | ❌ |
+| No extra round-trip for pre-routine commands | ✅ | ✅ | ✅ |
+| Multi-tenant `search_path` from JWT claim (declarative) | ✅ | ⚠️ | ⚠️ |
+
+⚠️ Possible via a custom function called by `db-pre-request`, but not declarative — requires writing a SQL function that reads `current_setting('request.jwt.claims', true)::json` and calls `set_config()` manually.
+
+**All three platforms support transaction-mode connection poolers** (PgBouncer transaction-pool, AWS RDS Proxy in transaction mode, Supabase's Supavisor) — but the ergonomics differ.
+
+**PostgREST** has [`db-pre-request`](https://docs.postgrest.org/en/stable/references/configuration.html#db-pre-request), a configuration option that names a single SQL function to call after authentication and before the main query. The function can read JWT claims via `current_setting('request.jwt.claims', true)::json` and apply settings like `search_path`. This is functionally similar to NpgsqlRest's hook, but is **a single function call** with no parameter binding — you write SQL that reads context strings, parses JSON, and calls `set_config()` itself. PostgREST also wraps every request in a transaction with role/jwt-claims set per-transaction by default, so pooler compatibility is built in without an opt-in flag.
+
+**Supabase** uses PostgREST internally, so it inherits `db-pre-request`. Supavisor handles transaction-mode pooling.
+
+**NpgsqlRest 3.13.0** introduces two cooperating options:
+- **`WrapInTransaction: true`** wraps every request in `BEGIN ... COMMIT` and switches `set_config` calls to transaction-local (`is_local=true`). Required for PgBouncer transaction-pool, AWS RDS Proxy in transaction mode, and Supabase Pooler. Default is `false` (existing behavior preserved).
+- **`BeforeRoutineCommands`** — a list of SQL commands (raw strings or objects with `Sql` + `Parameters`) executed in the same `NpgsqlBatch` as context setup, with no extra round-trip. **Parameter values are bound at request time** from `HttpContext`: each parameter has a `Source` (`Claim`, `RequestHeader`, or `IpAddress`) and an optional `Name`, with values passed as parameterized SQL inputs (no string interpolation, no injection risk).
+
+The practical difference: NpgsqlRest's multi-tenant `search_path` is 4 lines of JSON config:
+
+```jsonc
+"BeforeRoutineCommands": [
+  {
+    "Sql": "select set_config('search_path', $1, true)",
+    "Parameters": [{ "Source": "Claim", "Name": "tenant_id" }]
+  }
+]
+```
+
+The PostgREST equivalent requires creating a SQL function that reads `request.jwt.claims`, parses the JSON, extracts `tenant_id`, and calls `set_config()` — plus the `db-pre-request = '<function_name>'` config entry. Functionally equivalent, but the NpgsqlRest version is declarative with type-safe parameter binding rather than string-parsing JWT claims in SQL.
+
+For details on the NpgsqlRest options, see [Connection Pooler Compatibility](/config/npgsqlrest#connection-pooler-compatibility).
 
 ### Real-Time Capabilities
 
@@ -709,7 +762,7 @@ HTTP GET /users/{p_id}
 ';
 ```
 
-Everything is configured through **SQL comments** directly on your functions and tables. This keeps API configuration close to the implementation and version-controlled with your schema.
+Everything is configured through **SQL comments** directly on your functions, procedures, or `.sql` files. This keeps API configuration close to the implementation and version-controlled with your schema.
 
 **This is a unique NpgsqlRest feature**: every endpoint can be individually configured with its own caching policy, rate limiting, authentication requirements, timeout, retry strategy, and more—all declared in SQL comments — either in your SQL files or on database objects. PostgREST and Supabase apply configuration globally or require external tools for per-endpoint customization.
 
@@ -784,6 +837,10 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 - **Performance is critical** — 2.6x faster than PostgREST under load
 - **You want server-side API design** — SQL files for simple queries, functions for complex logic
 - **You need enterprise features** — caching (memory/Redis/hybrid), rate limiting, retry logic, multi-host failover
+- **You need conditional caching** — different TTLs for historical vs live data, declarative skip-on-condition
+- **You need per-user rate limits** — `Partition` block scopes buckets by claim, IP, or header
+- **You run behind a transaction-mode pooler** — PgBouncer, AWS RDS Proxy, or Supabase Pooler with declarative multi-tenant `search_path`
+- **You need multi-tier auth** — short-lived sensitive sessions alongside normal long-lived ones
 - **You need file handling** — upload images, process CSV/Excel, store as Large Objects
 - **You want real-time without WebSocket complexity** — SSE with PostgreSQL RAISE statements
 - **You prefer simple deployment** — single binary on any cloud server (AWS, DigitalOcean, Hetzner, etc.)
@@ -813,19 +870,21 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 ### From PostgREST to NpgsqlRest
 
 1. **Functions work identically** — both expose PostgreSQL functions as endpoints
-2. **Move simple RPC functions to SQL files** — many `/rpc/` endpoints can become plain `.sql` files, no `CREATE FUNCTION` needed
-3. **Add SQL comments for configuration** — replace external config with inline annotations
-4. **Replace RLS with function-level auth** — or keep RLS and add `authorize` annotations
-5. **Gain features** — caching, rate limiting, file uploads, multi-command batch scripts
+2. **Replace direct table/view access with SQL files or functions** — NpgsqlRest does not auto-generate CRUD endpoints over tables. Endpoints that relied on PostgREST's `?eq.`/`?order.` style query composition need to be expressed as SQL files (often the simplest path) or as PostgreSQL functions
+3. **Move simple RPC functions to SQL files** — many `/rpc/` endpoints can become plain `.sql` files, no `CREATE FUNCTION` needed
+4. **Add SQL comments for configuration** — replace external config with inline annotations
+5. **Replace RLS with function-level auth** — or keep RLS and add `@authorize` annotations
+6. **Gain features** — caching, rate limiting, file uploads, multi-command batch scripts
 
 ### From Supabase to NpgsqlRest
 
 1. **Keep your PostgreSQL schema** - It's still just PostgreSQL
-2. **Replace GoTrue with built-in auth** - JWT, encrypted Bearer/Cookie, OAuth, Passkey/WebAuthn
-3. **Replace Storage with NpgsqlRest uploads** - File system or Large Objects
-4. **Replace Realtime with SSE** - Simpler protocol, works through standard HTTP
-5. **Replace Edge Functions with SQL files or proxy annotations** — simple Edge Functions become SQL files. Those that call external APIs become functions with `@proxy`, `@proxy_out`, or [HTTP Client Type](/config/http-client) annotations. No separate Deno runtime needed
-6. **Replace pg_net/http extensions with HTTP Client Types** - Typed, synchronous HTTP calls with retry logic and server-side secret resolution, integrated into the function execution pipeline
+2. **Replace direct table/view access with SQL files or functions** — same caveat as the PostgREST migration: Supabase's auto-generated table API has no direct counterpart, so write the queries as SQL files or routines
+3. **Replace GoTrue with built-in auth** - JWT, encrypted Bearer/Cookie, OAuth, Passkey/WebAuthn
+4. **Replace Storage with NpgsqlRest uploads** - File system or Large Objects
+5. **Replace Realtime with SSE** - Simpler protocol, works through standard HTTP
+6. **Replace Edge Functions with SQL files or proxy annotations** — simple Edge Functions become SQL files. Those that call external APIs become functions with `@proxy`, `@proxy_out`, or [HTTP Client Type](/config/http-client) annotations. No separate Deno runtime needed
+7. **Replace pg_net/http extensions with HTTP Client Types** - Typed, synchronous HTTP calls with retry logic and server-side secret resolution, integrated into the function execution pipeline
 
 ## Conclusion
 
@@ -845,6 +904,10 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 | **File Handling** | NpgsqlRest |
 | **Excel Export (native .xlsx)** | NpgsqlRest (only native support) |
 | **Enterprise Features (caching, rate limiting)** | NpgsqlRest |
+| **Conditional Caching (When rules)** | NpgsqlRest (only native support) |
+| **Per-User Rate Limiting (Partition)** | NpgsqlRest (only declarative) |
+| **Multi-Tier Auth Schemes (per-scope sessions)** | NpgsqlRest (only declarative) |
+| **Multi-Tenant `search_path` from JWT** | NpgsqlRest (declarative) |
 | **Column Encryption (encrypt/decrypt)** | NpgsqlRest (only native support) |
 | **Error Handling (policies, RFC 7807)** | NpgsqlRest (only configurable) |
 | **Security Headers** | NpgsqlRest (only built-in) |

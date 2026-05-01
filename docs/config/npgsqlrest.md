@@ -61,7 +61,6 @@ NpgsqlRest HTTP middleware general configuration for endpoint generation and req
     "ServerSentEventsResponseHeaders": {},
     "RoutineOptions": { ... },
     "AuthenticationOptions": { ... },
-    "CrudSource": { ... },
     "SqlFileSource": { ... },
     "UploadOptions": { ... },
     "ClientCodeGen": { ... },
@@ -75,7 +74,6 @@ See related configuration pages:
 
 - [Routine Options](./routine-options) for `RoutineOptions` configuration
 - [Authentication Options](./authentication-options) for `AuthenticationOptions` configuration
-- [CRUD Source](./crud) for `CrudSource` configuration
 - [SQL File Source](./sql-file-source) for `SqlFileSource` configuration
 - [Upload Options](./uploads) for `UploadOptions` configuration
 - [Code Generation](./codegen) for `ClientCodeGen` configuration
@@ -153,8 +151,6 @@ Available modes:
 | `OnlyWithHttpTag` | Only create endpoints for routines with [HTTP](../annotations/http) annotation in comments (default). |
 
 With the default `OnlyWithHttpTag` mode, routines without the `HTTP` annotation in their comment will not be exposed as endpoints. This provides explicit control over which database routines are accessible via the API.
-
-See also [CRUD Source CommentsMode](./crud#comments-mode) for table/view endpoint generation settings.
 
 ## URL and Naming
 
@@ -236,6 +232,61 @@ When `DefaultRequestParamType` is `null`:
 | `Context` | Set context variable `context.headers` with JSON string via `set_config()`. |
 | `Parameter` | Send headers to parameter named by `RequestHeadersParameterName`. Parameter must be JSON/text type with default value. |
 
+## Connection Pooler Compatibility
+
+::: tip New in 3.13.0
+`WrapInTransaction` and `BeforeRoutineCommands` options for connection pooler compatibility and pre-routine SQL commands.
+:::
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `WrapInTransaction` | bool | `false` | When `true`, **every request** is wrapped in an explicit `BEGIN ... COMMIT`, and all `set_config` calls switch from session-scoped (`is_local=false`) to transaction-local (`is_local=true`). |
+| `BeforeRoutineCommands` | array | `[]` | SQL commands executed after any context is set but before the main routine call. Run in the same batch as the context `set_config` calls (no extra round-trip). |
+
+### WrapInTransaction
+
+This is required for connection poolers in transaction mode — including PgBouncer transaction-pool, AWS RDS Proxy in transaction mode, and Supabase Pooler. Previously, `set_config(name, value, false)` would set the GUC at the session level on the underlying PostgreSQL backend. With a transaction-mode pooler, the same backend is reused for unrelated client requests, which means session-scoped GUCs from one request could be visible to the next. With `WrapInTransaction = true`, GUCs are scoped to the request transaction and discarded on `COMMIT`.
+
+The default remains `false` to preserve existing behavior; it is safe to leave off when using Npgsql's native pool only (which issues `DISCARD ALL` on connection return).
+
+```jsonc
+{
+  "NpgsqlRest": {
+    "WrapInTransaction": true
+  }
+}
+```
+
+### BeforeRoutineCommands
+
+Each entry can be either a raw SQL string (no parameters) or an object with `Sql` and `Parameters`. Each parameter has a `Source` (`Claim`, `RequestHeader`, or `IpAddress`) and an optional `Name` (claim type or header name). Parameter values are bound at request time from `HttpContext` — claim and header values are passed as parameterized SQL inputs (no string interpolation, no injection risk).
+
+The most useful pattern is **multi-tenant `search_path` setup** driven by a JWT/cookie claim:
+
+```jsonc
+{
+  "NpgsqlRest": {
+    "WrapInTransaction": true,
+    "BeforeRoutineCommands": [
+      "select set_config('app.request_time', clock_timestamp()::text, true)",
+      {
+        "Sql": "select set_config('search_path', $1, true)",
+        "Parameters": [{ "Source": "Claim", "Name": "tenant_id" }]
+      }
+    ]
+  }
+}
+```
+
+Per-request execution order with this config:
+
+1. `BEGIN`
+2. Each `BeforeRoutineCommand` is added as a `NpgsqlBatchCommand` (with parameters bound from claims/headers/IP) and dispatched in a single batch.
+3. The main routine call.
+4. `COMMIT`.
+
+Steps 1–3 share a single network round-trip.
+
 ## NULL Handling
 
 | Setting | Type | Default | Description |
@@ -266,6 +317,39 @@ comment on function my_func(text) is '
 @query_string_null_handling empty_string
 @text_response_null_handling no_content
 ';
+```
+
+## JSON Timestamp Handling
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `JsonTimestampsAreUtc` | bool | `true` | How JSON-encoded timestamps are interpreted when parsed into `timestamp`, `timestamptz`, `time`, and `timetz` parameters. |
+
+When `true` (default, recommended):
+
+- `Z`-suffixed and offset-bearing ISO strings (e.g. `"2026-05-20T06:00:00Z"`, `"2026-05-20T08:00:00+02:00"`) are converted to UTC.
+- Naive ISO strings with no offset and no `Z` (e.g. `"2026-05-20T06:00:00"`) are **assumed UTC** rather than interpreted as the host's local time.
+
+The result is host-TZ-independent: the same JSON payload produces the same stored value regardless of the `TZ` environment of the process serving the request.
+
+When `false`, the parsers fall back to the pre-3.16.0 behavior:
+
+- `Z` / offset-bearing strings are converted to the host's local time zone and tagged `Kind=Local`.
+- Naive strings are parsed as `Kind=Unspecified`.
+- The `timestamptz` / `timetz` parsers then re-apply `SpecifyKind(Utc)` on top of the local-shifted value — silently shifting the stored value by the host's UTC offset on non-UTC hosts.
+
+::: warning Opt-out only — not recommended for new deployments
+`JsonTimestampsAreUtc: false` exists as a compatibility escape hatch for callers that genuinely depend on the legacy "naive timestamps are host-local" behavior and cannot be updated to send `Z`-suffixed values. It reproduces the bug class fixed in 3.16.0. Leave at the default unless you have a specific legacy reason to flip it.
+:::
+
+Example:
+
+```json
+{
+  "NpgsqlRest": {
+    "JsonTimestampsAreUtc": true
+  }
+}
 ```
 
 ## Server-Sent Events

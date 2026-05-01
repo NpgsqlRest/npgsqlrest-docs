@@ -50,6 +50,23 @@ comment on function change_password(text, text) is
 @sensitive';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/change-password.sql`):
+
+```sql
+/*
+HTTP POST
+@authorize
+@sensitive
+@param $1 old_password
+@param $2 new_password
+*/
+update users
+set password_hash = crypt($2, gen_salt('bf'))
+where id = current_user_id()
+  and password_hash = crypt($1, password_hash)
+returning true;
+```
+
 ### Login Endpoint
 
 ```sql

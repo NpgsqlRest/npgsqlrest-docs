@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "NpgsqlRest Overview"
 titleTemplate: NpgsqlRest
-description: "NpgsqlRest is a production-ready web server that automatically transforms PostgreSQL databases into REST APIs. Auto-generate endpoints from SQL files, functions, tables, and views."
+description: "NpgsqlRest is a production-ready web server that automatically transforms PostgreSQL databases into REST APIs. Auto-generate endpoints from SQL files, functions, and procedures."
 head:
   - - meta
     - name: keywords
@@ -22,7 +22,7 @@ head:
 
 NpgsqlRest is a **production-ready**, standalone **web server** that automatically transforms your PostgreSQL database into a REST API. It provides:
 
-- **Automatic HTTP REST endpoints** from SQL files, functions, procedures, tables, and views
+- **Automatic HTTP REST endpoints** from SQL files, functions, and procedures
 - **SQL files as endpoints** — write plain `.sql` files containing PostgreSQL commands and get REST endpoints automatically
 - **Code generation** for JavaScript/TypeScript client libraries
 - **Code generation** for [HTTP files](https://www.google.com/search?q=http+files&oq=http+files&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOTIGCAEQRRg8MgYIAhBFGDzSAQgxNTI4ajBqMagCALACAA&sourceid=chrome&ie=UTF-8) for a simple way to quickly invoke and TEST your API.
@@ -36,7 +36,7 @@ To get started, you need:
 
 NpgsqlRest uses SQL comment annotations to configure API endpoints declaratively. This approach keeps your API configuration close to your SQL logic.
 
-NpgsqlRest creates REST endpoints from three types of sources:
+NpgsqlRest creates REST endpoints from two types of sources:
 
 ### Plain SQL Files <Badge type="tip" text="Flagship" />
 
@@ -88,17 +88,7 @@ Cache-Control: public, max-age=31536000';
 
 This creates a GET endpoint at `/admin/get-user-data` that requires admin authorization and sets cache control headers.
 
-### Tables and Views (CRUD)
-
-NpgsqlRest can also auto-generate CRUD endpoints for PostgreSQL tables and views:
-
-```sql
-comment on table users is 'HTTP';
-```
-
-This automatically generates REST endpoints for SELECT, INSERT, UPDATE, and DELETE operations on the `users` table. See [CRUD Source configuration](/config/crud) for details.
-
-All three sources generate **HTTP test files** for testing your API and **JavaScript/TypeScript client libraries** with type definitions ready for your frontend.
+All endpoint sources generate **HTTP test files** for testing your API and **JavaScript/TypeScript client libraries** with type definitions ready for your frontend.
 
 ## Technology & Distribution
 

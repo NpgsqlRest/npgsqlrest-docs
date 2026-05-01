@@ -6,7 +6,70 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 ---
 
-## Version 3.12 (Latest)
+## Version 3.16 (Latest)
+
+| Version | Date |
+|---------|------|
+| [v3.16.1](/guide/changelog/v3.16.1) | 2026-06-01 |
+| [v3.16.0](/guide/changelog/v3.16.0) | 2026-05-20 |
+
+- Fix: cache stampede protection now actually fires for cached routine responses (`IRoutineCache.GetOrCreateAsync`); a burst of identical cold-cache requests collapses to a single database execution
+
+- Fix: JSON-to-parameter parsers for `timestamp`, `timestamptz`, `time`, and `timetz` are now host-TZ-independent (silent host-offset shift removed)
+- Fix: `TryParseDate` falls back to a `DateTime` parse when `DateOnly` rejects offset/`Z`-bearing inputs
+- Breaking: JSON timestamps are now interpreted as UTC by default (naive ISO strings assumed UTC, `Z` / offset-bearing strings converted to UTC)
+- New `NpgsqlRest:JsonTimestampsAreUtc` config key — opt-out escape hatch to restore the pre-3.16.0 host-local interpretation
+
+---
+
+## Version 3.15
+
+| Version | Date |
+|---------|------|
+| [v3.15.2](/guide/changelog/v3.15.2) | 2026-05-11 |
+| [v3.15.1](/guide/changelog/v3.15.1) | 2026-05-11 |
+| [v3.15.0](/guide/changelog/v3.15.0) | 2026-05-11 |
+
+- Auth: named cookie schemes now actually authenticate requests (cookie-aware policy-scheme dispatch)
+- New `Auth:CookieSameSite` and `Auth:CookieSecure` config keys for cross-origin SPA / mobile clients (root + per-scheme)
+- OpenAPI filtering: `IncludeSchemas`, `ExcludeSchemas`, `NameSimilarTo`, `NameNotSimilarTo`, `RequiresAuthorizationOnly`
+- New `@openapi` annotation — `@openapi hide` and `@openapi tag <name>` for per-routine OpenAPI control
+- Fix: `Auth:Schemes` keys validated by `Type`, not by name — custom schemes named like the docs examples no longer fail startup (3.15.1)
+- Fix: `--config` and `--validate` CLI commands honor `ValidateConfigKeys` mode (3.15.1)
+- Fix: `RateLimiterOptions:Policies` and `CacheOptions:Profiles` validate by shape — custom policy / profile names no longer fail startup under `ValidateConfigKeys: "Error"` (3.15.2)
+- Improvement: `ValidationOptions:Rules` rule bodies validated for typos (3.15.2)
+
+---
+
+## Version 3.14
+
+| Version | Date |
+|---------|------|
+| [v3.14.0](/guide/changelog/v3.14.0) | 2026-05-09 |
+
+- Standalone client no longer wires the `NpgsqlRest.CrudSource` plugin (library use unchanged)
+- New SSE annotations `@sse_publish` and `@sse_subscribe` — split publisher and subscriber roles
+- Warning when a `RAISE` looks like a missed `@sse_publish`
+- Reliable SSE connection handshake
+- Startup error when claim-mapped parameters use a non-text type
+- Warning when a request value is overridden by claim auto-bind
+- Lower-allocation JSON conversion for arrays and composites
+- Hardening: `ArrayPool` rentals released in `try/finally`, column-decryption failures logged at Trace
+
+---
+
+## Version 3.13
+
+| Version | Date |
+|---------|------|
+| [v3.13.0](/guide/changelog/v3.13.0) | 2026-04-24 |
+
+- Auth Schemes — named additional authentication schemes (Cookies / BearerToken / Jwt)
+- Login functions can select a scheme via the `scheme` column
+
+---
+
+## Version 3.12
 
 | Version | Date |
 |---------|------|

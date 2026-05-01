@@ -4,17 +4,31 @@ title: Blog
 
 # Blog Posts & Tutorials
 
-<div class="blog-links" style="display: flex; justify-content: center; margin-bottom: 2rem;">
-  <a href="/blog/sql-rest-api" class="featured" style="border: 3px outset var(--vp-c-brand-1); width: 75%;">
+<div class="blog-links blog-hero">
+  <a href="/blog/case-study-zero-backend-code" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
-    <strong style="font-size: 1.15em;">SQL REST API</strong>
-    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
+    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
+    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, and an estimated 3,500–7,300 LOC of host-language boilerplate eliminated</span>
   </a>
 </div>
 
 <div class="blog-links">
+  <a href="/blog/typescript-codegen-walkthrough" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <strong>From SQL to Type-Safe TypeScript: A Walkthrough of NpgsqlRest's Code Generator</strong>
+    <span>Generate typed fetch modules and TypeScript interfaces directly from PostgreSQL functions and SQL files. End-to-end type safety, per-endpoint control with @tsclient annotations, and real-world dev/prod workflow</span>
+  </a>
+  <a href="/blog/npgsqlrest-3.13-production-patterns" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <strong>NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits, and pgBouncer Compatibility</strong>
+    <span>Conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer — all real-world production patterns</span>
+  </a>
+  <a href="/blog/sql-rest-api" class="featured human-written">
+    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+    <strong>SQL REST API</strong>
+    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
+  </a>
   <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>REST APIs from Plain SQL Files: The Complete Guide to SQL File Source</strong>
@@ -93,10 +107,6 @@ title: Blog
   <a href="/blog/reverse-proxy-postgresql-ai-service-npgsqlrest">
     <strong>Reverse Proxy & AI Service: PostgreSQL Caching with Transform Mode</strong>
     <span>Proxy external services through PostgreSQL functions - cache AI responses, enrich data, and avoid connection pool exhaustion</span>
-  </a>
-  <a href="/blog/zero-to-crud-api-postgresql-tables-npgsqlrest">
-    <strong>Zero to CRUD API: Auto-Generate REST Endpoints from PostgreSQL Tables</strong>
-    <span>Build a complete Contacts Manager with Create, Read, Update, Delete in under 50 lines of SQL - no backend code required</span>
   </a>
   <a href="/blog/what-have-stored-procedures-ever-done-for-us">
     <strong>What Have PostgreSQL Functions Ever Done for Us?</strong>

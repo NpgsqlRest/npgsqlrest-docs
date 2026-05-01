@@ -62,6 +62,20 @@ comment on function get_user_params(text, text, text[]) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-user-params.sql`):
+
+```sql
+/*
+HTTP GET
+@authorize
+@user_params
+@param $1 user_id text
+@param $2 user_name text
+@param $3 user_roles text[]
+*/
+select $1::int as user_id, $2 as user_name, $3 as user_roles;
+```
+
 ### With Default Values (for unauthenticated access)
 
 ```sql

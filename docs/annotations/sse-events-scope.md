@@ -26,6 +26,10 @@ head:
 
 Control who receives Server-Sent Events from this endpoint.
 
+::: info Why scope matters
+Every event flows through the [single global broadcaster](./sse#how-events-flow), and every connected `EventSource` reads from the same stream. Scope is the per-event filter that decides which subscribers actually have the event written to their response. Without scope (or with `all`), every subscriber sees every event from this endpoint.
+:::
+
 ## Syntax
 
 ```
@@ -67,6 +71,19 @@ comment on function team_task() is
 'HTTP POST
 @sse /team-events
 @sse_scope matching';
+```
+
+**Equivalent as a SQL file endpoint** (`sql/team-task.sql`):
+
+```sql
+/*
+HTTP POST
+@sse /team-events
+@sse_scope matching
+*/
+do $$ begin
+    raise info 'team task progress...';
+end $$;
 ```
 
 Events are sent to clients with matching security context:

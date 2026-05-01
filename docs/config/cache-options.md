@@ -39,7 +39,8 @@ Caching configuration for PostgreSQL routines.
     "HybridCacheMaximumKeyLength": 1024,
     "HybridCacheMaximumPayloadBytes": 1048576,
     "HybridCacheDefaultExpiration": null,
-    "HybridCacheLocalCacheExpiration": null
+    "HybridCacheLocalCacheExpiration": null,
+    "Profiles": {}
   }
 }
 ```
@@ -61,6 +62,7 @@ Caching configuration for PostgreSQL routines.
 | `HybridCacheMaximumPayloadBytes` | int | `1048576` | Maximum size of cached payloads in bytes (Hybrid cache only). Default is 1 MB. |
 | `HybridCacheDefaultExpiration` | string? | `null` | Default expiration for cached entries. Accepts PostgreSQL interval format (e.g., `"5 minutes"`, `"1 hour"`). If not set, individual endpoint `cache_expires` annotations are used, or entries don't expire. |
 | `HybridCacheLocalCacheExpiration` | string? | `null` | Expiration for L1 (in-memory) cache in Hybrid mode. Set shorter than `HybridCacheDefaultExpiration` to refresh local cache more frequently from Redis. Accepts PostgreSQL interval format. |
+| `Profiles` | object? | `null` | Named caching profiles. Each profile selects its own backend, default expiration, key parameters, and `When` rules. Endpoints opt in via the [`@cache_profile`](../annotations/cache-profile) annotation. See [Cache Profiles](#cache-profiles) below. |
 
 ## Cache Types
 
@@ -211,6 +213,191 @@ Key features:
 - Works correctly with hashed cache keys
 - Returns `{"invalidated":true}` if cache entry was removed, `{"invalidated":false}` if not found
 
+## Cache Profiles
+
+Cache profiles let you maintain multiple distinct caching policies in one application — different backends, expirations, key shapes, or per-parameter bypass conditions — and let endpoints opt into them via the [`@cache_profile`](../annotations/cache-profile) annotation.
+
+This is useful when one app needs:
+- Different cache backends for different data classes (e.g., Memory for hot per-user data, Redis for shared session data).
+- Different TTLs depending on input shape (e.g., historical queries cached for 1 hour, "until now" queries cached for 5 minutes).
+- Selective cache bypass (e.g., real-time queries with `live=true` always fetch fresh).
+
+### Overview
+
+```jsonc
+"CacheOptions": {
+  "Enabled": true,
+  "Type": "Memory",                 // root cache (used by endpoints WITHOUT @cache_profile)
+  // ... existing top-level fields ...
+  "Profiles": {
+    "fast_memory": {
+      "Enabled": true,
+      "Type": "Memory",
+      "Expiration": "30 seconds",
+      "Parameters": ["user_id"]
+    },
+    "shared_redis": {
+      "Enabled": true,
+      "Type": "Redis",
+      "Expiration": "1 hour"
+    },
+    "timeseries": {
+      "Enabled": true,
+      "Type": "Memory",
+      "Expiration": "1 hour",
+      "Parameters": ["from", "to"],
+      "When": [
+        { "Parameter": "to", "Value": null, "Then": "5 minutes" }
+      ]
+    }
+  }
+}
+```
+
+Endpoints without `@cache_profile` continue to use the root cache. Endpoints with `@cache_profile <name>` use the named profile.
+
+### Profile fields
+
+| Field | Type | Description |
+|---|---|---|
+| `Enabled` | bool | Default `false`. Set `true` to register the profile. Disabled profiles are skipped at startup with an Information log. |
+| `Type` | string | `"Memory"`, `"Redis"`, or `"Hybrid"`. Required when `Enabled=true`. |
+| `Expiration` | string? | Default expiration (PostgreSQL interval format, e.g. `"5 minutes"`, `"1 hour"`). Used when the endpoint has no `@cache_expires` annotation. |
+| `Parameters` | string[]? | Default cache-key parameter list. **Three semantics**: `null`/missing → use **all** routine parameters; `[]` → URL-only cache (one entry per endpoint); `["x", "y"]` → use only these. The endpoint's `@cached p1, p2` annotation overrides this. |
+| `When` | object[]? | List of conditional rules evaluated at request time (see below). |
+
+### Backend pooling
+
+All profiles of the same `Type` share a single backend instance: one Memory cache, one Redis connection, one HybridCache singleton. Backends are instantiated **lazily** — only types actually used (root + at least one enabled profile) get spun up. If no profile uses Redis and the root `Type` isn't `Redis`, no Redis connection is ever attempted, even if `RedisConfiguration` is set.
+
+Cache entries written under a profile are **prefixed with the profile name** so two profiles sharing the same Memory backend cannot collide on the same routine + parameters. Endpoints without a profile have no prefix; existing pre-3.13 cache entries remain wire-compatible.
+
+### When rules
+
+`When` is a list of rules evaluated against the request's resolved parameter values. Each rule has three fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `Parameter` | string | Routine parameter name to inspect (matches against `ActualName` or `ConvertedName`). Required. |
+| `Value` | scalar / array / null | Match condition. Scalar = exact match. Array = OR over entries. JSON `null` matches .NET `null`/`DBNull.Value` (does **not** match empty string). Other values are stringify-and-equal case-insensitive. |
+| `Then` | string | Required action: the literal string `"skip"` to bypass the cache for this request, OR a PostgreSQL interval (e.g. `"30 seconds"`, `"5 minutes"`, `"1 hour"`) to override the entry's TTL when writing. |
+
+Rules are evaluated **in declaration order; first match wins**. If no rule matches, the entry is cached using the profile's `Expiration`.
+
+#### Pattern: skip-on-condition
+
+Bypass the cache entirely for some inputs:
+
+```jsonc
+"When": [
+  { "Parameter": "to", "Value": null, "Then": "skip" }
+]
+```
+
+When `to` is null/missing, no read or write happens — routine executes fresh. Common for "until-now" or "live" data.
+
+#### Pattern: dynamic TTL
+
+Different TTLs depending on input shape:
+
+```jsonc
+"When": [
+  { "Parameter": "live", "Value": true,  "Then": "skip" },
+  { "Parameter": "to",   "Value": null,  "Then": "5 minutes" }
+]
+```
+
+- `live=true` → bypass entirely (real-time mode).
+- `live=false` and `to=null` → 5-minute TTL (open-ended query).
+- Otherwise → fall through to the profile's `Expiration` (e.g. 1 hour for historical queries with both `from` and `to`).
+
+#### Pattern: array-of-values
+
+Match any of several values:
+
+```jsonc
+"When": [
+  { "Parameter": "status", "Value": [null, ""], "Then": "skip" }
+]
+```
+
+Matches when `status` is null OR empty string.
+
+### Validation
+
+Misconfiguration is caught at startup so deploy issues surface early rather than silently disabling caching at runtime:
+
+| Problem | Result |
+|---|---|
+| `@cache_profile` references an unknown name | Startup fails with single `InvalidOperationException` listing every unresolved name and the endpoints that referenced each |
+| Profile registered but no endpoint references it | Information log: "registered but not used by any endpoint. Did you forget a `@cache_profile` annotation?" |
+| Profile has missing/invalid `Type` | Warning, profile skipped |
+| Profile has invalid `Expiration` (bad PG interval) | Warning, profile skipped |
+| Profile name is empty/whitespace | Warning, profile skipped |
+| `When` rule's `Parameter` isn't a routine parameter | Warning, rule dropped (other rules still apply) |
+| `When` rule's `Parameter` isn't in the resolved cache-key list | Warning, rule dropped (otherwise different rule-evaluations would share a cache entry) |
+| `When` rule has missing/invalid `Then` | Warning, rule dropped |
+
+### Connection pooler note
+
+If you're using a connection pooler in transaction mode (PgBouncer, AWS RDS Proxy in transaction mode, Supabase Pooler), see [`WrapInTransaction`](./npgsqlrest#wrapintransaction) — it's required for context-injection features but does not affect profiles directly.
+
+### Complete example
+
+```jsonc
+{
+  "CacheOptions": {
+    "Enabled": true,
+    "Type": "Memory",
+    "MaxCacheableRows": 1000,
+    "InvalidateCacheSuffix": "invalidate",
+    "Profiles": {
+      "user_scoped_fast": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 minute",
+        "Parameters": ["user_id"]
+      },
+      "shared_long_term": {
+        "Enabled": true,
+        "Type": "Redis",
+        "Expiration": "1 hour"
+      },
+      "timeseries_compute": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 hour",
+        "Parameters": ["from", "to", "live"],
+        "When": [
+          { "Parameter": "live", "Value": true,  "Then": "skip" },
+          { "Parameter": "to",   "Value": null,  "Then": "5 minutes" }
+        ]
+      }
+    }
+  }
+}
+```
+
+```sql
+-- Uses root Memory cache (no profile)
+comment on function get_app_settings() is 'HTTP GET
+@cached
+@cache_expires 1 hour';
+
+-- Per-user 1-minute cache via fast Memory profile
+comment on function get_my_dashboard(user_id int) is 'HTTP GET
+@cache_profile user_scoped_fast';
+
+-- Distributed Redis with 1-hour default
+comment on function get_global_metrics() is 'HTTP GET
+@cache_profile shared_long_term';
+
+-- Mixed: long-cache historical queries, short-cache open-ended,
+-- bypass entirely when `live` is true
+comment on function compute_timeseries(from text, to text default null, live boolean default false) is 'HTTP GET
+@cache_profile timeseries_compute';
+```
+
 ## Routine Annotations
 
 Enable caching for specific routines using comment annotations:
@@ -259,6 +446,19 @@ HTTP GET /config
 
 If no expiration is specified, cache entries never expire.
 
+### cache_profile
+
+Select a [named cache profile](#cache-profiles) for the endpoint:
+
+```sql
+comment on function get_dashboard() is '
+HTTP GET
+@cache_profile fast_memory
+';
+```
+
+`@cache_profile` implies caching — `@cached` is unnecessary alongside it but is still allowed and overrides the profile's `Parameters` list. See the dedicated [@cache_profile annotation reference](../annotations/cache-profile) for full semantics.
+
 ## Example Configuration
 
 Production configuration with Redis:
@@ -290,6 +490,7 @@ Development configuration with memory cache:
 - [Interval Format](../annotations/interval-format) - Time/duration format reference
 - [cached annotation](../annotations/cached) - Enable caching on endpoints
 - [cache_expires_in annotation](../annotations/cache-expires-in) - Set cache expiration
+- [cache_profile annotation](../annotations/cache-profile) - Select a named cache profile per endpoint
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

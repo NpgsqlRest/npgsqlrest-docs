@@ -132,7 +132,7 @@ Result:
 - Multi-column results return a JSON object (no array wrapping)
 - Single unnamed column results return a bare JSON value (e.g., `"hello"`, `42`)
 - If the query returns multiple rows, only the first row is returned
-- Works across all endpoint sources: functions, SQL files, and CRUD endpoints
+- Works across all endpoint sources: functions, procedures, and SQL files
 - In multi-command files, `@single` is positional — applies to the next statement below
 - TypeScript client generates `Promise<IResponse>` instead of `Promise<IResponse[]>`
 

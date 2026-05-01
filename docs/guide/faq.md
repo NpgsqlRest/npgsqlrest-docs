@@ -185,7 +185,7 @@ All methods can be used simultaneously. See [Authentication config](/config/auth
   "Auth": {
     "JwtAuth": true,
     "JwtSecret": "your-secret-key-at-least-32-characters-long",
-    "JwtExpireMinutes": 60
+    "JwtExpire": "60 minutes"
   }
 }
 ```

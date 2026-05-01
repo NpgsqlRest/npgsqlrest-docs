@@ -87,7 +87,7 @@ void
 - All statements are executed normally via `ExecuteNonQuery`
 - The response status is **204 No Content** with an empty body
 - No JSON wrapping, no result keys, no rows-affected counts
-- Works on all endpoint types: functions, procedures, CRUD, and SQL file endpoints
+- Works on all endpoint types: functions, procedures, and SQL file endpoints
 - For multi-command SQL files, all statements execute sequentially — if any fails, the request fails
 - The Describe step still runs at startup — use [`@returns void`](./returns) instead if the statement would fail Describe
 

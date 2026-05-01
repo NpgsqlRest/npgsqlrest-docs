@@ -962,6 +962,7 @@ NpgsqlRest delivers the best performance with the least code - a rare combinatio
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking"
   :get-started="[
+    { text: 'TypeScript Code Generation Walkthrough', href: '/blog/typescript-codegen-walkthrough' },
     { text: 'Quick Start Guide', href: '/guide/quick-start' },
     { text: 'Installation', href: '/guide/installation' },
     { text: 'Code Generation Config', href: '/config/codegen' }

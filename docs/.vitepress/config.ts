@@ -9,12 +9,10 @@ const head: HeadConfig[] = [
   ['meta', { property: 'og:type', content: 'website' }],
   ['meta', { property: 'og:title', content: 'NpgsqlRest - Automatic PostgreSQL Web Server' }],
   ['meta', { property: 'og:description', content: 'Create REST APIs for PostgreSQL databases in minutes. Zero code, zero config, automatic endpoints from your database schema.' }],
-  ['meta', { property: 'og:image', content: 'https://npgsqlrest.github.io/logo.png' }],
   ['meta', { property: 'og:url', content: 'https://npgsqlrest.github.io' }],
   ['meta', { name: 'twitter:card', content: 'summary' }],
   ['meta', { name: 'twitter:title', content: 'NpgsqlRest - Automatic PostgreSQL Web Server' }],
-  ['meta', { name: 'twitter:description', content: 'Create REST APIs for PostgreSQL databases in minutes. Zero code, zero config, automatic endpoints from your database schema.' }],
-  ['meta', { name: 'twitter:image', content: 'https://npgsqlrest.github.io/logo.png' }]
+  ['meta', { name: 'twitter:description', content: 'Create REST APIs for PostgreSQL databases in minutes. Zero code, zero config, automatic endpoints from your database schema.' }]
 ]
 
 // Only add tracking script in production
@@ -35,9 +33,11 @@ const blogPostsSidebar = [
     text: 'Tutorials',
     collapsed: false,
     items: [
+      { text: 'Case Study: 74 Endpoints, Zero Backend Code', link: '/blog/case-study-zero-backend-code' },
+      { text: 'TypeScript Code Generation Walkthrough', link: '/blog/typescript-codegen-walkthrough' },
+      { text: 'NpgsqlRest 3.13.0: Production Patterns', link: '/blog/npgsqlrest-3.13-production-patterns' },
       { text: 'SQL REST API', link: '/blog/sql-rest-api' },
       { text: 'SQL File Source', link: '/blog/sql-file-source-rest-api-from-plain-sql' },
-      { text: 'Zero to CRUD API', link: '/blog/zero-to-crud-api-postgresql-tables-npgsqlrest' },
       { text: 'Database-Level Security', link: '/blog/database-level-security-postgresql-authentication' },
       { text: 'Multiple Auth Schemes & RBAC', link: '/blog/multiple-auth-schemes-rbac-external-providers' },
       { text: 'Passkey SQL Auth', link: '/blog/passkey-sql-auth' },
@@ -88,7 +88,34 @@ export default defineConfig({
     logo: '/favicon.ico',
     siteTitle: 'NpgsqlRest',
     nav: [
-      { text: 'Guide', link: '/guide/' },
+      {
+        text: 'Guide',
+        items: [
+          {
+            text: 'Getting Started',
+            items: [
+              { text: 'Overview', link: '/guide/' },
+              { text: 'Installation', link: '/guide/installation' },
+              { text: 'Quick Start', link: '/guide/quick-start' }
+            ]
+          },
+          {
+            text: 'Topics',
+            items: [
+              { text: 'SQL File Endpoints', link: '/guide/sql-files' },
+              { text: 'Configuration Guide', link: '/guide/configuration' },
+              { text: 'Comment Annotations Guide', link: '/guide/annotations' }
+            ]
+          },
+          {
+            text: 'Reference',
+            items: [
+              { text: 'FAQ & Troubleshooting', link: '/guide/faq' },
+              { text: 'Changelog', link: '/guide/changelog/' }
+            ]
+          }
+        ]
+      },
       { text: 'Examples', link: '/examples/' },
       {
         text: 'Reference',
@@ -97,13 +124,7 @@ export default defineConfig({
           { text: 'Configuration', link: '/config/' }
         ]
       },
-      {
-        text: 'Blog',
-        items: [
-          { text: 'Blog Posts', link: '/blog/' },
-          { text: 'Changelog', link: '/guide/changelog/' }
-        ]
-      },
+      { text: 'Blog', link: '/blog/' },
     ],
 
     sidebar: {
@@ -124,7 +145,14 @@ export default defineConfig({
           text: 'Changelog',
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.12.0 (Latest)', link: '/guide/changelog/v3.12.0' },
+            { text: 'v3.16.1 (Latest)', link: '/guide/changelog/v3.16.1' },
+            { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
+            { text: 'v3.15.2', link: '/guide/changelog/v3.15.2' },
+            { text: 'v3.15.1', link: '/guide/changelog/v3.15.1' },
+            { text: 'v3.15.0', link: '/guide/changelog/v3.15.0' },
+            { text: 'v3.14.0', link: '/guide/changelog/v3.14.0' },
+            { text: 'v3.13.0', link: '/guide/changelog/v3.13.0' },
+            { text: 'v3.12.0', link: '/guide/changelog/v3.12.0' },
             { text: 'v3.11.1', link: '/guide/changelog/v3.11.1' },
             { text: 'v3.11.0', link: '/guide/changelog/v3.11.0' },
             { text: 'v3.10.0', link: '/guide/changelog/v3.10.0' },
@@ -190,6 +218,7 @@ export default defineConfig({
             { text: 'ENABLED', link: '/annotations/enabled' },
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
+            { text: 'OPENAPI', link: '/annotations/openapi' },
             { text: 'HTTP CUSTOM TYPES', link: '/annotations/http-type' }
           ]
         },
@@ -221,6 +250,9 @@ export default defineConfig({
           items: [
             { text: 'Response Headers', link: '/annotations/response-headers' },
             { text: 'RESPONSE_NULL_HANDLING', link: '/annotations/response-null-handling' },
+            { text: 'NESTED', link: '/annotations/nested' },
+            { text: 'SINGLE', link: '/annotations/single' },
+            { text: 'VOID', link: '/annotations/void' },
             { text: 'RAW', link: '/annotations/raw' },
             { text: 'SEPARATOR', link: '/annotations/separator' },
             { text: 'NEW_LINE', link: '/annotations/new-line' },
@@ -232,6 +264,7 @@ export default defineConfig({
           items: [
             { text: 'CACHED', link: '/annotations/cached' },
             { text: 'CACHE_EXPIRES_IN', link: '/annotations/cache-expires-in' },
+            { text: 'CACHE_PROFILE', link: '/annotations/cache-profile' },
             { text: 'BUFFER_ROWS', link: '/annotations/buffer-rows' },
             { text: 'COMMAND_TIMEOUT', link: '/annotations/command-timeout' },
             { text: 'RETRY_STRATEGY', link: '/annotations/retry-strategy' },
@@ -255,15 +288,34 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Output & Code Generation',
+          items: [
+            { text: 'TABLE_FORMAT', link: '/annotations/table-format' },
+            { text: 'TSCLIENT', link: '/annotations/tsclient' }
+          ]
+        },
+        {
+          text: 'Parameters',
+          items: [
+            { text: 'PARAM', link: '/annotations/param' },
+            { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
+            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' }
+          ]
+        },
+        {
+          text: 'SQL File Annotations',
+          items: [
+            { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
+            { text: 'RESULT_NAME', link: '/annotations/result-name' },
+            { text: 'SKIP', link: '/annotations/skip' },
+            { text: 'RETURNS', link: '/annotations/returns' }
+          ]
+        },
+        {
           text: 'Context & Security',
           items: [
             { text: 'USER_CONTEXT', link: '/annotations/user-context' },
             { text: 'USER_PARAMETERS', link: '/annotations/user-parameters' },
-            { text: 'PARAM', link: '/annotations/param' },
-            { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
-            { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
-            { text: 'RESULT_NAME', link: '/annotations/result-name' },
-            { text: 'SKIP', link: '/annotations/skip' },
             { text: 'CONNECTION', link: '/annotations/connection' },
             { text: 'SECURITY_SENSITIVE', link: '/annotations/security-sensitive' },
             { text: 'Custom Parameters', link: '/annotations/custom-parameters' }
@@ -272,6 +324,7 @@ export default defineConfig({
         {
           text: 'Configuration - Core',
           items: [
+            { text: 'Latest Default Configuration', link: '/config/latest' },
             { text: 'Top-Level Settings', link: '/config/top-level' },
             { text: 'Config Section', link: '/config/config-section' },
             { text: 'NpgsqlRest Options', link: '/config/npgsqlrest' },
@@ -300,7 +353,6 @@ export default defineConfig({
         {
           text: 'Configuration - Features',
           items: [
-            { text: 'CRUD Source', link: '/config/crud' },
             { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
@@ -359,7 +411,12 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.12.0 (Latest)', link: '/guide/changelog/v3.12.0' },
+            { text: 'v3.16.1 (Latest)', link: '/guide/changelog/v3.16.1' },
+            { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
+            { text: 'v3.15.x', link: '/guide/changelog/v3.15.2' },
+            { text: 'v3.14.0', link: '/guide/changelog/v3.14.0' },
+            { text: 'v3.13.0', link: '/guide/changelog/v3.13.0' },
+            { text: 'v3.12.0', link: '/guide/changelog/v3.12.0' },
             { text: 'v3.11.x', link: '/guide/changelog/v3.11.1' },
             { text: 'v3.10.0', link: '/guide/changelog/v3.10.0' },
             { text: 'v3.9.0', link: '/guide/changelog/v3.9.0' },
@@ -392,10 +449,13 @@ export default defineConfig({
             { text: 'Overview', link: '/annotations/' },
             { text: 'HTTP', link: '/annotations/http' },
             { text: 'PATH', link: '/annotations/path' },
+            { text: 'PROXY', link: '/annotations/proxy' },
+            { text: 'PROXY_OUT', link: '/annotations/proxy-out' },
             { text: 'INTERNAL', link: '/annotations/internal' },
             { text: 'ENABLED', link: '/annotations/enabled' },
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
+            { text: 'OPENAPI', link: '/annotations/openapi' },
             { text: 'HTTP CUSTOM TYPES', link: '/annotations/http-type' }
           ]
         },
@@ -427,6 +487,9 @@ export default defineConfig({
           items: [
             { text: 'Response Headers', link: '/annotations/response-headers' },
             { text: 'RESPONSE_NULL_HANDLING', link: '/annotations/response-null-handling' },
+            { text: 'NESTED', link: '/annotations/nested' },
+            { text: 'SINGLE', link: '/annotations/single' },
+            { text: 'VOID', link: '/annotations/void' },
             { text: 'RAW', link: '/annotations/raw' },
             { text: 'SEPARATOR', link: '/annotations/separator' },
             { text: 'NEW_LINE', link: '/annotations/new-line' },
@@ -438,6 +501,7 @@ export default defineConfig({
           items: [
             { text: 'CACHED', link: '/annotations/cached' },
             { text: 'CACHE_EXPIRES_IN', link: '/annotations/cache-expires-in' },
+            { text: 'CACHE_PROFILE', link: '/annotations/cache-profile' },
             { text: 'BUFFER_ROWS', link: '/annotations/buffer-rows' },
             { text: 'COMMAND_TIMEOUT', link: '/annotations/command-timeout' },
             { text: 'RETRY_STRATEGY', link: '/annotations/retry-strategy' },
@@ -465,6 +529,23 @@ export default defineConfig({
           items: [
             { text: 'TABLE_FORMAT', link: '/annotations/table-format' },
             { text: 'TSCLIENT', link: '/annotations/tsclient' }
+          ]
+        },
+        {
+          text: 'Parameters',
+          items: [
+            { text: 'PARAM', link: '/annotations/param' },
+            { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
+            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' }
+          ]
+        },
+        {
+          text: 'SQL File Annotations',
+          items: [
+            { text: 'DEFINE_PARAM', link: '/annotations/define-param' },
+            { text: 'RESULT_NAME', link: '/annotations/result-name' },
+            { text: 'SKIP', link: '/annotations/skip' },
+            { text: 'RETURNS', link: '/annotations/returns' }
           ]
         },
         {
@@ -522,7 +603,6 @@ export default defineConfig({
         {
           text: 'Features',
           items: [
-            { text: 'CRUD Source', link: '/config/crud' },
             { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
@@ -596,8 +676,8 @@ export default defineConfig({
 
   markdown: {
     theme: {
-      light: 'github-light',
-      dark: 'github-dark'
+      light: 'catppuccin-latte',
+      dark: 'catppuccin-mocha'
     },
     lineNumbers: true,
     config: (md) => {

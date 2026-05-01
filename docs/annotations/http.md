@@ -2,17 +2,17 @@
 outline: [2, 3]
 title: "HTTP Annotation"
 titleTemplate: NpgsqlRest
-description: "Expose PostgreSQL functions and tables as HTTP endpoints. Configure HTTP methods (GET, POST, PUT, DELETE) and custom URL paths."
+description: "Expose PostgreSQL functions, procedures, and SQL files as HTTP endpoints. Configure HTTP methods (GET, POST, PUT, DELETE) and custom URL paths."
 head:
   - - meta
     - name: keywords
-      content: npgsqlrest http annotation, postgresql http endpoint, rest api function, http method postgresql, expose table as api
+      content: npgsqlrest http annotation, postgresql http endpoint, rest api function, http method postgresql
   - - meta
     - property: og:title
       content: "NpgsqlRest HTTP Annotation"
   - - meta
     - property: og:description
-      content: "Expose PostgreSQL functions and tables as HTTP endpoints with configurable methods and paths."
+      content: "Expose PostgreSQL functions, procedures, and SQL files as HTTP endpoints with configurable methods and paths."
   - - meta
     - property: og:type
       content: article
@@ -20,7 +20,7 @@ head:
 
 # HTTP
 
-Expose a PostgreSQL function or table as an HTTP endpoint.
+Expose a PostgreSQL function, procedure, or SQL file as an HTTP endpoint.
 
 ## Keywords
 
@@ -72,6 +72,13 @@ select 'OK';
 end;
 
 comment on function get_status() is 'HTTP';
+```
+
+**Equivalent as a SQL file endpoint** (`sql/get-status.sql`):
+
+```sql
+-- HTTP
+select 'OK';
 ```
 
 Creates: `GET /api/get-status`
@@ -218,7 +225,6 @@ Call: `POST /products/7` with body `{"newName": "New Name"}` → `p_id = 7`, `ne
 ## Related
 
 - [NpgsqlRest Options configuration](../config/npgsqlrest) - Configure URL prefixes, naming conventions
-- [CRUD configuration](../config/crud) - Configure automatic CRUD endpoints
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

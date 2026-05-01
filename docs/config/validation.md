@@ -247,6 +247,23 @@ HTTP POST
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/register-user.sql`):
+
+```sql
+/*
+HTTP POST
+@validate email using required, email
+@validate password using required, password_min
+@validate name using not_empty, name_max
+@param $1 email
+@param $2 password
+@param $3 name
+*/
+insert into users (email, password_hash, name)
+values ($1, crypt($2, gen_salt('bf')), $3)
+returning json_build_object('success', true);
+```
+
 ## Programmatic Configuration
 
 When using NpgsqlRest as a library, you can configure validation options programmatically:

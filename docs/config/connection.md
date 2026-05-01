@@ -323,6 +323,16 @@ HTTP GET /reports/data
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-report-data.sql`):
+
+```sql
+/*
+HTTP GET /reports/data
+@connection ReadReplica
+*/
+select * from large_table;
+```
+
 ## Complete Example
 
 Here's a complete connection configuration for a production environment:

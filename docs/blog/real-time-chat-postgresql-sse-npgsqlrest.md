@@ -93,7 +93,9 @@ flowchart TB
     NpgsqlRest captures the notice and broadcasts"]
 ```
 
-When a PostgreSQL function or procedure executes `RAISE INFO`, `RAISE NOTICE`, or `RAISE WARNING`, NpgsqlRest captures these messages and streams them to connected SSE clients based on the configured scope.
+When an `@sse`-annotated PostgreSQL function or procedure executes `RAISE INFO`, `RAISE NOTICE`, or `RAISE WARNING`, NpgsqlRest captures the matching messages and streams them to connected SSE clients based on the configured scope. Procedures without `@sse` can `RAISE` all they want — those notices are never broadcast.
+
+Internally, every `@sse`-annotated procedure publishes into a single process-wide broadcaster, and every connected `EventSource` reads from that same stream — the URL it opened is just an entry point. Filtering happens per event (scope, hint, optional execution ID), not per URL. This becomes important once you have more than one source of events; see [Cross-procedure pattern](/annotations/sse#cross-procedure-pattern) in the SSE annotation reference.
 
 ## Building the Chat: Step by Step
 
@@ -190,8 +192,8 @@ Let's break down the annotations:
 | Annotation | Purpose |
 |------------|---------|
 | `authorize` | Only authenticated users can send messages |
-| `sse` | Enable Server-Sent Events for this endpoint |
-| `sse_scope authorize` | Only authenticated clients receive events |
+| `sse` | Two effects: (1) registers `/info` as an SSE connection URL, (2) makes this procedure's `RAISE`s feed the SSE broadcaster |
+| `sse_scope authorize` | Per-event filter: only authenticated subscribers receive events from this endpoint |
 
 The `RAISE INFO` statement with JSON payload becomes the SSE event data. NpgsqlRest automatically:
 - Captures the notice during procedure execution
@@ -582,21 +584,25 @@ NpgsqlRest's SSE implementation uses `RAISE INFO/NOTICE/WARNING` instead of `NOT
 
 This is why NpgsqlRest chose `RAISE` over `NOTIFY` for real-time events - it's architecturally sound for high-concurrency systems.
 
-## Advanced: Multiple Channels
+## Advanced: Execution-ID correlation as soft channels
 
-Use the execution ID to create separate channels:
+The `X-NpgsqlRest-ID` header was designed for **request correlation** — letting the client receive only the events fired during its own POST. When both the connection's query string and the request's header carry the same ID, NpgsqlRest filters out events whose IDs don't match.
+
+You can lean on that mechanism to build channel-like behavior, as long as every emitter sets the header and every listener sets the query string:
 
 ```typescript
-// Different channels for different purposes
+// Listeners — each connection only receives events tagged with its own ID
 const generalChat = createSendMessageEventSource("general");
-const teamChat = createSendMessageEventSource("team-123");
+const teamChat    = createSendMessageEventSource("team-123");
 const notifications = createSendMessageEventSource("notifications");
 
-// Send to specific channel
+// Sender — pass the same ID; the generated client puts it in X-NpgsqlRest-ID
 await sendMessage({ messageText: "Hello team!" }, undefined, "team-123");
 ```
 
-Messages with matching IDs in the `X-NpgsqlRest-ID` header are routed to EventSource connections with matching query parameters.
+::: warning Caveat
+This is a *soft* filter. If the listener has no execution ID, or the emitter doesn't set the header, the filter is bypassed and the listener will see the event regardless. For truly isolated streams you need scope/hint filtering (per-user, per-role, etc.) rather than execution IDs alone.
+:::
 
 ## Conclusion
 

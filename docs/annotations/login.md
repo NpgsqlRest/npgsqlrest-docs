@@ -343,6 +343,27 @@ comment on function authenticate(text, text) is
 @sensitive';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/authenticate.sql`):
+
+```sql
+/*
+HTTP POST
+@login
+@sensitive
+@param $1 username
+@param $2 password
+*/
+select
+    true as status,
+    u.id,
+    u.name,
+    u.email,
+    u.roles
+from users u
+where u.username = $1
+  and u.password_hash = crypt($2, u.password_hash);
+```
+
 ### Login with Status Code Control
 
 ```sql

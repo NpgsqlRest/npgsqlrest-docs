@@ -72,6 +72,17 @@ HTTP GET
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-image.sql`):
+
+```sql
+/*
+HTTP GET
+@tsclient = false
+@param $1 id
+*/
+select data from images where id = $1;
+```
+
 ### URL-Only Export
 
 Use `@tsclient_url_only = true` for endpoints consumed via browser navigation rather than `fetch` — such as table format downloads or file exports:

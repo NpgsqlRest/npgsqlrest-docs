@@ -66,6 +66,16 @@ HTTP GET
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-report.sql`):
+
+```sql
+/*
+HTTP GET
+@table_format = html
+*/
+select id, name, amount from reports;
+```
+
 ### Static Excel Download
 
 ```sql

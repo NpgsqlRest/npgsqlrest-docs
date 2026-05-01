@@ -54,6 +54,19 @@ encrypt _ssn
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/store-patient-ssn.sql`):
+
+```sql
+/*
+HTTP POST
+@encrypt ssn
+@param $1 patient_id
+@param $2 ssn
+*/
+insert into patients (id, ssn) values ($1, $2)
+on conflict (id) do update set ssn = excluded.ssn;
+```
+
 The client calls `POST /api/store-patient-ssn/` with `{"patientId": 1, "ssn": "123-45-6789"}`. The server encrypts `_ssn` using Data Protection before executing the SQL — the database stores ciphertext like `CfDJ8N...`, never the plaintext SSN.
 
 Use `encrypt` without arguments to encrypt **all** text parameters:

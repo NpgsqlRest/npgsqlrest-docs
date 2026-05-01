@@ -11,13 +11,17 @@ import BlogNav from './components/BlogNav.vue'
 import GiscusComments from './components/GiscusComments.vue'
 import CommentsOutlineLink from './components/CommentsOutlineLink.vue'
 import SponsorFooter from './components/SponsorFooter.vue'
-import AsciiLogo from './components/AsciiLogo.vue'
+import HeroTerminal from './components/HeroTerminal.vue'
+import SqlFileShowcase from './components/SqlFileShowcase.vue'
+import FunctionShowcase from './components/FunctionShowcase.vue'
 
 export default {
   extends: DefaultTheme,
   enhanceApp({ app }) {
     // Register global components that can be used in markdown
     app.component('BlogNav', BlogNav)
+    app.component('SqlFileShowcase', SqlFileShowcase)
+    app.component('FunctionShowcase', FunctionShowcase)
   },
   Layout() {
     const { frontmatter, isDark } = useData()
@@ -43,7 +47,7 @@ export default {
     )
 
     return h(DefaultTheme.Layout, null, {
-      'home-hero-image': () => frontmatter.value.layout === 'home' ? h(AsciiLogo) : null,
+      'home-hero-image': () => frontmatter.value.layout === 'home' ? h(HeroTerminal) : null,
       'layout-bottom': () => frontmatter.value.layout === 'home' ? h(Chatbot) : null,
       'doc-before': () => h(ClaudeBadge),
       'aside-outline-after': () => isBlogPage

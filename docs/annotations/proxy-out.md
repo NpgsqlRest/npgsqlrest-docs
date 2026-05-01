@@ -72,6 +72,20 @@ comment on function generate_report(int) is 'HTTP GET
 @proxy_out POST https://render-service.internal/render';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/generate-report.sql`):
+
+```sql
+/*
+HTTP GET
+@proxy_out POST https://render-service.internal/render
+@param $1 report_id
+*/
+select json_build_object(
+    'title', 'Monthly Report',
+    'data', (select json_agg(row_to_json(t)) from sales t where month = $1)
+);
+```
+
 The client calls `GET /api/generate-report/?reportId=3`. The server:
 
 1. Executes `generate_report(3)` in PostgreSQL.
@@ -85,7 +99,14 @@ The client calls `GET /api/generate-report/?reportId=3`. The server:
 Uses the host from `ProxyOptions.Host` configuration:
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy_out';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy_out
+select my_func();
 ```
 
 ### Proxy Out with Custom Host
@@ -93,8 +114,18 @@ comment on function my_func() is '@proxy_out';
 Override the default host:
 
 ```sql
+-- function form
 comment on function my_func() is 'HTTP GET
 @proxy_out POST https://my-other-service.internal';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+/*
+HTTP GET
+@proxy_out POST https://my-other-service.internal
+*/
+select my_func();
 ```
 
 ### Proxy Out with HTTP Method Override
@@ -102,8 +133,18 @@ comment on function my_func() is 'HTTP GET
 Specify which HTTP method to use for the upstream request (uses default host from configuration):
 
 ```sql
+-- function form
 comment on function my_func() is 'HTTP GET
 @proxy_out PUT';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+/*
+HTTP GET
+@proxy_out PUT
+*/
+select my_func();
 ```
 
 The client sends GET, but the upstream receives PUT with the function's result as the body.
@@ -113,8 +154,18 @@ The client sends GET, but the upstream receives PUT with the function's result a
 Specify both HTTP method and host:
 
 ```sql
+-- function form
 comment on function my_func() is 'HTTP GET
 @proxy_out POST https://render-service.internal/render';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+/*
+HTTP GET
+@proxy_out POST https://render-service.internal/render
+*/
+select my_func();
 ```
 
 ### Self-Referencing Proxy Out (Relative Path)
@@ -122,8 +173,18 @@ comment on function my_func() is 'HTTP GET
 Use a relative path starting with `/` to forward the function result to another endpoint on the same server:
 
 ```sql
+-- function form
 comment on function my_func() is 'HTTP GET
 @proxy_out POST /api/internal-processor';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+/*
+HTTP GET
+@proxy_out POST /api/internal-processor
+*/
+select my_func();
 ```
 
 Self-referencing calls bypass the HTTP stack entirely — the target endpoint handler is invoked directly in-process with zero network overhead.

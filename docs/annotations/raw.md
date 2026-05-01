@@ -49,6 +49,14 @@ comment on function get_plain_text() is
 @raw';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-plain-text.sql`):
+
+```sql
+-- HTTP GET
+-- @raw
+select 'Hello, World!';
+```
+
 Response: `Hello, World!` (plain text, no JSON wrapping)
 
 ### Raw with Multiple Columns

@@ -2,31 +2,31 @@
 layout: home
 title: "NpgsqlRest - Automatic REST API for PostgreSQL"
 titleTemplate: false
-description: "SQL is declarative — your API should be too. Declare caching, auth, retries, rate limiting as SQL annotations. Put PostgreSQL at the dead center of your architecture."
+description: "Your SQL is the API. Annotate PostgreSQL functions and SQL files to declare HTTP routes, auth, caching, and rate limits — get a fast, typed REST API with no controllers and no boilerplate."
 head:
   - - meta
     - name: keywords
-      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, crud api generator, typescript code generation, database first development
+      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, typescript code generation, database first development
   - - meta
     - property: og:image
-      content: https://npgsqlrest.github.io/logo.png
+      content: https://npgsqlrest.github.io/terminal.png
   - - meta
     - property: og:title
       content: NpgsqlRest - Automatic PostgreSQL Web Server
   - - meta
     - property: og:description
-      content: "SQL is declarative — your API should be too. Put PostgreSQL at the dead center of your architecture."
+      content: "Your SQL is the API. PostgreSQL is the architecture, not a detail to abstract away."
   - - meta
     - name: twitter:card
       content: summary
   - - meta
     - name: twitter:image
-      content: https://npgsqlrest.github.io/logo.png
+      content: https://npgsqlrest.github.io/terminal.png
 
 hero:
   name: NpgsqlRest
-  text: Automatic PostgreSQL Web Server
-  tagline: "SQL is declarative — your API should be too. Write SQL, annotate it with comments to declare caching, auth, retries, rate limiting, and everything in between. PostgreSQL is the architecture."
+  text: Your SQL is the API
+  tagline: "Annotate PostgreSQL functions and SQL files with comments to declare HTTP routes, auth, caching, retries, and rate limits. Get a fast, typed REST API — no controllers, no models, no boilerplate."
   actions:
     - theme: brand
       text: Get Started
@@ -37,161 +37,133 @@ hero:
 
 features:
   - icon: ⚡
-    title: Top Performance, Native Executables, Low Latency
-
+    title: Fast & native
+    details: AOT executables. 4,500+ req/s on a single host in independent benchmarks.
   - icon: 📝
-    title: Declarative Annotations for Backend Features
-
+    title: Declare in SQL
+    details: Caching, auth, retries, rate limits — declared as SQL comments next to the query.
   - icon: 🐘
-    title: PostgreSQL Is the Architecture, Not a Detail
-
+    title: Database-first
+    details: PostgreSQL is the architecture — not a detail to abstract away.
   - icon: 🔄
-    title: Code Generation and End-to-End Type Safety
-
+    title: Typed clients
+    details: PostgreSQL types generate typed TypeScript clients automatically. No drift.
+  - icon: 🔒
+    title: Secure by default
+    details: Cookies, JWT, OAuth2, conditional caching, per-user limits — built in.
   - icon: 💚
-    title: Free and Open Source, MIT License
+    title: Open source
+    details: MIT-licensed. No paid tier, no telemetry, no vendor lock-in.
 
 ---
 
-<div style="display: flex; flex-direction: column; align-items: center; margin: 2rem 0;">
-  <img src="/clean.png" alt="NpgsqlRest Architecture - PostgreSQL at the center with automatic REST API, TypeScript generation, authentication, caching, and more" style="max-width: min(400px, 100%);" />
-  <p style="font-style: italic; color: var(--vp-c-text-2); margin-top: 0.75rem; font-size: 0.9rem; text-align: center;">
-    PostgreSQL is the architecture — not a detail to abstract away
-  </p>
+<div class="hero-stats">
+  <div class="stat">
+    <div class="stat-num">4,500+</div>
+    <div class="stat-label">req/s on a single host<sup><a href="/blog/postgresql-rest-api-benchmark-2026" title="2026 benchmark">¹</a></sup></div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">0</div>
+    <div class="stat-label">lines of C# or Python<br/>in a production app<sup><a href="/blog/case-study-zero-backend-code" title="Production case study">²</a></sup></div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">5×</div>
+    <div class="stat-label">faster iteration on<br/>signature changes<sup><a href="/blog/case-study-zero-backend-code#time-saved-quantified" title="Time saved, quantified">³</a></sup></div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">MIT</div>
+    <div class="stat-label">licensed,<br/>open source</div>
+  </div>
 </div>
 
-<div style="max-width: 640px; margin: 1.5rem auto; padding: 0 1rem;">
-  <ul style="color: var(--vp-c-text-2); padding-left: 1.5rem; margin: 0; list-style: none;">
-    <li>✓ <strong>Declare, don't code</strong> — Caching, auth, retries, rate limiting — all declared as SQL annotations</li>
-    <li>✓ <strong>PostgreSQL at the center</strong> — The opposite of Clean Architecture: the database drives everything</li>
-    <li>✓ <strong>Types flow outward</strong> — PostgreSQL types generate TypeScript clients automatically</li>
-    <li>✓ <strong>No middle tier</strong> — No controllers, no models, no mapping layers, no boilerplate</li>
+<div class="value-prop">
+  <ul>
+    <li><strong>Declare, don't code</strong> — caching, auth, retries, rate limiting — all declared as SQL annotations.</li>
+    <li><strong>PostgreSQL at the center</strong> — the opposite of Clean Architecture: the database drives everything.</li>
+    <li><strong>Types flow outward</strong> — PostgreSQL types generate TypeScript clients automatically.</li>
+    <li><strong>No middle tier</strong> — no controllers, no models, no mapping layers, no boilerplate.</li>
+    <li><strong>Iterate 5× faster</strong> — schema is the single source of truth; signature changes propagate to typed clients automatically, and an entire class of type-drift bugs simply cannot happen.</li>
+    <li><strong>Production-grade by default</strong> — response caching, rate limiting, retries, PostgreSQL multi-host failover, load balancing, and Excel/HTML response rendering — configured in JSON, not custom middleware.</li>
   </ul>
 </div>
 
-<h2 id="annotations" tabindex="-1" style="text-align: center; margin-top: 2rem;">
+<h2 id="annotations" tabindex="-1" class="section-heading">
   Declarative Annotations
   <a class="header-anchor" href="#annotations" aria-label="Permalink to &quot;Declarative Annotations&quot;">​</a>
 </h2>
 
-<p style="text-align: center; color: var(--vp-c-text-2); margin-bottom: 1.5rem;">
+<p class="section-sub">
   Declare what you want from your endpoint — caching, authorization, timeouts, retries, rate limiting — right where the SQL lives.
 </p>
 
-<h3 id="sql-file-example" tabindex="-1" style="text-align: center; margin-top: 1rem; margin-bottom: 0.5rem;">
+<h3 id="sql-file-example" tabindex="-1" class="section-sub-heading">
   SQL File
 </h3>
 
 <div class="annotation-showcase">
-
-```sql
-/*
-HTTP GET /users/
-@authorize admin, user
-@cached
-@cache_expires_in 30sec
-@timeout 5min
-@table_format = excel
-@excel_file_name = users.xlsx
-*/
-select id, name, email, role
-from users
-where $1 is null or department_id = $1;
-```
-
+  <SqlFileShowcase />
 </div>
 
 <div style="text-align: center; margin: 1rem 0;">
-  <a href="/guide/sql-files" style="color: var(--vp-c-brand-1); font-weight: 500;">SQL File Endpoints Guide →</a>
+  <a href="/guide/sql-files" class="annotation-link">SQL File Endpoints Guide →</a>
 </div>
 
-<h3 id="function-example" tabindex="-1" style="text-align: center; margin-top: 1.5rem; margin-bottom: 0.5rem;">
+<h3 id="function-example" tabindex="-1" class="section-sub-heading">
   PostgreSQL Function
 </h3>
 
 <div class="annotation-showcase">
-
-```sql
-create or replace function api.get_users(
-  _department_id int
-)
-returns table (id int, name text, email text, role text)
-language sql
-begin atomic;
-select id, name, email, role
-from users
-where
-  _department_id is null
-  or department_id = _department_id;
-end;
-
-comment on function api.get_users(int) is '
-HTTP GET /users/
-@authorize admin, user
-@cached
-@cache_expires_in 30sec
-@timeout 10sec
-@retry_strategy aggressive
-@rate_limiter_policy authenticated_limit
-@tsclient_module = users
-';
-```
-
+  <FunctionShowcase />
 </div>
 
 <div style="text-align: center; margin: 1.5rem 0;">
-  <a href="/annotations/" style="color: var(--vp-c-brand-1); font-weight: 500;">View all annotations →</a>
+  <a href="/annotations/" class="annotation-link">View all annotations →</a>
 </div>
 
-<h2 id="blog" tabindex="-1" style="text-align: center; margin-top: 2rem;">
-  Blog
-  <a class="header-anchor" href="#blog" aria-label="Permalink to &quot;Blog&quot;">​</a>
+<h2 id="blog" tabindex="-1" class="section-heading">
+  From the Blog
+  <a class="header-anchor" href="#blog" aria-label="Permalink to &quot;From the Blog&quot;">​</a>
 </h2>
 
-<div class="blog-links" style="display: flex; justify-content: center; margin-bottom: 2rem;">
-  <a href="/blog/sql-rest-api" class="featured" style="border: 3px outset var(--vp-c-brand-1); width: 75%;">
+<div class="blog-links blog-hero">
+  <a href="/blog/case-study-zero-backend-code" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
-    <strong style="font-size: 1.15em;">SQL REST API</strong>
-    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
+    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
+    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, an estimated 3,500–7,300 LOC of host-language boilerplate eliminated, a 5× faster iteration loop on signature changes, and roughly 55–100 hours of typing avoided across the project's evolution.</span>
   </a>
 </div>
 
 <div class="blog-links">
-  <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <strong>REST APIs from Plain SQL Files: The Complete Guide to SQL File Source</strong>
-    <span>Build REST APIs directly from .sql files - no functions, no procedures, no boilerplate. Multi-command endpoints, automatic parameter inference, and TypeScript generation</span>
+  <a href="/blog/typescript-codegen-walkthrough" class="featured">
+    <strong>From SQL to Type-Safe TypeScript</strong>
+    <span>Generate typed fetch modules and TypeScript interfaces directly from PostgreSQL functions and SQL files. End-to-end type safety with @tsclient annotations.</span>
   </a>
-  <a href="/blog/excel-export-table-format-postgresql-npgsqlrest" class="featured">
-    <strong>Excel Exports Done Right: Zero-Allocation Streaming from PostgreSQL</strong>
-    <span>Stream .xlsx exports directly from PostgreSQL with constant memory - zero allocations, native types, one SQL annotation</span>
+  <a href="/blog/npgsqlrest-3.13-production-patterns" class="featured">
+    <strong>NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits</strong>
+    <span>Conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer.</span>
   </a>
   <a href="/blog/postgresql-rest-api-benchmark-2026" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>PostgreSQL REST API Benchmark 2026</strong>
-    <span>Performance comparison of NpgsqlRest vs PostgREST, Django, FastAPI, Spring Boot, and more</span>
+    <span>Performance comparison of NpgsqlRest vs PostgREST, Django, FastAPI, Spring Boot, Go, Rust, and more — 14 frameworks, identical PostgreSQL functions.</span>
+  </a>
+  <a href="/blog/sql-rest-api" class="featured human-written">
+    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+    <strong>SQL REST API</strong>
+    <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, and why I think Clean Architecture got it wrong.</span>
   </a>
   <a href="/blog/npgsqlrest-vs-postgrest-supabase-comparison" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <strong>NpgsqlRest vs PostgREST vs Supabase: Complete Feature Comparison</strong>
-    <span>Side-by-side comparison with performance benchmarks, features, authentication, file handling, and deployment options</span>
+    <strong>NpgsqlRest vs PostgREST vs Supabase</strong>
+    <span>Side-by-side comparison of three PostgreSQL REST API platforms: performance benchmarks, features, authentication, file handling, and self-hosting complexity.</span>
   </a>
   <a href="/blog/performance-scalability-high-availability-npgsqlrest" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>Performance, Scalability, and High Availability</strong>
-    <span>Caching strategies, retry logic, rate limiting, and multi-host PostgreSQL connections for production APIs</span>
-  </a>
-  <a href="/blog/custom-types-multiset-rest-api" class="human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
-    <strong>Custom Types and Multiset for Nested JSON in PostgreSQL REST APIs</strong>
-    <span>Use PostgreSQL custom types and table types to build hierarchical REST API responses with automatic TypeScript generation</span>
+    <span>Production patterns built into the runtime: caching with profiles and When-rules, connection and command retries, partitioned rate limiting, thread-pool tuning, multi-host failover, and read-replica routing.</span>
   </a>
 </div>
 
 <div style="text-align: center; margin: 1.5rem 0;">
-  <a href="/blog/" style="color: var(--vp-c-brand-1); font-weight: 500;">View all posts →</a>
+  <a href="/blog/" class="annotation-link">View all posts →</a>
 </div>
 
 <hr />

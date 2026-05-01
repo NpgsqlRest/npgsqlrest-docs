@@ -103,6 +103,17 @@ comment on function get_nullable_param(text) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-nullable-param.sql`):
+
+```sql
+/*
+HTTP GET
+@query_string_null_handling empty_string
+@param $1 t
+*/
+select $1;
+```
+
 | Request | Parameter Value |
 |---------|-----------------|
 | `GET /api/get-nullable-param/?t=` | `_t = NULL` |

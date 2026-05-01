@@ -66,6 +66,20 @@ comment on function get_user_context() is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-user-context.sql`):
+
+```sql
+/*
+HTTP GET
+@authorize
+@user_context
+*/
+select
+    current_setting('request.user_id', true)::int as user_id,
+    current_setting('request.user_name', true)::text as user_name,
+    (current_setting('request.user_roles', true))::text[] as user_roles;
+```
+
 ### Access All Claims as JSON
 
 When `ClaimsJsonContextKey` is configured (e.g., `"request.user_claims"`):

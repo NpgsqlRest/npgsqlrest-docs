@@ -50,6 +50,14 @@ comment on function get_app_settings() is
 @cached';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-app-settings.sql`):
+
+```sql
+-- HTTP GET
+-- @cached
+select settings from app_config where id = 1;
+```
+
 ### Cache Key by Parameter
 
 ```sql
@@ -166,6 +174,7 @@ See [Cache Options](../config/cache-options) for complete configuration referenc
 ## Related Annotations
 
 - [CACHE_EXPIRES_IN](./cache-expires-in) - Set expiration time
+- [CACHE_PROFILE](./cache-profile) - Select a named cache profile (multiple backends, dynamic TTL, conditional skip rules)
 
 ## See Also
 

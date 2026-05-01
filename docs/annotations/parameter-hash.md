@@ -53,6 +53,18 @@ comment on function register(text, text, text) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/register.sql`):
+
+```sql
+/*
+HTTP POST
+@param $1 email
+@param $2 password
+@param $3 hash is hash of password
+*/
+insert into users (email, password_hash) values ($1, $3) returning id;
+```
+
 ### User Registration with Response
 
 ```sql

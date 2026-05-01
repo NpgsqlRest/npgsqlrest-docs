@@ -49,6 +49,18 @@ comment on function process_payload(json, text) is
 @body_parameter_name _payload';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/process-payload.sql`):
+
+```sql
+/*
+HTTP POST
+@body_parameter_name payload
+@param $1 metadata json
+@param $2 payload text
+*/
+select process_payload($1, $2);
+```
+
 ### JSON Body Parameter
 
 ```sql

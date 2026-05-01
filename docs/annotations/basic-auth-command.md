@@ -139,6 +139,19 @@ comment on function protected_resource(json) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/protected-resource.sql`):
+
+```sql
+/*
+HTTP GET
+@basic_auth
+@challenge_command = select * from auth_challenge_command($1, $2, $3, $4, $5)
+@user_params
+@param $1 user_claims
+*/
+select $1;
+```
+
 ### Challenge Command with Pre-Validated Password
 
 When `basic_auth` includes credentials, the `$3` parameter indicates if the password already matched:

@@ -300,4 +300,3 @@ select id, name, email from users where active = $1;
 - [PARAM](../annotations/param) - Rename, retype, and configure parameters
 - [RESULT_NAME](../annotations/result-name) - Rename multi-command result keys
 - [NpgsqlRest Options](./npgsqlrest) - Core API generation settings
-- [CRUD Source](./crud) - CRUD endpoint generation for tables and views

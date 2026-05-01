@@ -49,6 +49,14 @@ comment on function get_public_info() is
 @allow_anonymous';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-public-info.sql`):
+
+```sql
+-- HTTP GET
+-- @allow_anonymous
+select '{"version": "1.0"}'::json;
+```
+
 ### Short Form
 
 ```sql

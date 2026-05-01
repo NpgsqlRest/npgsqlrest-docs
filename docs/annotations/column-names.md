@@ -53,6 +53,20 @@ comment on function export_users() is
 Content-Type: text/csv';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/export-users.sql`):
+
+```sql
+/*
+HTTP GET
+@raw
+@separator ,
+@new_line \n
+@columns
+Content-Type: text/csv
+*/
+select id, name, email from users;
+```
+
 Response:
 ```
 id,name,email

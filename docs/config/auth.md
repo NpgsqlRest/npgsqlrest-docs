@@ -54,12 +54,14 @@ Cookie authentication provides session-based authentication using HTTP cookies.
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": null,
-    "CookieValidDays": 14,
+    "CookieValid": "14 days",
     "CookieName": null,
     "CookiePath": null,
     "CookieDomain": null,
     "CookieMultiSessions": true,
-    "CookieHttpOnly": true
+    "CookieHttpOnly": true,
+    "CookieSameSite": null,
+    "CookieSecure": null
   }
 }
 ```
@@ -70,12 +72,14 @@ Cookie authentication provides session-based authentication using HTTP cookies.
 |---------|------|---------|-------------|
 | `CookieAuth` | bool | `false` | Enable cookie authentication. |
 | `CookieAuthScheme` | string | `null` | Authentication scheme name. Uses `"Cookies"` if null (from `CookieAuthenticationDefaults.AuthenticationScheme`). |
-| `CookieValidDays` | int | `14` | Number of days the cookie remains valid. |
+| `CookieValid` | string | `"14 days"` | Cookie validity duration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"14 days"`, `"12 hours"`, `"30 minutes"`). Set to `null` to fall back to the framework default (14 days). |
 | `CookieName` | string | `null` | Custom name for the authentication cookie. Uses default if null. |
 | `CookiePath` | string | `null` | Path scope for the cookie. Uses default if null. |
 | `CookieDomain` | string | `null` | Domain scope for the cookie. Uses default if null. |
 | `CookieMultiSessions` | bool | `true` | Allow multiple concurrent sessions for the same user. |
 | `CookieHttpOnly` | bool | `true` | Make cookie accessible only via HTTP (not JavaScript). |
+| `CookieSameSite` | string | `null` | `SameSite` attribute on the cookie: `"Strict"` / `"Lax"` / `"None"` / `"Unspecified"`. `null` uses ASP.NET's default (typically `Lax`). Use `"None"` for cross-origin SPA / mobile clients. |
+| `CookieSecure` | string | `null` | When the cookie's `Secure` attribute is set: `"SameAsRequest"` / `"Always"` / `"None"`. `null` uses ASP.NET's default (`SameAsRequest`). **Required `"Always"` when `CookieSameSite` is `"None"`** — browsers drop non-Secure `SameSite=None` cookies. |
 
 ### Cookie Security
 
@@ -84,6 +88,29 @@ When `CookieHttpOnly` is `true` (recommended), the cookie cannot be accessed by 
 ::: tip
 For production, always use HTTPS and consider setting `CookieDomain` to your specific domain.
 :::
+
+### Cross-Origin Cookies (New in 3.15.0)
+
+`CookieSameSite` and `CookieSecure` make cookie auth work across origins — e.g. an SPA on `app.example.com` calling an API on `api.example.com`. Without them, browsers silently drop the session cookie on cross-site requests.
+
+```json
+{
+  "Cors": {
+    "Enabled": true,
+    "AllowedOrigins": ["https://app.example.com"],
+    "AllowCredentials": true
+  },
+  "Auth": {
+    "CookieAuth": true,
+    "CookieSameSite": "None",
+    "CookieSecure":   "Always",
+    "CookieHttpOnly": true,
+    "CookieDomain":   ".example.com"
+  }
+}
+```
+
+**Validation:** unknown `CookieSameSite` / `CookieSecure` values fail fast at startup with the offending config path. Setting `CookieSameSite=None` without `CookieSecure=Always` logs a startup warning — the cookie would be silently dropped by modern browsers.
 
 ## Microsoft Bearer Token Authentication
 
@@ -94,7 +121,7 @@ Microsoft Bearer Token authentication provides stateless token-based authenticat
   "Auth": {
     "BearerTokenAuth": true,
     "BearerTokenAuthScheme": null,
-    "BearerTokenExpireHours": 1,
+    "BearerTokenExpire": "1 hour",
     "BearerTokenRefreshPath": "/api/token/refresh"
   }
 }
@@ -106,7 +133,7 @@ Microsoft Bearer Token authentication provides stateless token-based authenticat
 |---------|------|---------|-------------|
 | `BearerTokenAuth` | bool | `false` | Enable Microsoft bearer token authentication. |
 | `BearerTokenAuthScheme` | string | `null` | Authentication scheme name. Uses `"BearerToken"` if null (from `BearerTokenDefaults.AuthenticationScheme`). |
-| `BearerTokenExpireHours` | int | `1` | Number of hours before the token expires. |
+| `BearerTokenExpire` | string | `"1 hour"` | Bearer token expiration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"1 hour"`, `"30 minutes"`, `"2 days"`). Set to `null` to fall back to the framework default (1 hour). |
 | `BearerTokenRefreshPath` | string | `"/api/token/refresh"` | Endpoint path for refreshing tokens. |
 
 ### Token Refresh
@@ -137,13 +164,13 @@ JWT (JSON Web Token) authentication provides industry-standard token-based authe
     "JwtSecret": "your-secret-key-at-least-32-characters-long",
     "JwtIssuer": "your-app",
     "JwtAudience": "your-api",
-    "JwtExpireMinutes": 60,
-    "JwtRefreshExpireDays": 7,
+    "JwtExpire": "60 minutes",
+    "JwtRefreshExpire": "7 days",
     "JwtValidateIssuer": true,
     "JwtValidateAudience": true,
     "JwtValidateLifetime": true,
     "JwtValidateIssuerSigningKey": true,
-    "JwtClockSkew": "5m",
+    "JwtClockSkew": "5 minutes",
     "JwtRefreshPath": "/api/jwt/refresh"
   }
 }
@@ -158,13 +185,13 @@ JWT (JSON Web Token) authentication provides industry-standard token-based authe
 | `JwtSecret` | string | `null` | Secret key for signing tokens. **Must be at least 32 characters for HS256.** |
 | `JwtIssuer` | string | `null` | Token issuer (iss claim). |
 | `JwtAudience` | string | `null` | Token audience (aud claim). |
-| `JwtExpireMinutes` | int | `60` | Access token expiration in minutes. |
-| `JwtRefreshExpireDays` | int | `7` | Refresh token expiration in days. |
+| `JwtExpire` | string | `"60 minutes"` | Access token expiration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"60 minutes"`, `"1 hour"`, `"30 seconds"`). Set to `null` to fall back to the framework default (60 minutes). |
+| `JwtRefreshExpire` | string | `"7 days"` | Refresh token expiration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"7 days"`, `"168 hours"`). Set to `null` to fall back to the framework default (7 days). |
 | `JwtValidateIssuer` | bool | `false` | Validate the issuer claim. Set to true if `JwtIssuer` is configured. |
 | `JwtValidateAudience` | bool | `false` | Validate the audience claim. Set to true if `JwtAudience` is configured. |
 | `JwtValidateLifetime` | bool | `true` | Validate token expiration. |
 | `JwtValidateIssuerSigningKey` | bool | `true` | Validate the signing key. |
-| `JwtClockSkew` | string | `"5m"` | Clock tolerance for expiration validation. Uses [interval format](../annotations/interval-format). |
+| `JwtClockSkew` | string | `"5 minutes"` | Clock tolerance for expiration validation. Uses PostgreSQL [interval format](../annotations/interval-format). |
 | `JwtRefreshPath` | string | `"/api/jwt/refresh"` | Endpoint path for refreshing JWT tokens. |
 
 ### Login Response
@@ -216,6 +243,115 @@ Store your `JwtSecret` securely. Use environment variables in production:
 ```
 :::
 
+## Additional Authentication Schemes
+
+::: tip New in 3.13.0
+Named additional authentication schemes registered alongside the main one.
+:::
+
+`Auth:Schemes` is a named-dict section that registers additional ASP.NET Core authentication schemes alongside the main one. Each entry is a fully-fledged scheme of any of the three supported types — `Cookies`, `BearerToken`, or `Jwt` — with its own options. A login function selects which scheme to use by returning the scheme's name in its `scheme` column.
+
+**Use cases this unlocks:**
+
+- Short-lived sensitive sessions for admin or payment flows (Cookies scheme with shorter `CookieValid` + `CookieMultiSessions: false`).
+- Per-scope JWT signing keys so a key leak has limited blast radius (separate `JwtSecret` per Jwt scheme).
+- Multiple bearer-token APIs with different expirations and refresh paths.
+- Single-session cookies for areas where parallel logins must be disallowed, alongside a normal long-lived session.
+
+```jsonc
+"Auth": {
+  "CookieAuth": true,
+  "CookieValid": "14 days",
+  "JwtAuth": true,
+  "JwtSecret": "...root-secret-32+chars...",
+  "Schemes": {
+    "short_session": {
+      "Type": "Cookies",
+      "Enabled": true,
+      "CookieValid": "1 hour",
+      "CookieMultiSessions": false
+    },
+    "api_token": {
+      "Type": "BearerToken",
+      "Enabled": true,
+      "BearerTokenExpire": "30 minutes",
+      "BearerTokenRefreshPath": "/api/api-token/refresh"
+    },
+    "admin_jwt": {
+      "Type": "Jwt",
+      "Enabled": true,
+      "JwtSecret": "...separate-admin-secret-32+chars...",
+      "JwtExpire": "5 minutes",
+      "JwtRefreshPath": "/api/admin-jwt/refresh"
+    }
+  }
+}
+```
+
+A login function selects the scheme by returning its name in the `scheme` column:
+
+**Equivalent as a SQL file endpoint** (`sql/login.sql`):
+
+```sql
+/*
+HTTP POST
+@login
+@allow_anonymous
+@param $1 user
+@param $2 pass
+*/
+select 'Cookies' as scheme, user_id::text as name_identifier, username as name
+from users where username = $1 and password_hash = crypt($2, password_hash);
+```
+
+```sql
+-- Standard login: returns 'Cookies' → 14-day persistent cookie
+create function login(_user text, _pass text)
+returns table (scheme text, name_identifier text, name text)
+language sql security definer as $$
+  select 'Cookies' as scheme, user_id::text, username from users where ...
+$$;
+
+-- Sensitive-area login: returns 'short_session' → 1-hour session-only cookie
+create function admin_login(_user text, _pass text)
+returns table (scheme text, name_identifier text, name text)
+language sql security definer as $$
+  select 'short_session' as scheme, user_id::text, username from users where ...
+$$;
+
+-- Admin JWT login: returns 'admin_jwt' → 5-minute JWT signed with the admin-only secret
+create function admin_jwt_login(_user text, _pass text)
+returns table (scheme text, name_identifier text, name text)
+language sql security definer as $$
+  select 'admin_jwt' as scheme, user_id::text, username from users where ...
+$$;
+```
+
+### Per-Type Override Fields
+
+| Type | Override fields |
+| --- | --- |
+| `Cookies` | `CookieValid`, `CookieName`, `CookiePath`, `CookieDomain`, `CookieMultiSessions`, `CookieHttpOnly`, `CookieSameSite`, `CookieSecure` |
+| `BearerToken` | `BearerTokenExpire`, `BearerTokenRefreshPath` |
+| `Jwt` | `JwtExpire`, `JwtRefreshExpire`, `JwtSecret`, `JwtIssuer`, `JwtAudience`, `JwtClockSkew`, `JwtRefreshPath`, `JwtValidateIssuer`, `JwtValidateAudience`, `JwtValidateLifetime`, `JwtValidateIssuerSigningKey` |
+
+Common fields: `Type` (required, case-insensitive), `Enabled` (default `true`).
+
+**Inheritance.** A scheme that overrides only one or two fields reuses everything else from the root `Auth` section, so blocks stay small. Setting `CookieMultiSessions: false` is the typical "single-session" override — the cookie's `Max-Age` becomes null (browser-session-only) while `ExpireTimeSpan` still bounds server-side validity. JWT schemes inherit `JwtSecret` from the root section if not set explicitly, so a per-scheme block can be just a shorter expiration.
+
+### Validation at Startup (Fail-Fast)
+
+- Scheme name must not collide with the main scheme names (`CookieAuthScheme`, `BearerTokenAuthScheme`, `JwtAuthScheme`).
+- `Type` must be one of `Cookies`, `BearerToken`, `Jwt` (case-insensitive). Missing or unsupported types throw with a clear message.
+- Explicit `CookieName` values must be distinct across all cookie schemes. When unset, ASP.NET's per-scheme `.AspNetCore.<scheme>` default automatically differs and is excluded from collision tracking.
+- Refresh paths (`BearerTokenRefreshPath` / `JwtRefreshPath`) must be unique across the main scheme and every scheme that defines one.
+- Jwt schemes require a secret either on the scheme or on the root section; `JwtSecret` must be ≥32 chars for HS256.
+- Invalid interval strings throw with the offending path and value.
+
+**Refresh middleware per scheme.** Each `BearerToken`/`Jwt` scheme that declares a refresh path gets its own middleware listening on that path, with that scheme's tokens validated under that scheme's options.
+
+**Logout.** The existing logout pipeline accepts a list of scheme names from the logout function's result columns and signs out each — additional schemes work without changes. To clear both main and additional cookies in one logout, return both scheme names from the function.
+
 ## Complete Examples
 
 ### Cookie Authentication
@@ -224,7 +360,7 @@ Store your `JwtSecret` securely. Use environment variables in production:
 {
   "Auth": {
     "CookieAuth": true,
-    "CookieValidDays": 30,
+    "CookieValid": "30 days",
     "CookieHttpOnly": true,
     "CookieMultiSessions": false
   }
@@ -240,8 +376,8 @@ Store your `JwtSecret` securely. Use environment variables in production:
     "JwtSecret": "{JWT_SECRET}",
     "JwtIssuer": "my-app",
     "JwtAudience": "my-api",
-    "JwtExpireMinutes": 60,
-    "JwtRefreshExpireDays": 7,
+    "JwtExpire": "60 minutes",
+    "JwtRefreshExpire": "7 days",
     "JwtValidateIssuer": true,
     "JwtValidateAudience": true
   }
@@ -256,18 +392,31 @@ All three authentication schemes can be used together:
 {
   "Auth": {
     "CookieAuth": true,
-    "CookieValidDays": 14,
+    "CookieValid": "14 days",
     "CookieHttpOnly": true,
 
     "BearerTokenAuth": true,
-    "BearerTokenExpireHours": 1,
+    "BearerTokenExpire": "1 hour",
 
     "JwtAuth": true,
     "JwtSecret": "{JWT_SECRET}",
-    "JwtExpireMinutes": 60
+    "JwtExpire": "60 minutes"
   }
 }
 ```
+
+::: warning Breaking change in 3.13.0
+The legacy integer-based time fields under `Auth` were removed. If you upgrade with any of the four removed fields still in your config, **startup will fail** with a clear migration message.
+
+| Removed (3.12 and earlier) | Use instead (3.13.0+) |
+| --- | --- |
+| `Auth:CookieValidDays: 14` | `Auth:CookieValid: "14 days"` |
+| `Auth:BearerTokenExpireHours: 1` | `Auth:BearerTokenExpire: "1 hour"` |
+| `Auth:JwtExpireMinutes: 60` | `Auth:JwtExpire: "60 minutes"` |
+| `Auth:JwtRefreshExpireDays: 7` | `Auth:JwtRefreshExpire: "7 days"` |
+
+The new fields accept Postgres-interval syntax (`"14 days"`, `"12 hours"`, `"30 minutes"`, `"45 seconds"`, etc.) — finer-grained durations than the legacy integers permitted. Setting any of these to `null` falls back to the framework default.
+:::
 
 ## Related
 

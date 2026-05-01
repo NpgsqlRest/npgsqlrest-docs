@@ -51,15 +51,14 @@ With configuration:
 {
   "RateLimiterOptions": {
     "Enabled": true,
-    "Policies": [
-      {
+    "Policies": {
+      "fixed": {
         "Type": "FixedWindow",
         "Enabled": true,
-        "Name": "fixed",
         "PermitLimit": 100,
         "WindowSeconds": 60
       }
-    ]
+    }
   }
 }
 ```
@@ -80,15 +79,14 @@ With configuration:
 {
   "RateLimiterOptions": {
     "Enabled": true,
-    "Policies": [
-      {
+    "Policies": {
+      "bucket": {
         "Type": "TokenBucket",
         "Enabled": true,
-        "Name": "bucket",
         "TokenLimit": 10,
         "ReplenishmentPeriodSeconds": 60
       }
-    ]
+    }
   }
 }
 ```
@@ -110,26 +108,64 @@ With configuration:
 {
   "RateLimiterOptions": {
     "Enabled": true,
-    "Policies": [
-      {
+    "Policies": {
+      "authenticated_limit": {
         "Type": "SlidingWindow",
         "Enabled": true,
-        "Name": "authenticated_limit",
         "PermitLimit": 1000,
         "WindowSeconds": 60,
         "SegmentsPerWindow": 6
       }
-    ]
+    }
   }
 }
 ```
 
+### Per-User Rate Limiting
+
+Apply per-user rate limiting using a [partitioned policy](../config/rate-limiter#per-user-rate-limiting-partition):
+
+```sql
+comment on function user_dashboard() is
+'HTTP GET
+@authorize
+@rate_limiter per_user';
+```
+
+With configuration:
+
+```json
+{
+  "RateLimiterOptions": {
+    "Enabled": true,
+    "Policies": {
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "Partition": {
+          "Sources": [
+            { "Type": "Claim", "Name": "name_identifier" },
+            { "Type": "IpAddress" },
+            { "Type": "Static", "Value": "anonymous" }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+Each authenticated user gets their own quota instead of all users sharing one global bucket.
+
 ## Behavior
 
-- The policy name must match the `Name` field of a policy defined in the [Rate Limiter configuration](../config/rate-limiter#complete-example)
+- The policy name must match a key in the `Policies` dictionary defined in the [Rate Limiter configuration](../config/rate-limiter#complete-example)
 - If the policy name doesn't match any configured policy, rate limiting won't be applied
 - Returns `429 Too Many Requests` when limit exceeded (status code and message are [configurable](../config/rate-limiter#settings-reference))
 - Policy defines requests per time window based on the [policy type](../config/rate-limiter#policy-types) (FixedWindow, SlidingWindow, TokenBucket, or Concurrency)
+- Policies with a `Partition` block bucket requests per-user / per-IP / per-header instead of using a single global bucket
 
 ## Related
 

@@ -57,6 +57,14 @@ comment on function get_external_data() is 'HTTP GET
 @proxy';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-external-data.sql`):
+
+```sql
+-- HTTP GET
+-- @proxy
+select;
+```
+
 When the function has no proxy response parameters, the upstream response is returned directly to the client without opening a database connection.
 
 ### Transform Mode
@@ -96,7 +104,14 @@ comment on function get_and_transform(int, text, json, text, boolean, text) is '
 Uses the host from `ProxyOptions.Host` configuration:
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy
+select;
 ```
 
 ### Proxy with Custom Host
@@ -104,7 +119,14 @@ comment on function my_func() is '@proxy';
 Override the default host:
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy https://api.example.com';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy https://api.example.com
+select;
 ```
 
 ### Proxy with Custom HTTP Method
@@ -112,7 +134,14 @@ comment on function my_func() is '@proxy https://api.example.com';
 Override the upstream HTTP method (uses default host from configuration):
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy POST';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy POST
+select;
 ```
 
 ### Combined Method and Host
@@ -120,7 +149,14 @@ comment on function my_func() is '@proxy POST';
 Specify both HTTP method and host:
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy POST https://api.example.com';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy POST https://api.example.com
+select;
 ```
 
 ### Self-Referencing Proxy (Relative Path)
@@ -128,7 +164,14 @@ comment on function my_func() is '@proxy POST https://api.example.com';
 Use a relative path starting with `/` to proxy to another endpoint on the same server:
 
 ```sql
+-- function form
 comment on function my_func() is '@proxy POST /api/data-source';
+```
+
+```sql
+-- sql/my-func.sql (SQL file form)
+-- @proxy POST /api/data-source
+select;
 ```
 
 Self-referencing calls bypass the HTTP stack entirely — the target endpoint handler is invoked directly in-process with zero network overhead.

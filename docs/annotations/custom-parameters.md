@@ -51,6 +51,20 @@ comment on function upload_file(text, text) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/upload-file.sql`):
+
+```sql
+/*
+HTTP POST
+@upload for file_system
+@file_system_path = {path}
+@file_system_file = {file}
+@param $1 path
+@param $2 file
+*/
+select;
+```
+
 When called with `{"_path": "/uploads/images", "_file": "photo.jpg"}`, the file will be saved to `/uploads/images/photo.jpg`.
 
 ## Built-in Parameters

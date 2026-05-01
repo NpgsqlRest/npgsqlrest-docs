@@ -86,7 +86,7 @@ Add an HTTP definition as a comment on the type (RFC 7230 format):
 ```sql
 comment on type weather_api is 'GET https://api.weather.com/v1/current?city={_city}
 Authorization: Bearer {_api_key}
-timeout 30s';
+@timeout 30s';
 ```
 
 ### Step 3: Use in a Function
@@ -110,6 +110,23 @@ begin
     end if;
 end;
 $$;
+```
+
+**Equivalent as a SQL file endpoint** (`sql/get-weather.sql`):
+
+The HTTP Type itself must be defined in DDL (it's a composite type). The endpoint that consumes it can be a SQL file:
+
+```sql
+/*
+HTTP GET
+@param $1 city
+@param $2 api_key
+@param $3 req weather_api
+*/
+select case
+    when ($3::weather_api).success then ($3::weather_api).body::json
+    else json_build_object('error', ($3::weather_api).error_message)
+end;
 ```
 
 ## HTTP Definition Format
@@ -169,7 +186,7 @@ GET https://api.example.com/data';
 -- After headers
 comment on type api_response is 'GET https://api.example.com/data
 Authorization: Bearer {_token}
-timeout 30s';
+@timeout 30s';
 ```
 
 Common timeout formats:
@@ -204,7 +221,7 @@ URLs, headers, and request body can contain placeholders in the format `{paramet
 -- Type with placeholders
 comment on type weather_api is 'GET https://api.weather.com/v1/current?city={_city}
 Authorization: Bearer {_api_key}
-timeout 30s';
+@timeout 30s';
 
 -- Function with matching parameter names
 create function get_weather(
@@ -254,7 +271,7 @@ create type github_api as (
 comment on type github_api is 'GET https://api.github.com/users/{_username}
 Accept: application/vnd.github.v3+json
 User-Agent: NpgsqlRest
-timeout 10s';
+@timeout 10s';
 
 -- Create function
 create function get_github_user(

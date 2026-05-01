@@ -398,8 +398,7 @@ This section provides a complete overview of the NpgsqlRest configuration file s
     "AuthenticationOptions": { ... },
     "HttpFileOptions": { ... },
     "OpenApiOptions": { ... },
-    "ClientCodeGen": { ... },
-    "CrudSource": { ... }
+    "ClientCodeGen": { ... }
   }
 }
 ```

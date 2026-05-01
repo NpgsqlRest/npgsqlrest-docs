@@ -67,6 +67,18 @@ comment on function search_users(text, bool) is
 @request_param_type query_string';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/search-users.sql`):
+
+```sql
+/*
+HTTP GET
+@request_param_type query_string
+@param $1 name
+@param $2 active boolean
+*/
+select * from users where name ilike '%' || $1 || '%' and active = $2;
+```
+
 Request: `GET /api/search-users?_name=john&_active=true`
 
 ### Force JSON Body Parameters

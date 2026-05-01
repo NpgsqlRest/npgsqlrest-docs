@@ -309,6 +309,30 @@ decrypt value
 ';
 ```
 
+**Equivalent as SQL file endpoints**:
+
+```sql
+-- sql/store-secret.sql
+/*
+HTTP POST
+@encrypt value
+@param $1 key
+@param $2 value
+*/
+insert into secrets (key, value) values ($1, $2)
+on conflict (key) do update set value = excluded.value;
+```
+
+```sql
+-- sql/get-secret.sql
+/*
+HTTP GET
+@decrypt value
+@param $1 key
+*/
+select key, value from secrets where key = $1;
+```
+
 The database stores ciphertext; the API consumer sees plaintext. This is useful for storing PII (SSN, medical records, credit card numbers) or other sensitive data that must be encrypted at rest but is only ever looked up by an unencrypted key (e.g., `user_id`).
 
 ::: warning Key Persistence Required

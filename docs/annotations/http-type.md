@@ -73,6 +73,18 @@ select (_response).body;
 end;
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/fetch-data.sql`):
+
+The HTTP Type itself must be defined in DDL (it's a composite type), but the consuming endpoint can be a SQL file. Assuming `simple_api` is already defined as above:
+
+```sql
+/*
+HTTP GET
+@param $1 response simple_api
+*/
+select ($1::simple_api).body;
+```
+
 ### GET with Headers and Placeholders
 
 ```sql

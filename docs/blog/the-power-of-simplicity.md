@@ -75,9 +75,8 @@ That's it. No `CREATE FUNCTION`, no database deployment step. Just a file on dis
 
 For complex business logic that needs to evolve independently from the application — like the [data contracts](/blog/what-have-stored-procedures-ever-done-for-us) story — PostgreSQL functions remain the right choice. But for straightforward queries, SQL files remove the last bit of ceremony between your intent and a working API endpoint.
 
-Three endpoint sources, one binary, zero boilerplate:
+Two endpoint sources, one binary, zero boilerplate:
 - **SQL Files** — write a query, get an endpoint
-- **Functions** — formal data contracts with static type checking
-- **Tables** — automatic CRUD generation
+- **Functions and procedures** — formal data contracts with static type checking
 
 If you want to learn how to do this with PostgreSQL, check out the [Quick Start Guide](/guide/quick-start) or dive into the [Tutorials](/blog/).

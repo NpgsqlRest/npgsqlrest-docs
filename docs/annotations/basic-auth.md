@@ -105,6 +105,18 @@ comment on function get_basic_auth_user(text) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-basic-auth-user.sql`):
+
+```sql
+/*
+HTTP GET
+@basic_auth my_name Myb55+6lW6iiUOI3opLkysOaS8J0NNIuQ+qE2SGaKs3r62ngDJROrhX75+zmLC7t
+@user_params
+@param $1 user_name
+*/
+select $1;
+```
+
 Test with:
 ```bash
 # Generate header: ./npgsqlrest --basic_auth my_name my_password

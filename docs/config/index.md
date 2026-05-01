@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "Configuration Reference"
 titleTemplate: NpgsqlRest
-description: "Complete NpgsqlRest configuration reference. All settings for connections, authentication, CRUD, caching, logging, and more."
+description: "Complete NpgsqlRest configuration reference. All settings for connections, authentication, caching, logging, and more."
 head:
   - - meta
     - name: keywords
@@ -25,7 +25,7 @@ Complete reference documentation for all NpgsqlRest configuration options.
 For an introduction to how configuration works (sources, precedence, environment variables, command-line arguments), see the [Configuration Guide](../guide/configuration).
 
 ::: tip Latest Default Configuration
-See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.12.0.
+See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.16.1.
 :::
 
 ## Reference Sections
@@ -56,7 +56,6 @@ See the [Latest Default Configuration](./latest) for a complete reference of all
 
 ### Features
 
-- [CRUD](./crud) - Automatic CRUD endpoint generation for tables
 - [SQL File Source](./sql-file-source) - REST API endpoints from SQL files
 - [Proxy](./proxy) - Reverse proxy support for forwarding requests to upstream services
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation

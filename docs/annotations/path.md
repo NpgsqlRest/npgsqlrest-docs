@@ -49,6 +49,14 @@ comment on function get_user_data() is
 @path /users/data';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-user-data.sql`):
+
+```sql
+-- HTTP GET
+-- @path /users/data
+select row_to_json(u) from users u where id = current_user_id();
+```
+
 Creates: `GET /users/data`
 
 ### Path with HTTP Method

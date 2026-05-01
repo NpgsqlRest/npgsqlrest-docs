@@ -56,6 +56,17 @@ HTTP GET
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-user.sql`):
+
+```sql
+/*
+HTTP GET
+@validate user_id using not_null
+@param $1 user_id int
+*/
+select row_to_json(u) from users u where id = $1;
+```
+
 ### Multiple Rules on One Parameter
 
 ```sql

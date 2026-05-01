@@ -139,6 +139,27 @@ end;
 $$;
 ```
 
+**Equivalent as a SQL file** (`sql/external-login.sql`):
+
+The login command is referenced from configuration (`LoginCommand: "select * from external_login($1,$2,$3,$4,$5)"`), so the call site stays the same. The implementation can also be a SQL file:
+
+```sql
+/*
+@param $1 provider text
+@param $2 email text
+@param $3 name text
+@param $4 data jsonb
+@param $5 analytics jsonb
+*/
+with upsert as (
+    insert into users (email, name, created_via)
+    values ($2, $3, $1)
+    on conflict (email) do update set name = excluded.name
+    returning id, name, email
+)
+select true as status, id, name, email, $1 as provider from upsert;
+```
+
 ## OAuth Providers
 
 NpgsqlRest includes pre-configured defaults for Google, LinkedIn, GitHub, Microsoft, and Facebook. For these providers, you only need to set `ClientId` and `ClientSecret` - all URL settings have sensible defaults.
@@ -279,7 +300,7 @@ Configuration with Google and GitHub OAuth:
 {
   "Auth": {
     "CookieAuth": true,
-    "CookieValidDays": 30,
+    "CookieValid": "30 days",
 
     "External": {
       "Enabled": true,

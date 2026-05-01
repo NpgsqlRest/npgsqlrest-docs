@@ -73,6 +73,15 @@ comment on function signout() is
 @authorize';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/signout.sql`):
+
+```sql
+-- HTTP POST
+-- @logout
+-- @authorize
+delete from sessions where user_id = current_user_id();
+```
+
 Signs out from all authentication schemes.
 
 ### Logout from Specific Scheme

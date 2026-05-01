@@ -40,6 +40,32 @@ Building production-ready APIs requires more than just functional correctness. Y
 
 NpgsqlRest provides comprehensive built-in support for all of these concerns. This guide walks through each feature with practical examples you can implement today.
 
+::: tip Functions or SQL files — same annotations, different placement
+Every annotation in this post works identically with **PostgreSQL functions** (via `comment on function ... is '...'`) and with **SQL files** (via `-- @annotation` header comments in a `.sql` file). Same semantics, same defaults, same ordering rules — only the comment placement differs. Examples below use both forms; pick whichever fits your codebase.
+:::
+
+The same endpoint as a function and as a SQL file:
+
+```sql
+-- As a function
+create function get_settings() returns json language sql
+begin atomic; select settings from app_config where id = 1; end;
+
+comment on function get_settings() is 'HTTP GET
+@cached
+@cache_expires_in 1 hour';
+```
+
+```sql
+-- As a SQL file: sql/get-settings.sql
+-- HTTP GET
+-- @cached
+-- @cache_expires_in 1 hour
+select settings from app_config where id = 1;
+```
+
+Both produce `GET /api/get-settings` with a one-hour cached response. SQL files need the `SqlFileSource` plugin enabled in config (`"NpgsqlRest": { "SqlFileSource": { "Enabled": true, "FilePattern": "sql/**/*.sql" } }`) — see [SQL File Source](/config/sql-file-source) for the full reference.
+
 ## Caching Strategies
 
 Caching is your first line of defense against unnecessary database load. NpgsqlRest supports two complementary caching layers: **HTTP caching** (browser/CDN level) and **server-side caching** (application level).
@@ -65,6 +91,15 @@ end;
 comment on function get_product_catalog() is
 'HTTP GET
 Cache-Control: public, max-age=3600';
+```
+
+Or as a SQL file:
+
+```sql
+-- sql/get-product-catalog.sql
+-- HTTP GET
+-- Cache-Control: public, max-age=3600
+select json_agg(p) from products p where active;
 ```
 
 This tells browsers and CDNs to cache the response for 1 hour (3600 seconds). You can combine multiple headers:
@@ -158,6 +193,15 @@ comment on function get_app_settings() is
 @cached';
 ```
 
+Or as a SQL file:
+
+```sql
+-- sql/get-app-settings.sql
+-- HTTP GET
+-- @cached
+select settings from app_config where id = 1;
+```
+
 When a cached endpoint is hit and the cache is warm, **no database connection is opened**. This is critical for high-traffic endpoints—you're not just saving database CPU cycles, you're preserving your connection pool for requests that actually need it.
 
 #### Cache Keys by Parameter
@@ -175,6 +219,16 @@ end;
 comment on function get_user_profile(int) is
 'HTTP GET
 @cached _user_id';
+```
+
+Or as a SQL file — note that positional parameters need `@param` to get a readable name:
+
+```sql
+-- sql/get-user-profile.sql
+-- HTTP GET
+-- @param $1 user_id int
+-- @cached user_id
+select row_to_json(u) from users u where id = $1;
 ```
 
 Different `_user_id` values create separate cache entries. A request for user 1 and user 2 are cached independently.
@@ -334,6 +388,82 @@ Protect against caching excessively large result sets:
 
 Results exceeding this limit are returned but not cached—preventing memory issues from unexpectedly large queries.
 
+### Cache Profiles
+
+A single root cache type isn't always enough. You might want fast per-user data in Memory, shared session data in Redis, and historical analytics with a long TTL on a third backend — all in one application. **Cache profiles** let you register multiple named caching policies, each with its own backend, default expiration, key shape, and conditional rules, and let endpoints opt into them with the `@cache_profile` annotation.
+
+```jsonc
+{
+  "CacheOptions": {
+    "Enabled": true,
+    "Type": "Memory",
+    "Profiles": {
+      "fast_memory": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 minute",
+        "Parameters": ["user_id"]
+      },
+      "shared_redis": {
+        "Enabled": true,
+        "Type": "Redis",
+        "Expiration": "1 hour"
+      },
+      "timeseries": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 hour",
+        "Parameters": ["from", "to", "live"],
+        "When": [
+          { "Parameter": "live", "Value": true, "Then": "skip" },
+          { "Parameter": "to",   "Value": null, "Then": "5 minutes" }
+        ]
+      }
+    }
+  }
+}
+```
+
+```sql
+-- Per-user 1-minute cache via the fast Memory profile
+comment on function get_my_dashboard(_user_id int) is
+'HTTP GET
+@authorize
+@cache_profile fast_memory';
+
+-- 1-hour distributed cache via Redis
+comment on function get_global_metrics() is
+'HTTP GET
+@cache_profile shared_redis';
+
+-- Long cache for historical queries; short cache for "until-now";
+-- bypass entirely when ?live=true
+comment on function compute_timeseries(_from text, _to text default null, _live boolean default false) is
+'HTTP GET
+@cache_profile timeseries';
+```
+
+The same `timeseries` profile applied to a SQL file — the profile's `When` rules don't care whether the endpoint is a function or a file, they just inspect the resolved parameter values at request time:
+
+```sql
+-- sql/compute-timeseries.sql
+-- HTTP GET
+-- @param $1 from text
+-- @param $2 to   text    default null
+-- @param $3 live boolean default false
+-- @cache_profile timeseries
+select * from timeseries_data($1, $2)
+where ($3 = false or now() - interval '1 minute' < $2::timestamp);
+```
+
+Three things to know:
+
+- **`When` rules** are evaluated against request parameters at request time, first match wins. Each rule's `Then` is either `"skip"` (bypass cache entirely) or a PostgreSQL interval (override the TTL when writing). This is what makes profiles more expressive than the root cache.
+- **Backend pooling** — all profiles of the same `Type` share one backend instance. If no profile uses Redis and the root `Type` isn't `Redis`, no Redis connection is opened, even if `RedisConfiguration` is set.
+- **Validation at startup** — `@cache_profile` referencing an unknown name fails startup with a single exception listing every unresolved name and the endpoints that referenced each. No silent fall-throughs.
+
+Endpoints without `@cache_profile` continue to use the root cache, so profiles are purely additive. See [Cache Profiles](../config/cache-options#cache-profiles) for the full reference.
+
 ## Retry Strategies
 
 Transient failures are inevitable in distributed systems. Database connections drop, servers restart, deadlocks occur. NpgsqlRest provides two levels of retry handling: **connection retries** and **command retries**.
@@ -445,12 +575,29 @@ Assign strategies per endpoint:
 -- Critical payment processing - aggressive retries
 comment on function process_payment() is
 'HTTP POST
-@retry aggressive';
+@retry_strategy aggressive';
 
 -- Fast lookup - minimal retries to fail fast
 comment on function quick_lookup() is
 'HTTP GET
-@retry minimal';
+@retry_strategy minimal';
+```
+
+The same as SQL files:
+
+```sql
+-- sql/process-payment.sql
+-- HTTP POST
+-- @retry_strategy aggressive
+call process_payment_tx($1, $2);
+```
+
+```sql
+-- sql/quick-lookup.sql
+-- HTTP GET
+-- @param $1 id int
+-- @retry_strategy minimal
+select * from lookup_table where id = $1;
 ```
 
 ### PostgreSQL Error Code Classes
@@ -480,10 +627,14 @@ Rate limiting protects your API from abuse and ensures fair resource allocation.
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
-    "Policies": []
+    "Policies": {}
   }
 }
 ```
+
+::: warning Breaking change in 3.13.0
+`RateLimiterOptions:Policies` is now an **object keyed by policy name**, not an array of objects with a `"Name"` field. Earlier versions of this post showed the array form — if you copied from there, migrate to the keyed-object form below. Old configs fail at startup with a clear `InvalidOperationException`.
+:::
 
 ### Fixed Window
 
@@ -491,12 +642,15 @@ Limits requests within fixed time intervals:
 
 ```json
 {
-  "Type": "FixedWindow",
-  "Enabled": true,
-  "Name": "fixed",
-  "PermitLimit": 100,
-  "WindowSeconds": 60,
-  "QueueLimit": 10
+  "Policies": {
+    "fixed": {
+      "Type": "FixedWindow",
+      "Enabled": true,
+      "PermitLimit": 100,
+      "WindowSeconds": 60,
+      "QueueLimit": 10
+    }
+  }
 }
 ```
 
@@ -516,12 +670,15 @@ Smoother rate limiting using overlapping segments:
 
 ```json
 {
-  "Type": "SlidingWindow",
-  "Enabled": true,
-  "Name": "sliding",
-  "PermitLimit": 100,
-  "WindowSeconds": 60,
-  "SegmentsPerWindow": 6
+  "Policies": {
+    "sliding": {
+      "Type": "SlidingWindow",
+      "Enabled": true,
+      "PermitLimit": 100,
+      "WindowSeconds": 60,
+      "SegmentsPerWindow": 6
+    }
+  }
 }
 ```
 
@@ -533,12 +690,15 @@ Allows controlled bursting while maintaining overall rate:
 
 ```json
 {
-  "Type": "TokenBucket",
-  "Enabled": true,
-  "Name": "bucket",
-  "TokenLimit": 100,
-  "TokensPerPeriod": 10,
-  "ReplenishmentPeriodSeconds": 10
+  "Policies": {
+    "bucket": {
+      "Type": "TokenBucket",
+      "Enabled": true,
+      "TokenLimit": 100,
+      "TokensPerPeriod": 10,
+      "ReplenishmentPeriodSeconds": 10
+    }
+  }
 }
 ```
 
@@ -552,12 +712,15 @@ Limits simultaneous requests rather than rate:
 
 ```json
 {
-  "Type": "Concurrency",
-  "Enabled": true,
-  "Name": "concurrency",
-  "PermitLimit": 10,
-  "QueueLimit": 5,
-  "OldestFirst": true
+  "Policies": {
+    "concurrency": {
+      "Type": "Concurrency",
+      "Enabled": true,
+      "PermitLimit": 10,
+      "QueueLimit": 5,
+      "OldestFirst": true
+    }
+  }
 }
 ```
 
@@ -568,8 +731,58 @@ Perfect for expensive operations where you want to limit database load regardles
 ```sql
 comment on function generate_large_report() is
 'HTTP POST
-@rate_limiter concurrency';
+@rate_limiter_policy concurrency';
 ```
+
+Same thing as a SQL file:
+
+```sql
+-- sql/generate-large-report.sql
+-- HTTP POST
+-- @rate_limiter_policy concurrency
+select build_report_payload();
+```
+
+### Per-User Rate Limiting (Partitions)
+
+Out of the box, every request under a given policy shares a single global bucket — 100 requests per minute means *100 across all users, combined*. That's rarely what you want for authenticated APIs, where one heavy user can starve everyone else.
+
+A `Partition` block makes each request resolve its own bucket based on something from `HttpContext`: a claim, the client IP, a header, or a static fallback. The first source that resolves to a non-empty value wins.
+
+```jsonc
+"RateLimiterOptions": {
+  "Enabled": true,
+  "Policies": {
+    "per_user": {
+      "Type": "FixedWindow",
+      "Enabled": true,
+      "PermitLimit": 100,
+      "WindowSeconds": 60,
+      "Partition": {
+        "Sources": [
+          { "Type": "Claim", "Name": "name_identifier" },
+          { "Type": "IpAddress" },
+          { "Type": "Static", "Value": "anonymous" }
+        ]
+      }
+    },
+    "throttle_anon_only": {
+      "Type": "FixedWindow",
+      "Enabled": true,
+      "PermitLimit": 10,
+      "WindowSeconds": 60,
+      "Partition": {
+        "BypassAuthenticated": true,
+        "Sources": [{ "Type": "IpAddress" }]
+      }
+    }
+  }
+}
+```
+
+`per_user` gives each authenticated user their own 100-per-minute bucket, falls back to per-IP for anonymous requests, and lumps anything else into a shared `anonymous` bucket. `throttle_anon_only` waves signed-in users through entirely (`BypassAuthenticated: true`) and applies a stricter 10-per-minute limit per IP for everyone else — a common pattern for protecting unauthenticated endpoints from scraping.
+
+Policies *without* a `Partition` block still use a single global bucket, so partitioning is purely additive and only kicks in where you ask for it.
 
 ### Combining Policies
 
@@ -591,7 +804,7 @@ comment on function user_dashboard() is
 comment on function export_data() is
 'HTTP POST
 @authorize
-@rate_limiter concurrency';
+@rate_limiter_policy concurrency';
 ```
 
 ## Thread Pool Optimization
@@ -807,6 +1020,15 @@ comment on function heavy_report() is
 @connection_name ReadReplica';
 ```
 
+Or as SQL files — `@connection` works the same way regardless of endpoint source:
+
+```sql
+-- sql/get-analytics-data.sql
+-- HTTP GET
+-- @connection ReadReplica
+select * from analytics_summary;
+```
+
 The `connection` annotation references the connection string name. The endpoint uses that connection instead of the default.
 
 This approach is more efficient than multi-host connections with `Target Session Attributes` because:
@@ -862,16 +1084,15 @@ A complete HA setup with failover, load balancing, caching, and retries:
   "RateLimiterOptions": {
     "Enabled": true,
     "DefaultPolicy": "standard",
-    "Policies": [
-      {
+    "Policies": {
+      "standard": {
         "Type": "SlidingWindow",
         "Enabled": true,
-        "Name": "standard",
         "PermitLimit": 1000,
         "WindowSeconds": 60,
         "SegmentsPerWindow": 6
       }
-    ]
+    }
   }
 }
 ```
@@ -891,10 +1112,10 @@ This is naturally true for primary-replica setups (replicas are copies of the pr
 
 ## Putting It All Together
 
-Here's how these features work together for a production API:
+Here's how these features work together for a production API — mixing functions and SQL files in the same codebase, since both speak the same annotation language:
 
 ```sql
--- Frequently accessed, rarely changes - aggressive caching
+-- Function — frequently accessed, rarely changes, aggressive caching
 create function get_product_catalog()
 returns json
 language sql
@@ -907,23 +1128,22 @@ comment on function get_product_catalog() is
 @cached
 @cache_expires_in 1h
 @connection ReadReplica';
+```
 
--- User-specific, moderate caching
-create function get_user_orders(_user_id int)
-returns json
-language sql security definer
-begin atomic;
-select json_agg(o) from orders o where user_id = _user_id;
-end;
+```sql
+-- SQL file — user-specific, moderate caching
+-- sql/get-user-orders.sql
+-- HTTP GET
+-- @param $1 user_id int
+-- @authorize
+-- @cached user_id
+-- @cache_expires_in 5m
+-- @connection ReadReplica
+select json_agg(o) from orders o where user_id = $1;
+```
 
-comment on function get_user_orders(int) is
-'HTTP GET
-@authorize
-@cached _user_id
-@cache_expires_in 5m
-@connection ReadReplica';
-
--- Critical write operation - retries, rate limiting
+```sql
+-- Function — critical write operation needs plpgsql, retries, rate limiting
 create function process_order(_order json)
 returns json
 language plpgsql security definer
@@ -937,27 +1157,25 @@ $$;
 comment on function process_order(json) is
 'HTTP POST
 @authorize
-@retry aggressive
+@retry_strategy aggressive
 @rate_limiter_policy order_limit';
+```
 
--- Expensive report - concurrency limited, long cache
-create function generate_sales_report(_start_date date, _end_date date)
-returns json
-language sql
-begin atomic;
-  select json_build_object(
-    'period', json_build_object('start', _start_date, 'end', _end_date),
-    'data', (select json_agg(r) from sales_summary r where date between _start_date and _end_date)
-  );
-end;
-
-comment on function generate_sales_report(date, date) is
-'HTTP GET
-@authorize roles admin,analyst
-@cached _start_date, _end_date
-@cache_expires_in 1d
-@rate_limiter concurrency
-@connection ReadReplica';
+```sql
+-- SQL file — expensive report, concurrency limited, long cache
+-- sql/generate-sales-report.sql
+-- HTTP GET
+-- @param $1 start_date date
+-- @param $2 end_date   date
+-- @authorize roles admin,analyst
+-- @cached start_date, end_date
+-- @cache_expires_in 1d
+-- @rate_limiter_policy concurrency
+-- @connection ReadReplica
+select json_build_object(
+  'period', json_build_object('start', $1, 'end', $2),
+  'data',   (select json_agg(r) from sales_summary r where date between $1 and $2)
+);
 ```
 
 ## Summary

@@ -108,6 +108,17 @@ comment on function lo_simple_upload(json) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/lo-simple-upload.sql`):
+
+```sql
+/*
+HTTP POST
+@upload
+@param $1 meta is upload metadata
+*/
+select $1;
+```
+
 ### With Custom OID Parameter
 
 You can specify a custom OID for the large object:

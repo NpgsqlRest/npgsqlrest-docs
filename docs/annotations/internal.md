@@ -88,7 +88,7 @@ $$;
 
 ## SQL File Endpoints
 
-Works on all endpoint sources — functions, procedures, tables/views (CRUD), and SQL files:
+Works on all endpoint sources — functions, procedures, and SQL files:
 
 ```sql
 -- sql/internal_helper.sql

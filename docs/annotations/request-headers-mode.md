@@ -76,6 +76,18 @@ comment on function with_headers(text, json) is
 @request_headers_mode parameter';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/with-headers.sql`):
+
+```sql
+/*
+HTTP POST
+@request_headers_mode parameter
+@param $1 data
+@param $2 headers json
+*/
+select json_build_object('data', $1, 'headers', $2);
+```
+
 ## Behavior
 
 - Default mode is configured in `NpgsqlRest.RequestHeadersMode`

@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "PARAM Annotation"
 titleTemplate: NpgsqlRest
-description: "Rename, retype, set defaults, and configure composite type parameters. Works on all endpoint types — functions, procedures, CRUD, and SQL file endpoints."
+description: "Rename, retype, set defaults, and configure composite type parameters. Works on all endpoint types — functions, procedures, and SQL file endpoints."
 head:
   - - meta
     - name: keywords
@@ -26,7 +26,7 @@ head:
 
 Rename and optionally retype individual endpoint parameters. This provides better API ergonomics by replacing positional parameter names (`$1`, `$2`) or internal parameter names (`_old_name`) with cleaner, user-facing names.
 
-Works on **all** endpoint types — functions, procedures, CRUD, and SQL file endpoints.
+Works on **all** endpoint types — functions, procedures, and SQL file endpoints.
 
 ::: tip
 The `@param` keyword is shared with the [PARAMETER_HASH](./parameter-hash) annotation (`@param X is hash of Y`). Both forms coexist without ambiguity — the parser distinguishes them by the presence of `hash of` in the annotation.

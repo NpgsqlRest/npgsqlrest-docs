@@ -182,6 +182,27 @@ comment on function get_user_data(text, text, text[], text, json) is '
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-user-data.sql`):
+
+```sql
+/*
+HTTP GET
+@authorize
+@user_params
+@param $1 user_id text
+@param $2 user_name text
+@param $3 user_roles text[]
+@param $4 ip_address text
+@param $5 user_claims json
+*/
+select
+    $1::int as user_id,
+    $2 as user_name,
+    $3 as roles,
+    $4 as ip,
+    $5 as all_claims;
+```
+
 ::: tip
 Parameters with default values can be used without authentication. When the user is authenticated, claim values override the defaults.
 :::

@@ -50,6 +50,19 @@ comment on function process_request(text, json) is
 @request_headers_parameter_name _req_headers';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/process-request.sql`):
+
+```sql
+/*
+HTTP POST
+@request_headers_mode parameter
+@request_headers_parameter_name req_headers
+@param $1 data
+@param $2 req_headers json
+*/
+select json_build_object('data', $1, 'headers', $2);
+```
+
 ### Default Parameter Name
 
 By default, uses `_headers` as the parameter name:

@@ -100,7 +100,6 @@ Configuration options control the server behavior, database connections, securit
 
 ### Features
 
-- [CRUD Source](/config/crud) - Automatic CRUD endpoint generation for tables
 - [OpenAPI](/config/openapi) - OpenAPI/Swagger documentation generation
 - [HTTP Files](/config/http-files) - HTTP test file generation
 - [Code Generation](/config/codegen) - Client code generation (TypeScript, etc.)

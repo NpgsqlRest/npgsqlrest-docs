@@ -91,6 +91,14 @@ comment on function get_external_data() is 'HTTP GET
 @proxy https://api.example.com/data';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-external-data.sql`):
+
+```sql
+-- HTTP GET
+-- @proxy https://api.example.com/data
+select;
+```
+
 ### Transform Mode
 
 When the PostgreSQL function has parameters matching the configured response parameter names, the proxy response is passed to the function for processing:
@@ -219,7 +227,7 @@ When a proxy annotation includes a **relative path** (starting with `/`), the re
 
 ```sql
 comment on function my_aggregator() is 'HTTP GET
-proxy POST /api/data-source';
+@proxy POST /api/data-source';
 ```
 
 Self-referencing calls bypass the HTTP stack entirely — the endpoint handler is invoked directly in-process via `InternalRequestHandler`, with zero network overhead.
@@ -239,7 +247,7 @@ comment on function get_cached_rates() is 'HTTP GET
 
 -- Public endpoint that proxies the internal one
 comment on function convert_currency(numeric, text, text) is 'HTTP GET
-proxy GET /api/get-cached-rates';
+@proxy GET /api/get-cached-rates';
 ```
 
 Direct HTTP call to `/api/get-cached-rates` returns 404, but the proxy call works.

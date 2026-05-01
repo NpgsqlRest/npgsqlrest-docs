@@ -52,6 +52,14 @@ comment on function get_my_profile() is
 @authorize';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-my-profile.sql`):
+
+```sql
+-- HTTP GET
+-- @authorize
+select row_to_json(u) from users u where u.id = current_user_id();
+```
+
 Unauthenticated requests receive `401 Unauthorized`.
 
 ### Alternative Keywords

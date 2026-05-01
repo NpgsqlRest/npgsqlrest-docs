@@ -77,6 +77,17 @@ comment on function quick_lookup(int) is
 @timeout 5s';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/quick-lookup.sql`):
+
+```sql
+/*
+HTTP GET
+@timeout 5s
+@param $1 id
+*/
+select row_to_json(t) from items t where t.id = $1;
+```
+
 ### Long Running Query
 
 ```sql

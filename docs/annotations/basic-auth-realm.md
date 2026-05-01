@@ -58,6 +58,17 @@ HTTP GET
 ';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/protected-api.sql`):
+
+```sql
+/*
+HTTP GET
+@basic_auth admin_user hashed_password_here
+@realm = MyApplication
+*/
+select '{"data": "secret"}'::json;
+```
+
 When authentication fails, the response header will be:
 ```
 WWW-Authenticate: Basic realm="MyApplication"

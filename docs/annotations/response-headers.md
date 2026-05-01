@@ -47,6 +47,16 @@ comment on function get_html_page() is
 Content-Type: text/html';
 ```
 
+**Equivalent as a SQL file endpoint** (`sql/get-html-page.sql`):
+
+```sql
+/*
+HTTP GET
+Content-Type: text/html
+*/
+select '<html><body><h1>Hello</h1></body></html>';
+```
+
 Response includes: `Content-Type: text/html`
 
 ### Multiple Headers

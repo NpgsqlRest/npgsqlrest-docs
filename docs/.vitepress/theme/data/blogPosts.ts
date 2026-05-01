@@ -7,6 +7,9 @@ export interface BlogPost {
 }
 
 export const blogPosts: BlogPost[] = [
+  { title: 'Case Study: 74 Endpoints, Zero Backend Code', path: '/blog/case-study-zero-backend-code' },
+  { title: 'TypeScript Code Generation Walkthrough', path: '/blog/typescript-codegen-walkthrough' },
+  { title: 'NpgsqlRest 3.13.0: Production Patterns', path: '/blog/npgsqlrest-3.13-production-patterns' },
   { title: 'SQL REST API', path: '/blog/sql-rest-api' },
   { title: 'Excel Exports Done Right', path: '/blog/excel-export-table-format-postgresql-npgsqlrest' },
   { title: 'Passkey SQL Auth', path: '/blog/passkey-sql-auth' },
@@ -22,7 +25,6 @@ export const blogPosts: BlogPost[] = [
   { title: 'Real-Time Chat with SSE', path: '/blog/real-time-chat-postgresql-sse-npgsqlrest' },
   { title: 'External API Calls', path: '/blog/external-api-calls-postgresql-http-types' },
   { title: 'Reverse Proxy & AI Service', path: '/blog/reverse-proxy-postgresql-ai-service-npgsqlrest' },
-  { title: 'Zero to CRUD API', path: '/blog/zero-to-crud-api-postgresql-tables-npgsqlrest' },
   { title: 'NpgsqlRest vs PostgREST vs Supabase', path: '/blog/npgsqlrest-vs-postgrest-supabase-comparison' },
   { title: 'Optimization Labels 101', path: '/blog/optimization-labels-101' },
   { title: 'What Have Stored Procedures Done for Us?', path: '/blog/what-have-stored-procedures-ever-done-for-us' },

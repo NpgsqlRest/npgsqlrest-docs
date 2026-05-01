@@ -45,6 +45,7 @@ Each annotation has its own page with:
 - [ENABLED](./enabled) - Enable endpoint for specific tags
 - [DISABLED](./disabled) - Disable endpoint for specific tags
 - [TAGS](./tags) - Filter annotations by tags
+- [OPENAPI](./openapi) - Hide from the OpenAPI document or override the section tag
 - [HTTP CUSTOM TYPES](./http-type) - Define HTTP request on composite type for external API calls
 - [INTERNAL](./internal) - Mark endpoint as internal-only (accessible via proxy/HTTP client types, not public HTTP)
 
@@ -76,6 +77,7 @@ Each annotation has its own page with:
 - [RESPONSE_NULL_HANDLING](./response-null-handling) - NULL handling in responses
 - [NESTED](./nested) - Serialize composite type columns as nested JSON objects
 - [SINGLE](./single) - Return a single record as a JSON object instead of an array
+- [VOID](./void) - Force endpoint to return 204 No Content
 
 ### Table Format Output
 
@@ -92,6 +94,7 @@ Each annotation has its own page with:
 
 - [CACHED](./cached) - Enable response caching
 - [CACHE_EXPIRES_IN](./cache-expires-in) - Set cache expiration
+- [CACHE_PROFILE](./cache-profile) - Select a named cache profile (multiple backends, dynamic TTL, skip-on-condition rules)
 
 ### Performance
 
@@ -137,6 +140,7 @@ Each annotation has its own page with:
 - [DEFINE_PARAM](./define-param) - Define virtual HTTP parameters not bound to SQL
 - [RESULT_NAME](./result-name) - Rename result keys in multi-command SQL file endpoints
 - [SKIP](./skip) - Exclude commands from multi-command results
+- [RETURNS](./returns) - Skip Describe step and resolve return columns from a composite type (for runtime-created temp tables)
 
 ### Custom
 
