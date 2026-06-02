@@ -10,8 +10,11 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 | Version | Date |
 |---------|------|
+| [v3.16.2](/guide/changelog/v3.16.2) | 2026-06-02 |
 | [v3.16.1](/guide/changelog/v3.16.1) | 2026-06-01 |
 | [v3.16.0](/guide/changelog/v3.16.0) | 2026-05-20 |
+
+- New: rate-limiter rejection `StatusCode`/`StatusMessage` are now overridable per policy (the global values stay as defaults); ships a ready-to-use disabled `login_throttle` policy
 
 - Fix: cache stampede protection now actually fires for cached routine responses (`IRoutineCache.GetOrCreateAsync`); a burst of identical cold-cache requests collapses to a single database execution
 
