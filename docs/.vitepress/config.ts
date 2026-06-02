@@ -145,7 +145,8 @@ export default defineConfig({
           text: 'Changelog',
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.16.1 (Latest)', link: '/guide/changelog/v3.16.1' },
+            { text: 'v3.16.2 (Latest)', link: '/guide/changelog/v3.16.2' },
+            { text: 'v3.16.1', link: '/guide/changelog/v3.16.1' },
             { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
             { text: 'v3.15.2', link: '/guide/changelog/v3.15.2' },
             { text: 'v3.15.1', link: '/guide/changelog/v3.15.1' },
@@ -411,7 +412,8 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.16.1 (Latest)', link: '/guide/changelog/v3.16.1' },
+            { text: 'v3.16.2 (Latest)', link: '/guide/changelog/v3.16.2' },
+            { text: 'v3.16.1', link: '/guide/changelog/v3.16.1' },
             { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
             { text: 'v3.15.x', link: '/guide/changelog/v3.15.2' },
             { text: 'v3.14.0', link: '/guide/changelog/v3.14.0' },

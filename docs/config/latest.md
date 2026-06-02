@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.16.1.
+This is the latest default configuration reference for NpgsqlRest version 3.16.2.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.16.1):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.1/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.1/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.1/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.1/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 3.16.2):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.2/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.2/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.2/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.2/NpgsqlRestClient/appsettings.json)
 
-Replace `3.16.1` with your desired version number.
+Replace `3.16.2` with your desired version number.
 :::
 
 ```json
@@ -1689,6 +1689,9 @@ Replace `3.16.1` with your desired version number.
   //
   "RateLimiterOptions": {
     "Enabled": false,
+    // Global defaults for rejected (rate-limited) requests. Each policy below may override either of these
+    // independently via its own "StatusCode"/"StatusMessage" — useful when one policy guards logins and
+    // another guards a public API and each needs its own message. A policy that omits them inherits these.
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
@@ -1698,6 +1701,10 @@ Replace `3.16.1` with your desired version number.
     //
     // Each policy has a `Type` of FixedWindow, SlidingWindow, TokenBucket, or Concurrency, and a set of
     // type-specific tuning fields. Set `"Enabled": true` to register the policy at startup.
+    //
+    // Each policy may also set its own `StatusCode` and/or `StatusMessage` to override the global values
+    // above for requests rejected by that specific policy. Omit either to inherit the global default. The
+    // "fixed" policy below shows the commented-out fields.
     //
     // **Breaking change in 3.13.0**: this section was previously an array of objects with explicit `"Name"`
     // properties. It is now an object keyed by policy name, matching `ValidationOptions:Rules` and
@@ -1713,6 +1720,10 @@ Replace `3.16.1` with your desired version number.
         "WindowSeconds": 60,
         "QueueLimit": 10,
         "AutoReplenishment": true
+        // Override the global rejection response for this policy only (omit to inherit the global values):
+        // "StatusCode": 429,
+        // "StatusMessage": "Too many requests for this endpoint. Please slow down.",
+        //
         // To partition this policy (per-user, per-IP, etc.) so each request gets its own bucket
         // instead of sharing a single global one, add a "Partition" block. See the "per_user"
         // policy below for a complete example.
@@ -1773,6 +1784,26 @@ Replace `3.16.1` with your desired version number.
             { "Type": "Claim",     "Name": "name_identifier" },
             { "Type": "IpAddress" },
             { "Type": "Static",    "Value": "anonymous" }
+          ],
+          "BypassAuthenticated": false
+        }
+      },
+      //
+      // Ready-to-use login throttle: 10 attempts per minute per client IP, with its own rejection
+      // message. Apply it to a login endpoint with `rate_limiter login_throttle` (or set it as
+      // DefaultPolicy). Set "Enabled": true to activate.
+      //
+      "login_throttle": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "QueueLimit": 0,
+        "AutoReplenishment": true,
+        "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+        "Partition": {
+          "Sources": [
+            { "Type": "IpAddress" }
           ],
           "BypassAuthenticated": false
         }
@@ -1965,9 +1996,9 @@ Replace `3.16.1` with your desired version number.
     "WrapInTransaction": false,
     //
     // Controls how JSON datetime strings are interpreted when bound to timestamp / timestamptz / time / timetz parameters.
-    // When true (default since 3.16.1), Z- and offset-bearing strings are converted to UTC, and naive strings (no offset, no Z)
+    // When true (default since 3.16.0), Z- and offset-bearing strings are converted to UTC, and naive strings (no offset, no Z)
     // are assumed UTC. Stored values are then identical regardless of the host process's TZ environment.
-    // When false, the legacy pre-3.16.1 behavior is restored: DateTime.TryParse interprets the string in the host's local time
+    // When false, the legacy pre-3.16.0 behavior is restored: DateTime.TryParse interprets the string in the host's local time
     // zone, which silently shifts stored values by the host's UTC offset on non-UTC hosts. Only set to false if you have callers
     // that depend on host-local interpretation of naive datetime strings and you cannot update them to send Z-suffixed values.
     //

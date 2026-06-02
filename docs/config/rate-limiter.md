@@ -88,6 +88,8 @@ The JSON key (`"fixed"`) is the policy name used with the [rate_limiter_policy](
 | `WindowSeconds` | int | `60` | Window duration in seconds. |
 | `QueueLimit` | int | `10` | Maximum queued requests when limit is reached. |
 | `AutoReplenishment` | bool | `true` | Automatically replenish permits. |
+| `StatusCode` | int | global | Optional. HTTP status code returned when *this* policy rejects a request, overriding `RateLimiterOptions:StatusCode`. Omit to inherit the global value. See [Per-Policy Status Code and Message](#per-policy-status-code-and-message). |
+| `StatusMessage` | string | global | Optional. Response message when *this* policy rejects a request, overriding `RateLimiterOptions:StatusMessage`. Omit to inherit the global value. |
 | `Partition` | object | `null` | Optional [Partition block](#per-user-rate-limiting-partition) for per-user / per-IP / per-header rate limiting. |
 
 See [Fixed Window Limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#fixed) documentation.
@@ -121,6 +123,8 @@ Limits requests using a sliding time window with segments.
 | `SegmentsPerWindow` | int | `6` | Number of segments dividing the window. |
 | `QueueLimit` | int | `10` | Maximum queued requests when limit is reached. |
 | `AutoReplenishment` | bool | `true` | Automatically replenish permits. |
+| `StatusCode` | int | global | Optional. HTTP status code returned when *this* policy rejects a request, overriding `RateLimiterOptions:StatusCode`. Omit to inherit the global value. See [Per-Policy Status Code and Message](#per-policy-status-code-and-message). |
+| `StatusMessage` | string | global | Optional. Response message when *this* policy rejects a request, overriding `RateLimiterOptions:StatusMessage`. Omit to inherit the global value. |
 | `Partition` | object | `null` | Optional [Partition block](#per-user-rate-limiting-partition) for per-user / per-IP / per-header rate limiting. |
 
 See [Sliding Window Limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#sliding-window-limiter) documentation.
@@ -154,6 +158,8 @@ Limits requests using the token bucket algorithm.
 | `ReplenishmentPeriodSeconds` | int | `10` | How often tokens are added to the bucket. |
 | `QueueLimit` | int | `10` | Maximum queued requests when limit is reached. |
 | `AutoReplenishment` | bool | `true` | Automatically replenish tokens. |
+| `StatusCode` | int | global | Optional. HTTP status code returned when *this* policy rejects a request, overriding `RateLimiterOptions:StatusCode`. Omit to inherit the global value. See [Per-Policy Status Code and Message](#per-policy-status-code-and-message). |
+| `StatusMessage` | string | global | Optional. Response message when *this* policy rejects a request, overriding `RateLimiterOptions:StatusMessage`. Omit to inherit the global value. |
 | `Partition` | object | `null` | Optional [Partition block](#per-user-rate-limiting-partition) for per-user / per-IP / per-header rate limiting. |
 
 See [Token Bucket Limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#token-bucket-limiter) documentation.
@@ -183,6 +189,8 @@ Limits the number of concurrent requests.
 | `PermitLimit` | int | `10` | Maximum concurrent requests. |
 | `QueueLimit` | int | `5` | Maximum queued requests when limit is reached. |
 | `OldestFirst` | bool | `true` | Process queued requests oldest first. |
+| `StatusCode` | int | global | Optional. HTTP status code returned when *this* policy rejects a request, overriding `RateLimiterOptions:StatusCode`. Omit to inherit the global value. See [Per-Policy Status Code and Message](#per-policy-status-code-and-message). |
+| `StatusMessage` | string | global | Optional. Response message when *this* policy rejects a request, overriding `RateLimiterOptions:StatusMessage`. Omit to inherit the global value. |
 | `Partition` | object | `null` | Optional [Partition block](#per-user-rate-limiting-partition) for per-user / per-IP / per-header rate limiting. |
 
 See [Concurrency Limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit#concurrency-limiter) documentation.
@@ -245,6 +253,59 @@ The classic use case is **per-user throttling**: each authenticated user gets th
 **Behavior is unchanged for policies without a `Partition` block.** Each non-partitioned policy still uses a single global bucket.
 
 Each `Sources` entry is validated at startup — invalid entries (e.g., `Claim` without `Name`, unknown `Type`) are logged at `Warning` and skipped. If a `Partition` block has no usable sources and `BypassAuthenticated` is false, the partition is dropped (with a Warning) and the policy reverts to a single global bucket.
+
+## Per-Policy Status Code and Message
+
+::: tip New in 3.16.2
+Each named policy can set its own `StatusCode` and/or `StatusMessage`, overriding the global `RateLimiterOptions:StatusCode` / `RateLimiterOptions:StatusMessage` for requests rejected by that policy. A policy that omits either field inherits the global value.
+:::
+
+Previously the global `StatusCode` / `StatusMessage` were the only values returned for any rejected request, so a login-specific message (e.g. *"Too many login attempts…"*) would be returned for **every** rate-limited endpoint. Now the override is resolved at rejection time from the endpoint's policy, so each policy can speak for itself:
+
+```jsonc
+"RateLimiterOptions": {
+  "Enabled": true,
+  "StatusCode": 429,                                  // global default
+  "StatusMessage": "Too many requests. Please slow down.",
+  "Policies": {
+    "login_throttle": {
+      "Type": "FixedWindow",
+      "Enabled": true,
+      "PermitLimit": 10,
+      "WindowSeconds": 60,
+      "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+      "Partition": { "Sources": [ { "Type": "IpAddress" } ] }
+    },
+    "api": {
+      "Type": "TokenBucket",
+      "Enabled": true,
+      "StatusCode": 503,
+      "StatusMessage": "API capacity reached. Retry shortly."
+    }
+  }
+}
+```
+
+A request rejected by `login_throttle` returns `429` (inherited) with the login message; a request rejected by `api` returns `503` with the API message. This is fully backward compatible — configs that set only the global values behave exactly as before.
+
+### Ready-to-use `login_throttle` policy
+
+The shipped `appsettings.json` includes a disabled `login_throttle` policy — 10 attempts per minute partitioned per client IP, with its own rejection message — so the common case is one flag away:
+
+```jsonc
+"login_throttle": {
+  "Type": "FixedWindow",
+  "Enabled": false,
+  "PermitLimit": 10,
+  "WindowSeconds": 60,
+  "QueueLimit": 0,
+  "AutoReplenishment": true,
+  "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+  "Partition": { "Sources": [ { "Type": "IpAddress" } ], "BypassAuthenticated": false }
+}
+```
+
+Set `"Enabled": true` and apply it to a login endpoint with the [rate_limiter_policy](../annotations/rate-limiter-policy) annotation (`rate_limiter login_throttle`), or set it as `DefaultPolicy`.
 
 ## Complete Example
 
