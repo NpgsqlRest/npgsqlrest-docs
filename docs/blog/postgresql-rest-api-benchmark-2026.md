@@ -54,7 +54,7 @@ What follows is the detailed AI-generated analysis and report of the benchmark r
 Enjoy!
 :::
 
-Following our [2025 benchmark](/blog/postgresql-rest-api-benchmark-2025), we've updated our testing with the latest framework versions and expanded our test scenarios. This year's benchmark includes higher concurrency levels (up to 200 VUs), pure HTTP overhead tests (Minimal Baseline), and POST body parsing benchmarks.
+Following our [2025 benchmark](/blog/postgresql-rest-api-benchmark-2025), this year's run uses the latest framework versions and adds higher concurrency levels (up to 200 VUs), pure HTTP overhead tests (Minimal Baseline), and POST body parsing benchmarks.
 
 ## What We Tested
 
@@ -119,7 +119,7 @@ This benchmark introduces several improvements over the [previous 2025 benchmark
 
 ### New Test Scenarios
 
-We added five new benchmark scenarios (marked "Yes" in the table above):
+We added five new benchmark scenarios (marked "(new)" in the scenario table above):
 
 - **Minimal Baseline**: Reveals true framework HTTP overhead separated from database I/O
 - **POST Body Parsing**: Measures JSON request deserialization and response serialization
@@ -127,10 +127,9 @@ We added five new benchmark scenarios (marked "Yes" in the table above):
 - **Large Payload**: Tests chunked transfer and buffer handling
 - **Many Parameters**: Tests query string parsing with 20 parameters
 
-Additionally, we extended concurrency testing:
+We also extended concurrency testing to better expose scaling limits:
 - VU range expanded from 1/50/100 to **1/50/100/200**
 - Up to **500 VUs** for minimal baseline tests
-- Better reveals framework scaling limits under high load
 
 ### Infrastructure Changes
 
@@ -238,7 +237,7 @@ Testing JSON body parsing adds another dimension:
 | Bun | 4,028 req/s | 1,832 req/s |
 | PostgREST | 3,479 req/s | 1,156 req/s |
 
-Go's efficient JSON parsing maintains its lead, while Bun shows strong performance with larger payloads relative to smaller ones.
+Go's JSON parsing keeps it in front, while Bun loses less throughput than most as the payload grows.
 
 ### Python Frameworks Continue to Struggle
 
@@ -263,7 +262,7 @@ For most workloads, the choice between JIT and AOT can now be based on deploymen
 
 ### Swoole PHP's Rise
 
-Swoole 6.0 brings significant improvements:
+Swoole 6.0's gains come from:
 - Coroutine-based async I/O eliminates blocking
 - Efficient memory management for large responses
 - Native PostgreSQL driver optimization
@@ -277,7 +276,7 @@ Go's minimal baseline performance (20K+ req/s) demonstrates:
 
 ### NpgsqlRest's Architecture
 
-NpgsqlRest continues to excel by eliminating layers:
+NpgsqlRest's numbers come from eliminating layers:
 1. **No ORM overhead** - Direct PostgreSQL protocol via Npgsql
 2. **No routing framework** - Endpoints derived from database metadata
 3. **No serialization layer** - PostgreSQL handles JSON serialization
@@ -315,7 +314,7 @@ The full resource monitoring data is available in the [stats directory](https://
 
 ## Important Note: JSON and Array Type Handling
 
-When interpreting these results, not all frameworks return identical JSON responses. The differences lie in how each framework handles PostgreSQL's JSON, JSONB, and array types.
+One caveat when interpreting these results: not all frameworks return identical JSON responses. The differences lie in how each handles PostgreSQL's JSON, JSONB, and array types.
 
 | Framework | json | jsonb | int[] | text[] |
 |-----------|:----:|:-----:|:-----:|:------:|
@@ -339,18 +338,18 @@ Swoole PHP's impressive numbers come with a caveat: JSON/JSONB and array fields 
 
 ## Conclusion
 
-The 2026 benchmark reveals a more nuanced performance landscape:
+Where each framework fits, based on the 2026 numbers:
 
 - **For low-latency, high-concurrency APIs**: NpgsqlRest JIT remains the top choice at 4,588 req/s
 - **For data-heavy workloads**: Swoole PHP now leads with superior large-payload handling
 - **For pure HTTP performance**: Go is unmatched at 20,000+ req/s
 - **For balanced workloads**: Bun, Go, and Fastify offer excellent all-around performance
 
-The "database as API" approach continues to deliver exceptional results. NpgsqlRest requires **zero application code** - just configuration - while delivering top-tier performance and correct PostgreSQL type handling.
+The "database as API" approach continues to hold the top tier: NpgsqlRest requires **zero application code** - just configuration - while delivering top-tier performance and correct PostgreSQL type handling.
 
 ### Lines of Code Comparison
 
-Performance isn't everything. Development time, maintainability, and code complexity matter too. Here's how much code each framework requires to implement the same API endpoints:
+Performance isn't everything — development time, maintainability, and code complexity matter too. How much code each framework needs to implement the same API endpoints:
 
 | Framework | Lines of Code |
 |-----------|--------------|

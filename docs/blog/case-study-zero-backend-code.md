@@ -62,7 +62,7 @@ The application has shipped to production at build number **2.9.1517** — fifte
 
 ## What NpgsqlRest is doing for them
 
-Reading the repository, the workload NpgsqlRest absorbs is broader than most users probably realize from the docs:
+Read through the repository and the workload NpgsqlRest absorbs turns out broader than most users probably realize from the docs:
 
 - **All ~74 endpoints** are auto-exposed from annotated PostgreSQL functions. HTTP verb, route, authorization, response shape, and per-module grouping are declared in SQL comments via `HTTP POST` / `HTTP GET`, `authorize`, `tsclient_module = ...`. There is no route table.
 - **The entire TypeScript client (~5,679 lines across 12 modules)** is regenerated from the live database catalog on every dev-mode startup. The frontend imports the generated per-module API files (e.g. `from "./<feature>Api.ts"`) — files no human ever touches.
@@ -87,7 +87,7 @@ The blast radius of "stop using NpgsqlRest" is therefore much wider than just lo
 
 ## The comparison: equivalent build in ASP.NET Core
 
-The realistic alternative for a .NET-shop building this application would be ASP.NET Core with Minimal APIs or controllers, plus Dapper or Npgsql for data access (an ORM doesn't fit the workload — most of the endpoints return composite records or aggregated time-series data, which fights ORMs). A typical per-endpoint cost in that stack:
+The realistic alternative for a .NET-shop building this application would be ASP.NET Core with Minimal APIs or controllers, plus Dapper or Npgsql for data access (an ORM doesn't fit the workload — most of the endpoints return composite records or aggregated time-series data). A typical per-endpoint cost in that stack:
 
 - Request DTO: 5–15 LOC
 - Response DTO: 5–15 LOC
@@ -98,7 +98,7 @@ The realistic alternative for a .NET-shop building this application would be ASP
 
 Conservatively: **40–80 lines of C# per endpoint**, spread across 3–5 files. For 74 endpoints, that is **~3,000–6,000 LOC** before any application-specific concern is addressed.
 
-On top of the per-endpoint cost, the cross-cutting concerns NpgsqlRest already absorbs (or will absorb the moment a config block is added). Most of these features exist in classic ASP.NET Core too — built into the framework, exposed as attributes, or provided as official NuGet packages — so the honest LOC estimate assumes a disciplined .NET team using those built-ins, not reinventing them from scratch:
+On top of the per-endpoint cost, the cross-cutting concerns NpgsqlRest already absorbs (or will absorb the moment a config block is added). Most of these features exist in classic ASP.NET Core too — built into the framework, exposed as attributes, or provided as official NuGet packages — so the LOC estimate assumes a disciplined .NET team using those built-ins, not reinventing them from scratch:
 
 | Concern | NpgsqlRest | Hand-rolled ASP.NET Core (honest LOC est.) |
 |---|---|---|
@@ -134,13 +134,13 @@ The classic *object–relational* impedance mismatch — objects on one side, ro
 
 The less-discussed *function* impedance mismatch — the chain of translation layers between an HTTP request and the SQL that ultimately runs (controller → service → repository → ORM → SQL) — doesn't exist either. The SQL function *is* the endpoint. The generated TypeScript wrapper calls it directly. There are no intermediate functions whose signatures can drift from the layer below them, because there are no intermediate functions.
 
-What this means in practice is that adding a column in a typical ASP.NET Core + EF Core path is: write a migration, update the entity, update the DTO, update the mapping, update the endpoint, regenerate the TypeScript client, fix any drift the regeneration surfaces. In this project, it is: edit the SQL function, restart the dev server. The TypeScript client rewrites itself; the type checker fails the build on every line of frontend code that no longer matches.
+In practice, adding a column in a typical ASP.NET Core + EF Core path means: write a migration, update the entity, update the DTO, update the mapping, update the endpoint, regenerate the TypeScript client, fix any drift the regeneration surfaces. In this project: edit the SQL function, restart the dev server. The TypeScript client rewrites itself; the type checker fails the build on every line of frontend code that no longer matches.
 
 Adding a new endpoint is: write one annotated SQL function. Restart. Done. There is no parallel set of files in the host language to keep in sync, because there is no host language.
 
 The empirical signal that this works at scale is build number 2.9.1517. A development loop that is genuinely faster is the only thing that gets a small team to that build count.
 
-One productivity dimension worth naming explicitly in the LLM-assisted era: this architecture is dramatically more **token-efficient**. Adding a feature in a conventional N-layer stack requires loading the DTO, controller, service, repository, ORM mapping, frontend type definition, and frontend API client into the model's context — eight to ten files with strict cross-file consistency requirements — and asking the model to produce the change requires it to write the new code in lockstep across all of them. In this architecture, the same change is one SQL function plus one frontend component. Two files, no inter-layer consistency burden (the generator handles it), and far less boilerplate for the model to reproduce. An "add an endpoint" task that runs roughly 5,000 tokens in a typical ASP.NET Core or FastAPI codebase runs closer to 1,000–1,500 here — a 3–5× reduction that compounds across a year of AI-assisted feature work, in both inference cost and developer wait time. The same simplification that [The Power of Simplicity](/blog/the-power-of-simplicity) post frames at the architectural level as raw energy savings shows up at the per-task level as token savings.
+One productivity dimension worth naming explicitly in the LLM-assisted era: this architecture is far more **token-efficient**. Adding a feature in a conventional N-layer stack requires loading the DTO, controller, service, repository, ORM mapping, frontend type definition, and frontend API client into the model's context (eight to ten files with strict cross-file consistency requirements), and asking the model to produce the change requires it to write the new code in lockstep across all of them. In this architecture, the same change is one SQL function plus one frontend component. Two files, no inter-layer consistency burden (the generator handles it), and far less boilerplate for the model to reproduce. An "add an endpoint" task that runs roughly 5,000 tokens in a typical ASP.NET Core or FastAPI codebase runs closer to 1,000–1,500 here — a 3–5× reduction that compounds across a year of AI-assisted feature work, in both inference cost and developer wait time. The same simplification that [The Power of Simplicity](/blog/the-power-of-simplicity) post frames at the architectural level as raw energy savings shows up at the per-task level as token savings.
 
 #### Time saved, quantified
 
@@ -154,10 +154,10 @@ The phrase "one-time" understates the saving in one important direction. The lin
 
 **Iteration-speed multiplier.** This is the qualitative win, and it is the largest of the three:
 
-- **Signature changes are roughly 5–10× faster end-to-end.** No grep-for-callers pass, no parallel interface updates, no compile-and-fix loop. The TypeScript client rewrites itself on dev restart, and the type checker fails on every line of frontend code that no longer matches.
+- **Signature changes are roughly 5–10× faster end-to-end.** No grep-for-callers pass, no parallel interface updates, no compile-and-fix loop. The TypeScript client rewrites itself on dev restart, and the compiler flags every stale call site.
 - **New-feature wire-up is roughly 2–3× faster.** The backend → frontend wire is free, so every cycle goes into UI / UX work rather than plumbing.
 - **Refactoring courage is qualitatively different.** Renaming a column or restructuring a return type is free across the host-language boundary, so refactors that would feel heavy in a conventional stack — full subsystem rewrites, schema reshuffles — get done instead of deferred. The 5.6× performance rewrite cited under [Performance](#performance) is one example; it was a full implementation-language change inside the function, and the only reason it shipped without weeks of cross-stack updates is that there were no cross-stack updates to make.
-- **An entire class of bugs simply does not exist.** "The interface said `string | null` but the API returns `''`" or "the enum changed in the database but the frontend constant didn't" — these are the bugs that pad every release cycle in a hand-written stack and chew up debugging hours. With the schema as the single source of truth, they cannot happen by construction.
+- **An entire class of bugs simply does not exist.** "The interface said `string | null` but the API returns `''`" or "the enum changed in the database but the frontend constant didn't" — these are the bugs that pad every release cycle in a hand-written stack and chew up debugging hours. With the schema as the single source of truth, they cannot happen.
 
 **The bottom line.** Conservatively, **55–100 hours of typing saved across the lifetime of this project** — and that "conservatively" matters: the figure is anchored to the *current* 74 endpoints, not to the larger set of endpoints that existed and were rewritten along the way as the product's requirements evolved. On top of that, an iteration loop that is roughly **5× faster on signature changes** and **2–3× faster on end-to-end feature additions**. None of those numbers were measured with a stopwatch — they are honest estimates from per-task timing and the actual change history — but they line up with the LOC totals and with the build cadence (1,500+ production builds, small team) the project has actually sustained. Combined with the token-efficiency multiplier described above, this is the kind of compounding gain that determines whether a small team can ship a feature surface this wide at all.
 
@@ -167,7 +167,7 @@ Net of the SQL the team would have written anyway (the business logic has to liv
 
 The dominant slice of the saving — and the most defensible one — is the **per-endpoint plumbing layer**, not the cross-cutting infrastructure. Classic ASP.NET Core and FastAPI both ship with strong cross-cutting stories (built-in rate limiting, attribute-driven validation, framework-managed health checks, Swashbuckle, response caching). The compression NpgsqlRest provides on those concerns is real but modest. Where it dominates is on the architectural layer that classic stacks *cannot* compress: every endpoint still needs a request DTO, a response DTO, a controller, a repository, and a service in a hand-written stack, and those add up to thousands of lines that the SQL-as-endpoint model simply doesn't have.
 
-A caveat worth being honest about: SQL functions tend to be denser than C# or Python, so a one-to-one LOC swap understates the effective savings. The eliminated code is overwhelmingly the low-value boilerplate — DTOs, mappers, route attributes, repository methods that are one query each — not the parts of an application where careful design pays off.
+One caveat: SQL functions tend to be denser than C# or Python, so a one-to-one LOC swap understates the effective savings. The eliminated code is overwhelmingly the low-value boilerplate — DTOs, mappers, route attributes, repository methods that are one query each — not the parts of an application where careful design pays off.
 
 **Where the real edge actually is — qualitatively.** The LOC argument above tells part of the story. The structural wins, which are harder to put a number on but compound across the project's lifetime, are:
 
@@ -196,7 +196,7 @@ The test suite — 110 SQL test files totaling 4,756 lines — runs against the 
 
 ## Honest tradeoffs
 
-A case study that doesn't acknowledge tradeoffs is a sales pitch. After working through the obvious objections honestly, two remain:
+A case study that doesn't acknowledge tradeoffs is a sales pitch. After working through the obvious objections, two stand up:
 
 - **Younger ecosystem.** NpgsqlRest is newer and has a smaller community than ASP.NET Core or FastAPI. Fewer Stack Overflow answers, fewer third-party plugins, fewer "battle-tested by a thousand companies" reassurance signals. Mitigated by the fact that PostgreSQL itself — which does most of the heavy lifting in this architecture — is anything but new.
 - **SQL fluency is a precondition, not a nice-to-have.** Anyone working on the backend has to be comfortable in PL/pgSQL: not just `SELECT`s, but window functions, CTEs, procedural control flow, and reading `EXPLAIN` output. AI tooling has closed most of the on-ramp — modern coding assistants write competent PL/pgSQL on demand — but the architecture genuinely rewards teams that invest in SQL skill rather than treating it as a thing the ORM hides.

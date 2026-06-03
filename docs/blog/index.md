@@ -14,13 +14,21 @@ title: Blog
 </div>
 
 <div class="blog-links">
+  <a href="/blog/the-backend-that-writes-itself-presentation" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>The Backend That Writes Itself — NpgsqlRest in 19 Slides</strong>
+    <span>An interactive slide deck with page controls, keyboard navigation, and speaker notes. The whole NpgsqlRest pitch — PostgreSQL in, REST API + typed TypeScript client + AI-agent tools out — with real, reproducible numbers from a product in production</span>
+  </a>
+  <a href="/blog/mcp-server-postgresql-ai-tools-npgsqlrest" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Turn PostgreSQL into MCP Tools an AI Agent Can Call</strong>
+    <span>NpgsqlRest 3.17.0 adds Model Context Protocol support. Annotate a function or .sql file with @mcp and it becomes a tool an AI agent can discover and call — one source, two interfaces (REST + MCP), with structured output, MCP-only tools, and per-tool authorization</span>
+  </a>
   <a href="/blog/typescript-codegen-walkthrough" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>From SQL to Type-Safe TypeScript: A Walkthrough of NpgsqlRest's Code Generator</strong>
     <span>Generate typed fetch modules and TypeScript interfaces directly from PostgreSQL functions and SQL files. End-to-end type safety, per-endpoint control with @tsclient annotations, and real-world dev/prod workflow</span>
   </a>
   <a href="/blog/npgsqlrest-3.13-production-patterns" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits, and pgBouncer Compatibility</strong>
     <span>Conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer — all real-world production patterns</span>
   </a>
@@ -30,7 +38,6 @@ title: Blog
     <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
   </a>
   <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>REST APIs from Plain SQL Files: The Complete Guide to SQL File Source</strong>
     <span>Build REST APIs directly from .sql files - no functions, no procedures, no boilerplate. Multi-command endpoints, automatic parameter inference, and TypeScript generation</span>
   </a>
@@ -48,12 +55,10 @@ title: Blog
     <span>Performance comparison of NpgsqlRest vs PostgREST, Django, FastAPI, Spring Boot, and more</span>
   </a>
   <a href="/blog/npgsqlrest-vs-postgrest-supabase-comparison" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>NpgsqlRest vs PostgREST vs Supabase: Complete Feature Comparison</strong>
     <span>Side-by-side comparison with performance benchmarks, features, authentication, file handling, and deployment options</span>
   </a>
   <a href="/blog/performance-scalability-high-availability-npgsqlrest" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
     <strong>Performance, Scalability, and High Availability</strong>
     <span>Caching strategies, retry logic, rate limiting, and multi-host PostgreSQL connections for production APIs</span>
   </a>
@@ -103,6 +108,10 @@ title: Blog
   <a href="/blog/external-api-calls-postgresql-http-types">
     <strong>Call External APIs from PostgreSQL: HTTP Types in NpgsqlRest</strong>
     <span>Define external API calls using .http file syntax in type comments - no HTTP extensions, no middleware, just SQL</span>
+  </a>
+  <a href="/blog/web-scraping-postgresql-http-types-xml">
+    <strong>Web Scraping with PostgreSQL: HTTP Types + XML Functions</strong>
+    <span>Fetch a page with an HTTP Custom Type, parse the HTML with PostgreSQL's built-in XPath functions, and serve JSON - a web scraper with no application code</span>
   </a>
   <a href="/blog/reverse-proxy-postgresql-ai-service-npgsqlrest">
     <strong>Reverse Proxy & AI Service: PostgreSQL Caching with Transform Mode</strong>

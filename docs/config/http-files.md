@@ -35,7 +35,8 @@ Configuration for generating HTTP files for NpgsqlRest endpoints, compatible wit
       "CommentHeader": "Simple",
       "CommentHeaderIncludeComments": true,
       "FileMode": "Schema",
-      "FileOverwrite": true
+      "FileOverwrite": true,
+      "OmitAutomaticParameters": false
     }
   }
 }
@@ -53,6 +54,7 @@ Configuration for generating HTTP files for NpgsqlRest endpoints, compatible wit
 | `CommentHeaderIncludeComments` | bool | `true` | Include routine comments in header (when `CommentHeader` is `"Simple"` or `"Full"`). |
 | `FileMode` | string | `"Schema"` | File organization: `"Database"` or `"Schema"`. |
 | `FileOverwrite` | bool | `true` | Overwrite existing files. |
+| `OmitAutomaticParameters` | bool | `false` | Omit server-filled parameters from generated requests. See [Omitting automatic parameters](#omitting-automatic-parameters). |
 
 ## Generation Options
 
@@ -134,6 +136,32 @@ Serve HTTP files as endpoints:
   }
 }
 ```
+
+## Omitting Automatic Parameters
+
+::: tip New in 3.18.2
+`OmitAutomaticParameters` was added in 3.18.2 (also available on the [Code Generation](./codegen#omitautomaticparameters-true) and [OpenAPI](./openapi#omitting-automatic-parameters) generators). Default is `false`, so generated output is unchanged unless you opt in.
+:::
+
+Some parameters are filled by the server and a client value would simply be ignored. When `OmitAutomaticParameters` is `true`, such a parameter is left out of the generated `.http` request (query string and request body) when it is **automatic and optional**. "Automatic" covers:
+
+- [HTTP Custom Type](../annotations/http-type) fields,
+- [resolved-parameter](../annotations/resolved-parameters) expressions,
+- upload-metadata parameters,
+- and — on endpoints that use [user parameters](../annotations/user-parameters) — IP-address and user-claim parameters.
+
+```json
+{
+  "NpgsqlRest": {
+    "HttpFileOptions": {
+      "Enabled": true,
+      "OmitAutomaticParameters": true
+    }
+  }
+}
+```
+
+When every parameter of an endpoint is omitted, the request collapses to a bare URL with no query string or body.
 
 ## Related
 

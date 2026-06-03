@@ -31,7 +31,7 @@ Cross-Origin Resource Sharing (CORS) configuration for controlling access from d
     "AllowedOrigins": [],
     "AllowedMethods": ["*"],
     "AllowedHeaders": ["*"],
-    "AllowCredentials": true,
+    "AllowCredentials": false,
     "PreflightMaxAgeSeconds": 600
   }
 }
@@ -45,7 +45,7 @@ Cross-Origin Resource Sharing (CORS) configuration for controlling access from d
 | `AllowedOrigins` | array | `[]` | List of allowed origins for CORS requests. Empty array allows no origins. |
 | `AllowedMethods` | array | `["*"]` | List of allowed HTTP methods for CORS requests. |
 | `AllowedHeaders` | array | `["*"]` | List of allowed headers for CORS requests. |
-| `AllowCredentials` | bool | `true` | Allow credentials (cookies, authorization headers) in CORS requests. |
+| `AllowCredentials` | bool | `false` | Allow credentials (cookies, authorization headers) in CORS requests. Disabled by default (changed in 3.17.0); enable deliberately and only together with an explicit `AllowedOrigins` list. |
 | `PreflightMaxAgeSeconds` | int | `600` | Maximum age in seconds for preflight request caching (10 minutes). |
 
 ## Allowed Origins
@@ -117,6 +117,10 @@ Use `["*"]` to allow all headers.
 ## Credentials
 
 When `AllowCredentials` is `true`, the browser includes cookies and authorization headers in cross-origin requests. This requires specific origins (not `"*"`).
+
+::: warning Default changed in 3.17.0
+`AllowCredentials` now defaults to `false`. Credentials in cross-origin requests must be enabled deliberately, and only together with an explicit `AllowedOrigins` list. If you relied on the old default, set `"AllowCredentials": true` explicitly.
+:::
 
 ## Preflight Caching
 

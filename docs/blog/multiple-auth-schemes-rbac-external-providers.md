@@ -38,9 +38,9 @@ head:
   <span class="tag">NpgsqlRest</span>
 </p>
 
-In the [previous post](/blog/database-level-security-postgresql-authentication), we built a secure authentication system using PostgreSQL's pgcrypto extension for password hashing. That approach works well, but NpgsqlRest offers something even more powerful: a built-in password verification system, multiple authentication schemes, role-based access control, and seamless integration with external OAuth providers.
+In the [previous post](/blog/database-level-security-postgresql-authentication), we built a secure authentication system using PostgreSQL's pgcrypto extension for password hashing. That approach works well, but NpgsqlRest can go further: a built-in password verification system, multiple authentication schemes, role-based access control, and integration with external OAuth providers.
 
-This post explores an advanced authentication example that demonstrates:
+This post walks through an authentication example that combines four pieces:
 
 1. **Built-in Password Hasher** - NpgsqlRest's pluggable password verification with verification callbacks
 2. **Multiple Authentication Schemes** - Cookies, Bearer tokens, and JWT all working together
@@ -51,7 +51,7 @@ This post explores an advanced authentication example that demonstrates:
 
 ## Why NpgsqlRest's Built-in Password Hasher?
 
-In the previous example, we used PostgreSQL's pgcrypto extension to hash passwords directly in SQL. While that approach works, NpgsqlRest offers a built-in alternative with significant advantages:
+The pgcrypto approach from the previous post hashes passwords in SQL, on the database server. The built-in hasher moves that work into NpgsqlRest, and the differences add up:
 
 | pgcrypto Approach | NpgsqlRest Built-in Hasher |
 |-------------------|---------------------------|
@@ -215,7 +215,7 @@ on conflict (name) do update set data = excluded.data;
 end;
 ```
 
-Without database storage, keys are stored in memory and lost on restart - invalidating all existing cookies and tokens, forcing users to log in again. With database storage, encrypted authentication continues to work seamlessly across application restarts.
+Without database storage, keys are stored in memory and lost on restart - invalidating all existing cookies and tokens, forcing users to log in again. With database storage, encrypted authentication keeps working across application restarts.
 
 For full details on authentication configuration, see:
 - [Cookie Authentication](/config/auth#cookie-authentication)
@@ -334,7 +334,7 @@ end;
 $$;
 ```
 
-These callbacks are the **only way to know** whether NpgsqlRest's built-in password verification succeeded or failed - perfect for implementing account lockout, audit logging, or failed attempt counting.
+These callbacks are the **only way to know** whether NpgsqlRest's built-in password verification succeeded or failed - use them for account lockout, audit logging, or failed-attempt counting.
 
 ## Role-Based Access Control
 
@@ -413,7 +413,7 @@ See [User Context Settings](/config/authentication-options#user-context-settings
 
 ## External OAuth Providers
 
-Who needs passwords at all? NpgsqlRest makes it trivial to integrate external OAuth providers:
+Who needs passwords at all? An external OAuth provider takes a dozen lines of config:
 
 ```json
 {
@@ -630,11 +630,11 @@ Modern authentication and authorization is notoriously complex. A production-rea
 - Token refresh mechanisms
 - Session management
 
-Implementing all of this traditionally requires thousands of lines of code, multiple libraries, and deep security expertise. Getting it wrong means vulnerabilities.
+Implementing all of this traditionally takes multiple libraries and deep security expertise - and getting it wrong means vulnerabilities.
 
 **With NpgsqlRest, all of this is configuration and a few SQL functions.**
 
-Let's count what this example actually required:
+What this example actually required:
 
 | Component | Lines of Code |
 |-----------|---------------|
@@ -670,7 +670,7 @@ Use this example as a template:
 4. **Add role annotations** - `authorize admin` on endpoints that need it
 5. **Done** - You have production-ready authentication
 
-The code you don't write has no bugs. Authentication is too important to get wrong - let NpgsqlRest handle the complexity while you focus on your application logic.
+The code you don't write has no bugs, and authentication is exactly where you want fewer of them.
 
 Combined with [database-level security](/blog/database-level-security-postgresql-authentication) (Principle of Least Privilege, SECURITY DEFINER, search path protection) and [end-to-end type safety](/blog/end-to-end-static-type-checking-postgresql-typescript), you get a complete, secure, performant application stack that would take months to build from scratch.
 

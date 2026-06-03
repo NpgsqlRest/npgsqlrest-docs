@@ -44,6 +44,7 @@ const blogPostsSidebar = [
       { text: 'End-to-End Type Checking', link: '/blog/end-to-end-static-type-checking-postgresql-typescript' },
       { text: 'Real-Time Chat with SSE', link: '/blog/real-time-chat-postgresql-sse-npgsqlrest' },
       { text: 'External API Calls', link: '/blog/external-api-calls-postgresql-http-types' },
+      { text: 'Web Scraping with HTTP Types', link: '/blog/web-scraping-postgresql-http-types-xml' },
       { text: 'Reverse Proxy & AI Service', link: '/blog/reverse-proxy-postgresql-ai-service-npgsqlrest' },
       { text: 'Secure Image Uploads', link: '/blog/secure-image-uploads-postgresql-typescript' },
       { text: 'CSV & Excel Ingestion', link: '/blog/csv-excel-ingestion-postgresql-npgsqlrest' },
@@ -145,7 +146,12 @@ export default defineConfig({
           text: 'Changelog',
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.16.2 (Latest)', link: '/guide/changelog/v3.16.2' },
+            { text: 'v3.18.2 (Latest)', link: '/guide/changelog/v3.18.2' },
+            { text: 'v3.18.1', link: '/guide/changelog/v3.18.1' },
+            { text: 'v3.18.0', link: '/guide/changelog/v3.18.0' },
+            { text: 'v3.17.0', link: '/guide/changelog/v3.17.0' },
+            { text: 'v3.16.3', link: '/guide/changelog/v3.16.3' },
+            { text: 'v3.16.2', link: '/guide/changelog/v3.16.2' },
             { text: 'v3.16.1', link: '/guide/changelog/v3.16.1' },
             { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
             { text: 'v3.15.2', link: '/guide/changelog/v3.15.2' },
@@ -220,6 +226,7 @@ export default defineConfig({
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
             { text: 'OPENAPI', link: '/annotations/openapi' },
+            { text: 'MCP', link: '/annotations/mcp' },
             { text: 'HTTP CUSTOM TYPES', link: '/annotations/http-type' }
           ]
         },
@@ -300,7 +307,9 @@ export default defineConfig({
           items: [
             { text: 'PARAM', link: '/annotations/param' },
             { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
-            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' }
+            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' },
+            { text: 'Parameter Value Substitution', link: '/annotations/parameter-substitution' },
+            { text: 'Resolved Parameters', link: '/annotations/resolved-parameters' }
           ]
         },
         {
@@ -357,6 +366,7 @@ export default defineConfig({
             { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
+            { text: 'MCP', link: '/config/mcp' },
             { text: 'HTTP Files', link: '/config/http-files' },
             { text: 'Code Generation', link: '/config/codegen' },
             { text: 'Upload Options', link: '/config/uploads' },
@@ -412,7 +422,12 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.16.2 (Latest)', link: '/guide/changelog/v3.16.2' },
+            { text: 'v3.18.2 (Latest)', link: '/guide/changelog/v3.18.2' },
+            { text: 'v3.18.1', link: '/guide/changelog/v3.18.1' },
+            { text: 'v3.18.0', link: '/guide/changelog/v3.18.0' },
+            { text: 'v3.17.0', link: '/guide/changelog/v3.17.0' },
+            { text: 'v3.16.3', link: '/guide/changelog/v3.16.3' },
+            { text: 'v3.16.2', link: '/guide/changelog/v3.16.2' },
             { text: 'v3.16.1', link: '/guide/changelog/v3.16.1' },
             { text: 'v3.16.0', link: '/guide/changelog/v3.16.0' },
             { text: 'v3.15.x', link: '/guide/changelog/v3.15.2' },
@@ -458,6 +473,7 @@ export default defineConfig({
             { text: 'DISABLED', link: '/annotations/disabled' },
             { text: 'TAGS', link: '/annotations/tags' },
             { text: 'OPENAPI', link: '/annotations/openapi' },
+            { text: 'MCP', link: '/annotations/mcp' },
             { text: 'HTTP CUSTOM TYPES', link: '/annotations/http-type' }
           ]
         },
@@ -538,7 +554,9 @@ export default defineConfig({
           items: [
             { text: 'PARAM', link: '/annotations/param' },
             { text: 'PARAMETER_HASH', link: '/annotations/parameter-hash' },
-            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' }
+            { text: 'ENCRYPT / DECRYPT', link: '/annotations/encrypt-decrypt' },
+            { text: 'Parameter Value Substitution', link: '/annotations/parameter-substitution' },
+            { text: 'Resolved Parameters', link: '/annotations/resolved-parameters' }
           ]
         },
         {
@@ -608,6 +626,7 @@ export default defineConfig({
             { text: 'SQL File Source', link: '/config/sql-file-source' },
             { text: 'Proxy', link: '/config/proxy' },
             { text: 'OpenAPI', link: '/config/openapi' },
+            { text: 'MCP', link: '/config/mcp' },
             { text: 'HTTP Files', link: '/config/http-files' },
             { text: 'Code Generation', link: '/config/codegen' },
             { text: 'Upload Options', link: '/config/uploads' },

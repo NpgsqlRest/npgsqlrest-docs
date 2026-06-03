@@ -1,0 +1,21 @@
+@host=http://127.0.0.1:8080
+
+// function example_18.average_book_price(
+//     _response_body text DEFAULT NULL::example_18.books_api,
+//     _response_status_code integer,
+//     _response_success boolean,
+//     _response_error_message text
+// )
+// returns table(
+//     avg_price numeric
+// )
+//
+// comment on function example_18.average_book_price is 'HTTP POST /average-book-price
+// @body_parameter_name _response_body
+// @allow_anonymous
+// @single
+// @proxy';
+POST {{host}}/average-book-price
+
+###
+

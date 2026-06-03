@@ -61,7 +61,7 @@ Enable SQL File Source in `appsettings.json`:
 
 `FilePattern` uses glob syntax: `**` crosses directories, `*` matches filenames, `?` matches a single character.
 
-By default (`CommentsMode: "OnlyWithHttpTag"`), only files containing an `HTTP` annotation become endpoints. This prevents accidental exposure of migration scripts or utility files. Set `CommentsMode: "ParseAll"` to make every matched file an endpoint.
+By default (`CommentsMode: "OnlyAnnotated"` in the client since 3.17.0 — `"OnlyWithHttpTag"` is an identical-behavior alias), only files containing an `HTTP` annotation (or a plugin annotation that requests an endpoint, such as `@mcp`) become endpoints. This prevents accidental exposure of migration scripts or utility files. Set `CommentsMode: "ParseAll"` to make every matched file an endpoint.
 
 Other settings:
 

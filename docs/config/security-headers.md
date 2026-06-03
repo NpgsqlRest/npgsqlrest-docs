@@ -121,7 +121,7 @@ Controls how much referrer information should be included with requests made fro
 
 ## Content-Security-Policy
 
-Defines approved sources of content that the browser may load. This is one of the most powerful headers for preventing XSS, clickjacking, and other code injection attacks.
+Defines approved sources of content that the browser may load. This is the primary browser-side defense against XSS, clickjacking, and other code injection attacks.
 
 ```json
 {

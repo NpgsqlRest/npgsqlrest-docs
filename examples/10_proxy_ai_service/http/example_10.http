@@ -12,8 +12,8 @@
 // returns json
 //
 // comment on function example_10.ai_analyze is 'HTTP POST /ai/analyze
-// authorize
-// proxy POST';
+// @authorize
+// @proxy POST';
 POST {{host}}/ai/analyze
 content-type: application/json
 
@@ -33,7 +33,7 @@ content-type: application/json
 // returns void
 //
 // comment on function example_10.ai_health is 'HTTP GET /ai/health
-// proxy';
+// @proxy';
 GET {{host}}/ai/health
 
 ###
@@ -48,8 +48,8 @@ GET {{host}}/ai/health
 // returns json
 //
 // comment on function example_10.ai_sentiment is 'HTTP POST /ai/sentiment
-// authorize
-// proxy POST';
+// @authorize
+// @proxy POST';
 POST {{host}}/ai/sentiment
 content-type: application/json
 
@@ -74,8 +74,8 @@ content-type: application/json
 // returns json
 //
 // comment on function example_10.ai_summarize is 'HTTP POST /ai/summarize
-// authorize
-// proxy POST';
+// @authorize
+// @proxy POST';
 POST {{host}}/ai/summarize
 content-type: application/json
 
@@ -94,7 +94,7 @@ content-type: application/json
 // returns json
 //
 // comment on function example_10.cache_clear is 'HTTP DELETE /cache/clear
-// authorize';
+// @authorize';
 DELETE {{host}}/cache/clear
 
 ###
@@ -145,8 +145,8 @@ GET {{host}}/cache/stats
 // )
 //
 // comment on function example_10.login is 'HTTP POST
-// login
-// anonymous';
+// @login
+// @anonymous';
 POST {{host}}/api/example-10/login
 content-type: application/json
 
@@ -161,7 +161,7 @@ content-type: application/json
 // returns void
 //
 // comment on function example_10.logout is 'HTTP POST
-// logout';
+// @logout';
 POST {{host}}/api/example-10/logout
 
 ###

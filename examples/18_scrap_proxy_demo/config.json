@@ -1,0 +1,48 @@
+{
+  "ApplicationName": "18_scrap_proxy_demo",
+
+  "StaticFiles": {
+    "RootPath": "./18_scrap_proxy_demo/public"
+  },
+
+  "NpgsqlRest": {
+    // Expose only this example's schema. The endpoint is the PostgreSQL
+    // function example_18 .average_book_price.
+    "IncludeSchemas": [ "example_18" ],
+
+    // No authentication for this demo - the single endpoint is anonymous.
+    "RequiresAuthorization": false,
+
+    // Enable outgoing HTTP calls used by HTTP Custom Types.
+    // see https://npgsqlrest.github.io/config/http-client.html
+    "HttpClientOptions": {
+      "Enabled": true
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./18_scrap_proxy_demo/http/{1}",
+      "OmitAutomaticParameters": true
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./18_scrap_proxy_demo/src/{0}Api.ts",
+      "OmitAutomaticParameters": true
+    },
+
+    // Enable proxy functionality
+    "ProxyOptions": {
+      "Enabled": true,
+      // Default host can be overridden per-endpoint with annotation
+      "Host": "http://localhost:3001",
+      // Timeout for proxy requests
+      "DefaultTimeout": "00:00:30",
+      // Forward request headers to upstream
+      "ForwardHeaders": true,
+      // Headers to exclude from forwarding
+      "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding"],
+      // Forward response headers from upstream
+      "ForwardResponseHeaders": true,
+      "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length"]
+    }
+  }
+}

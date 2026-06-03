@@ -1,5 +1,5 @@
 // src/example10Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+var baseUrl = "";
 async function aiAnalyze(request) {
   const response = await fetch(baseUrl + "/ai/analyze", {
     method: "POST",
@@ -15,10 +15,7 @@ async function aiHealth() {
   const response = await fetch(baseUrl + "/ai/health", {
     method: "GET"
   });
-  return {
-    status: response.status,
-    error: !response.ok && response.headers.get("content-length") !== "0" ? await response.json() : undefined
-  };
+  return response;
 }
 async function aiSentiment(request) {
   const response = await fetch(baseUrl + "/ai/sentiment", {

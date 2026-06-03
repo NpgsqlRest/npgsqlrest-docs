@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "upstream": "bun run ./upstream/server.ts",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./18_scrap_proxy_demo/config.json",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./18_scrap_proxy_demo/migrations_18",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./18_scrap_proxy_demo/migrations_18"
+  }
+}

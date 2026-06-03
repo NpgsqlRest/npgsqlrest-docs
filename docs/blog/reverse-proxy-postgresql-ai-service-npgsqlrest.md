@@ -36,19 +36,17 @@ head:
 
 ---
 
-Not all API endpoints need a database connection. Health checks, static responses, proxied requests to microservices - these operations consume valuable connection pool slots without ever touching PostgreSQL.
+Not all API endpoints need a database connection. Health checks, static responses, proxied requests to microservices - these operations consume connection pool slots without ever touching PostgreSQL.
 
-What if you could define endpoints that forward requests to upstream services, transform the responses in PostgreSQL when needed, and skip the database connection entirely when you don't? All while keeping the same annotation-driven workflow.
+NpgsqlRest's Reverse Proxy feature addresses this: define endpoints in SQL that forward requests to upstream services, transform the responses in PostgreSQL when needed, and skip the database connection entirely when you don't - same annotation-driven workflow throughout. That covers everything from pass-through health checks to caching layers in front of expensive AI service calls.
 
-NpgsqlRest's Reverse Proxy feature does exactly this. Define proxy endpoints in SQL, control when to engage the database, and build sophisticated API gateway patterns - from simple pass-through health checks to intelligent caching layers for expensive AI service calls.
-
-This tutorial demonstrates how to build an **AI Text Analysis Service** that combines a local AI processing server with PostgreSQL-powered caching and enrichment - saving connection pool resources while maximizing code reuse.
+This tutorial builds an **AI Text Analysis Service** that combines a local AI processing server with PostgreSQL-backed caching and enrichment - without spending connection pool slots where they aren't needed.
 
 > **Source Code**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/10_proxy_ai_service](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service)
 
 ## The Problem: Connection Pool Exhaustion
 
-Every NpgsqlRest endpoint normally opens a database connection. This works perfectly for data operations, but consider these common scenarios:
+Every NpgsqlRest endpoint normally opens a database connection. That's fine for data operations, but not every endpoint is one:
 
 - **Health checks** - `/health` endpoints called every 5 seconds by load balancers
 - **Static configuration** - Endpoints returning cached settings
@@ -166,7 +164,7 @@ flowchart TB
 
 ## Building the AI Text Analysis Service
 
-Let's build a complete example: an API that proxies to a local AI text processing service (running on Bun), with PostgreSQL providing intelligent caching.
+The example API proxies to a local AI text processing service (running on Bun), with PostgreSQL as the cache.
 
 ### The Upstream AI Service
 
@@ -274,7 +272,7 @@ HTTP GET /ai/health
 @proxy';
 ```
 
-**Key insight**: The function returns `void` and has no proxy parameters. NpgsqlRest detects this and uses passthrough mode - no database connection is opened.
+**The trigger**: the function returns `void` and has no proxy parameters. NpgsqlRest detects this and uses passthrough mode - no database connection is opened.
 
 When the load balancer pings `/ai/health` every 5 seconds, it gets the upstream response directly without touching the connection pool.
 
@@ -595,7 +593,7 @@ docker run --name npgsqlrest-bun -it \
     vbilopav/npgsqlrest:latest-bun
 ```
 
-This image includes the [Bun](https://bun.sh/) JavaScript runtime, enabling proxy endpoints to execute Bun scripts within the same container. Perfect for:
+This image includes the [Bun](https://bun.sh/) JavaScript runtime, so proxy endpoints can execute Bun scripts within the same container. Useful for:
 
 - Lightweight AI/ML preprocessing
 - Custom transformation logic
@@ -745,7 +743,7 @@ Plus the upstream service remains identical - NpgsqlRest adds the gateway layer 
 - Large file transfers (use direct proxying)
 - Complex retry logic (use message queues)
 
-The Reverse Proxy feature extends NpgsqlRest beyond a database-to-API bridge into a full API gateway - preserving the annotation-driven, SQL-first workflow while adding powerful routing, transformation, and caching capabilities.
+The Reverse Proxy feature extends NpgsqlRest beyond a database-to-API bridge into a full API gateway - preserving the annotation-driven, SQL-first workflow while adding routing, transformation, and caching on top.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service_sql_file).

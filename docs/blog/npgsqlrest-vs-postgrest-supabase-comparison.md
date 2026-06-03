@@ -36,7 +36,7 @@ head:
 
 ---
 
-Choosing the right tool to expose your PostgreSQL database as a REST API can significantly impact your project's performance, maintainability, and development velocity. This comprehensive comparison examines three popular solutions: **NpgsqlRest**, **PostgREST**, and **Supabase**.
+Three tools can expose a PostgreSQL database as a REST API without a hand-written backend: **NpgsqlRest**, **PostgREST**, and **Supabase**. They differ in architecture, performance, and how much of the surrounding platform (auth, files, caching, deployment) they cover. This comparison works through each area in turn.
 
 ## Executive Summary
 
@@ -80,7 +80,7 @@ Beyond API generation, NpgsqlRest includes everything needed for full-stack deve
 - **Built-in authentication** (JWT, encrypted Bearer, encrypted Cookie, Basic Auth, OAuth, Passkey/WebAuthn)
 - **File uploads** with image validation, CSV/Excel ingestion
 
-No additional infrastructure required. Download, configure connection string, run. Deploy easily on any cloud server instance—AWS EC2, DigitalOcean, Hetzner, or your own servers.
+No additional infrastructure required. Download, configure connection string, run. It deploys on any cloud server instance—AWS EC2, DigitalOcean, Hetzner—or your own hardware.
 
 ### PostgREST
 
@@ -116,7 +116,7 @@ flowchart LR
     end
 ```
 
-Supabase is a **platform** composed of multiple services. PostgREST handles REST API generation, GoTrue manages authentication, Kong provides API gateway functionality, and additional services handle storage, realtime, and the admin dashboard. Self-hosting requires orchestrating all these components.
+Supabase is a **platform** composed of multiple services. PostgREST handles REST API generation, GoTrue manages authentication, Kong is the API gateway, and further services handle storage, realtime, and the admin dashboard. Self-hosting means orchestrating all of these.
 
 **Key difference**: Both NpgsqlRest and Supabase are platforms, but NpgsqlRest packages everything into a single binary (~30MB) while Supabase requires 7+ separate services. Supabase offers a managed cloud service with a visual dashboard; NpgsqlRest gives you full control with simpler self-hosting on any cloud provider.
 
@@ -186,13 +186,13 @@ All three frameworks handle PostgreSQL types correctly.
 
 ⚠️ = Complex self-hosting (7+ services)
 
-**NpgsqlRest as a complete platform**: Unlike PostgREST (API-only), NpgsqlRest includes everything needed to build and deploy full-stack applications:
+**NpgsqlRest as a complete platform**: Unlike PostgREST (API-only), NpgsqlRest covers the rest of the stack:
 
 - **[Static file serving](/config/static-files)** with path-based authorization—serve your frontend directly from NpgsqlRest
 - **[Template parsing](/config/static-files#content-parsing)** replaces `{claimType}` placeholders in HTML files with authenticated user claims (name, email, role, etc.) before serving—build personalized pages without JavaScript
 - **[TypeScript/JavaScript code generation](/config/codegen)** creates type-safe API clients automatically, keeping your frontend in sync with your database schema
 - **[HTTP test file generation](/config/http-files)** creates `.http` files for VS Code REST Client and Visual Studio, enabling rapid API testing during development
-- **Easy deployment** on any cloud server (AWS EC2, DigitalOcean, Hetzner, Azure VM, GCP Compute) or on-premises—just copy the binary and run
+- **Deployment** on any cloud server (AWS EC2, DigitalOcean, Hetzner, Azure VM, GCP Compute) or on-premises—copy the binary and run
 
 **Supabase offers different platform strengths**: managed cloud hosting, a visual Studio dashboard for database management, and real-time WebSocket subscriptions. Choose Supabase if you prefer managed infrastructure and a visual interface; choose NpgsqlRest if you want full control with simpler self-hosting.
 
@@ -233,7 +233,7 @@ NpgsqlRest deliberately does not auto-generate CRUD endpoints over tables and vi
 
 NpgsqlRest takes a different approach: write the SQL yourself — either as a SQL file or a PostgreSQL function — and expose exactly the query you intend. These same capabilities (joins, full-text search, aggregates, filtering, pagination) are all available because you're writing actual SQL:
 
-- **Full PostgreSQL power** — CTEs, window functions, recursive queries, full-text search, JSON operators, lateral joins — anything you can write in SQL
+- **The full SQL surface** — CTEs, window functions, recursive queries, full-text search, JSON operators, lateral joins — anything you can write in SQL
 - **SQL files or functions** — SQL files for straightforward queries, functions when you need PL/pgSQL logic or static type checking
 - **Security by design** — you expose exactly what you intend, not an entire table with filters
 - **Predictable performance** — no surprise queries that scan entire tables or create N+1 problems
@@ -265,7 +265,7 @@ All three frameworks support PostgreSQL composite types and can return nested JS
 
 - **NpgsqlRest offers two modes**: By default, composite type fields are **merged/flattened** into the parent object for simpler responses. Use the [`@nested` annotation](/annotations/nested) to preserve the hierarchical structure. PostgREST/Supabase always nest composite types.
 
-- **Parameter unnesting**: NpgsqlRest automatically expands composite type parameters into individual named fields (e.g., `authorFirstName`, `authorLastName`), making API consumption more intuitive. PostgREST/Supabase require passing composite parameters as nested JSON objects.
+- **Parameter unnesting**: NpgsqlRest automatically expands composite type parameters into individual named fields (e.g., `authorFirstName`, `authorLastName`), so clients send flat fields. PostgREST/Supabase require passing composite parameters as nested JSON objects.
 
 - **TypeScript generation**: NpgsqlRest generates proper TypeScript interfaces for all nested structures automatically. Supabase generates types but may require manual casting for complex RPC return types. PostgREST has no built-in TypeScript generation (third-party tools like [kanel](https://github.com/kristiandupont/kanel) can help).
 
@@ -336,7 +336,7 @@ PostgREST only supports JWT - you need an external auth server like GoTrue (whic
 | Row-by-row processing | ✅ | ❌ | ❌ |
 | Upload metadata to functions | ✅ | ❌ | ❌ |
 
-NpgsqlRest provides **comprehensive file handling** including:
+NpgsqlRest handles the full file lifecycle:
 - Image uploads with format validation (JPEG, PNG, GIF, WebP, etc.)
 - CSV/Excel ingestion with row-by-row processing through PostgreSQL functions
 - PostgreSQL Large Objects for storing files directly in the database
@@ -388,7 +388,7 @@ PostgREST has **no file upload support**. Supabase requires a separate Storage s
 
 ⚠️ Supabase has rate limiting at the managed cloud edge layer, but it is not configurable per-endpoint or as a policy.
 
-NpgsqlRest includes **enterprise-grade performance features**:
+NpgsqlRest ships performance features the other two delegate to external infrastructure:
 - Three caching modes: Memory, Redis, and Hybrid with stampede protection
 - **Named cache profiles** with `When` rules — different TTLs based on input shape, conditional cache bypass, per-endpoint policy selection via `@cache_profile` annotation
 - Four rate limiting algorithms: Fixed window, sliding window, token bucket, concurrency
@@ -456,7 +456,7 @@ NpgsqlRest uses **Server-Sent Events** for real-time streaming, which is simpler
 
 A critical question for any PostgreSQL REST framework: **how do you execute custom logic that isn't in the database?** — calling external APIs, rendering PDFs, sending emails, running ML inference, or integrating with third-party services.
 
-Each platform takes a fundamentally different approach:
+The three take very different approaches:
 
 | Capability | NpgsqlRest | PostgREST | Supabase |
 |---------|:----------:|:---------:|:--------:|
@@ -488,7 +488,7 @@ Each platform takes a fundamentally different approach:
 
 #### NpgsqlRest: Declarative Proxy in SQL
 
-NpgsqlRest provides **three proxy modes** — all configured via SQL comment annotations on PostgreSQL functions, with zero additional infrastructure:
+NpgsqlRest has **three proxy modes**, all configured via SQL comment annotations on PostgreSQL functions, with no additional infrastructure:
 
 **1. Passthrough proxy** — forward the client request to an upstream service, return the upstream response directly. The PostgreSQL function is never executed (no database connection opened):
 
@@ -703,7 +703,7 @@ NpgsqlRest uses **Serilog** with multiple output targets: console, file (with ro
 
 ⚠️ = Limited workaround available
 
-NpgsqlRest provides a **fully configurable, policy-based error handling system** that is significantly more advanced than what PostgREST or Supabase offer.
+NpgsqlRest's error handling is policy-based and configurable end to end — a clear gap over PostgREST and Supabase, which hardcode their mappings.
 
 **Named error code policies**: Define multiple named policies that map PostgreSQL error codes to specific HTTP status codes, titles, and details. For example, map `23505` (unique violation) to HTTP 409 Conflict, or `23503` (foreign key violation) to HTTP 400 with a custom message—all in configuration, not in SQL:
 
@@ -764,7 +764,7 @@ HTTP GET /users/{p_id}
 
 Everything is configured through **SQL comments** directly on your functions, procedures, or `.sql` files. This keeps API configuration close to the implementation and version-controlled with your schema.
 
-**This is a unique NpgsqlRest feature**: every endpoint can be individually configured with its own caching policy, rate limiting, authentication requirements, timeout, retry strategy, and more—all declared in SQL comments — either in your SQL files or on database objects. PostgREST and Supabase apply configuration globally or require external tools for per-endpoint customization.
+Every endpoint can be individually configured with its own caching policy, rate limiting, authentication requirements, timeout, and retry strategy—declared in SQL comments, either in your SQL files or on database objects. PostgREST and Supabase apply configuration globally or require external tools for per-endpoint customization.
 
 ### PostgREST: External Configuration + RLS
 
@@ -779,7 +779,7 @@ PostgREST uses a combination of configuration files and PostgreSQL Row Level Sec
 
 ### Supabase: Dashboard + RLS + Edge Functions
 
-Supabase uses a web dashboard for most configuration, RLS for authorization, and Edge Functions (Deno-based TypeScript runtime) for custom logic that cannot live in the database. Edge Functions run as a separate service, deployed independently via CLI, and have their own endpoint URLs, secrets management, and resource limits. More moving parts, but provides a visual interface and a managed cloud option.
+Supabase uses a web dashboard for most configuration, RLS for authorization, and Edge Functions (Deno-based TypeScript runtime) for custom logic that cannot live in the database. Edge Functions run as a separate service, deployed independently via CLI, with their own endpoint URLs, secrets management, and resource limits. More moving parts, in exchange for a visual interface and a managed cloud option.
 
 ## Deployment Comparison
 
@@ -826,7 +826,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL, PostgREST, GoTrue, Realtime, Storage, Kong, Studio, and more. More complex to maintain and scale.
+Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL, PostgREST, GoTrue, Realtime, Storage, Kong, Studio, and more — correspondingly harder to maintain and scale.
 
 ## When to Choose Each
 
@@ -921,9 +921,7 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 | **Visual Dashboard** | Supabase |
 | **Maturity/Community** | PostgREST / Supabase |
 
-Each tool excels in different areas:
-
-**NpgsqlRest** is a **complete self-hosted platform** where the fastest way to create an endpoint is to write a SQL file. No `CREATE FUNCTION`, no database deployment — just a `.sql` file with a comment annotation. For complex logic, PostgreSQL functions are fully supported with true end-to-end type checking. Beyond API generation, NpgsqlRest serves static files with template parsing, generates TypeScript clients, and includes built-in authentication — all in a single ~30MB binary. Each endpoint can have its own caching, rate limiting, timeout, and auth rules defined via SQL comments, version-controlled alongside your code. Three proxy modes (passthrough, transform, proxy_out) let your SQL orchestrate calls to external APIs with zero additional infrastructure.
+**NpgsqlRest** is a **complete self-hosted platform** where the fastest way to create an endpoint is to write a SQL file. No `CREATE FUNCTION`, no database deployment — just a `.sql` file with a comment annotation. For complex logic, PostgreSQL functions are fully supported with true end-to-end type checking. Beyond API generation, it serves static files with template parsing, generates TypeScript clients, and includes built-in authentication — all in a single ~30MB binary, with per-endpoint caching, rate limiting, timeout, and auth rules version-controlled in SQL comments.
 
 **PostgREST** shines for **flexible client-side queries** with its GraphQL-like resource embedding, 28+ filtering operators, aggregates, and pagination. It's the right choice when your API consumers need to compose their own queries against tables and views. PostgREST is API-only—you'll need additional services for auth, static files, and file uploads.
 

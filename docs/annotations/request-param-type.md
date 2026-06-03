@@ -22,6 +22,8 @@ head:
 
 ::: info Also known as
 `param_type` (with or without `@` prefix)
+
+The bare value keywords also work as standalone annotations: `query_string` / `query` (same as `@request_param_type query_string`) and `body_json` / `body` (same as `@request_param_type body_json`).
 :::
 
 Control how parameters are transmitted to the endpoint - via query string or request body.

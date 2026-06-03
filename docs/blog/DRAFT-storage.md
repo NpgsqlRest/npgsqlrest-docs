@@ -1,57 +1,133 @@
----
-layout: doc
-outline: [2, 3]
-title: "DRAFT: 25 Years of Object–Relational Impedance Mismatch"
-titleTemplate: NpgsqlRest
-description: "DRAFT — A compilation of a decade of arguments about DDD, Clean Architecture, the wrong abstractions modern business software is built on, and the case for putting the database back where it belongs."
-badge: human
-head:
-  - - meta
-    - name: robots
-      content: noindex, nofollow
-  - - meta
-    - name: keywords
-      content: npgsqlrest postgresql clean architecture ddd database-first state abstraction sql platform business rules
----
+## Abstraction Over Storage Devices
 
-# DRAFT: 25 Years of Object–Relational Impedance Mismatch
+Strip away the patterns, the diagrams, the concentric circles, and the ubiquitous language, and the entire modern orthodoxy — DDD, Clean Architecture, Hexagonal, Onion, all the variants — rests on one load-bearing premise:
 
-<p class="blog-meta">
-  <span>DRAFT — TODO: date</span> ·
-  <span class="tag">NpgsqlRest</span>
-  <span class="tag">PostgreSQL</span>
-  <span class="tag">Architecture</span>
-  <span class="tag">DDD</span>
-  <span class="tag">Clean Architecture</span>
-  <span class="tag">Opinion</span>
-</p>
+**The database is storage.**
 
-![](https://img.shields.io/badge/Human-Written-blue)
-![](https://img.shields.io/badge/DRAFT-orange)
+Not a participant in your system. Not where your logic lives. Storage. A place to park bytes until your *real* program, the one running in memory, needs them back. Every layer they draw, every abstraction they sell you, exists to keep that storage at arm's length from the part that "matters."
 
-<!-- DRAFT NOTES (delete before publishing):
-  - Compilation of ~6 social posts + 1 Medium piece + existing Clean Architecture critique
-  - Voice: keep punchy, blunt, conversational, my own. No sanitising.
-  - Images available: /CA/part1.webp .. /CA/part7.webp, /ignorance.png
-  - No outbound links until ready to publish — hidden for phone review first
-  - Consider renaming file to DRAFT-25-years-of-impedance-mismatch.md when title is final
--->
+It is the premise everything else is balanced on. So let's check it. Because if it's wrong, the whole structure built on top of it is wrong too.
 
-## Some Honesty Upfront
+And the proof is in the pudding — they will tell you the premise themselves, in their own words.
 
-I have been criticising the modern approach to software engineering — and DDD and Clean Architecture in particular — for over a decade now. Mostly on social media. In short pieces, sometimes with screenshots, sometimes with direct quotes, sometimes with a little bit of sarcasm. Usually all three.
+### Eric Evans
 
-And then it occurred to me. It has been about 25 years since the term **Object–Relational Impedance Mismatch** entered our vocabulary as the polite, academic way of saying *"this isn't working and we don't know why."*
+Evans is careful, which is exactly what indicts him. He doesn't sneer at the database; he politely escorts it out of the room.
 
-A quarter of a century.
+In his Layered Architecture, business state lives in the Domain Layer — but the database does not. Of the state, he writes that
 
-Happy anniversary.
+> *the technical details of storing it are delegated to the infrastructure layer.*
 
-So I sat down and compiled what I have been writing all this time, and put it in one place — what the misconceptions are, where they came from, what they cost us in practice, and, most importantly, what to do about them.
+Storing it. The database is "storing it." It goes downstairs to the infrastructure layer, to sit with the message queues and the file handles, well away from the model that supposedly matters.
 
-This is the long version. Make yourself a coffee.
+And the Repository — his handle on the database — is defined explicitly as a thing that presents persistent objects *as if they were an in-memory collection*. That is the whole job: maintain the fiction that there is no database, only objects in memory that happen to survive a restart. The relational engine is reduced to a backing store for a pretend in-memory list.
+
+For Evans, the database is where state is *stored*. Storage.
+
+### Robert C. Martin
+
+Martin is not careful. He says the quiet part at full volume, with a section literally titled **"Databases Only Exist Because of Disks."**
+
+The argument: disks are slow, so we built indexes, caches, and query schemes to work around them — and the relational structure is just more of the same workaround. Hence:
+
+> *To mitigate the time delay imposed by disks, you need indexes.*
+
+From there the conclusions write themselves. A database, for Martin, is a mechanism for moving bits between the surface of a rotating disk and RAM — nothing more than big buckets of bits for long-term storage. Storage, he argues, is a concern that can be entirely encapsulated and separated from the business rules. The form the data takes on the disk is, from an architectural standpoint, beneath our notice.
+
+For Martin, the database is indistinguishable from a storage device. Storage.
+
+Two of the most cited authors in our field. One premise. **The database is storage, and storage is a detail to be wrapped by something more important.**
 
 ---
+
+### What if it isn't true?
+
+Here is the question nobody in that tradition stops to ask:
+
+**What if the modern relational database already abstracts storage for you?**
+
+What if the thing they're straining to wrap is, by design, the wrapper? What if storage — the disk, the pages, the byte layout, the access paths — was already encapsulated, decades ago, by the very component they've decided is too lowly to think about?
+
+Then they aren't protecting you from the storage. They're rebuilding, badly, the abstraction that was already there — and throwing away the parts they didn't understand.
+
+Let's prove the database abstracts storage. Then let's count the cost of pretending it doesn't.
+
+### Proof, part one: it was designed to abstract storage
+
+This isn't a happy accident the engines stumbled into. It is the reason the relational model was invented.
+
+When Codd published the relational model in 1970, he sold it on a single promise: **data independence** — insulating applications from how data is physically represented and physically organized. The ANSI/SPARC architecture in 1975 made it formal: a separate *internal schema* describing storage, walled off from the *conceptual schema* describing the logical model, with **physical data independence** named as the explicit goal.
+
+Now read Martin's chapter again. The thing he calls a low-level disk detail to be hidden from your architecture was *designed, from its first day, to be the layer that hides the disk from your architecture.* He has the arrow pointing backwards. Databases do not exist because of disks. **The relational model exists to hide disks.**
+
+### Proof, part two: swap the storage, keep the model
+
+Assertions are cheap, so here is a falsifiable test. If the database really *were* the storage, changing the storage would force you to change your application. Let's change it as violently as possible and watch the application not flinch.
+
+Take one table. Run one query. Now move the storage underneath it:
+
+```sql
+-- Different physical device entirely
+ALTER TABLE invoices SET TABLESPACE nvme;
+
+-- Different on-disk format: row-store to column-store
+-- (pluggable table access methods)
+CREATE TABLE invoices (...) USING columnar;
+
+-- Storage moved off the machine: another server, a CSV, a REST API
+CREATE FOREIGN TABLE invoices (...) SERVER remote_pg;
+```
+
+Same `SELECT`. Same result. Every time. The bytes went to a different device, then to a different physical layout, then to a different *machine*, and the consumer never noticed — because the consumer was never talking to the storage. It was talking to an abstraction sitting on top of it.
+
+MySQL says it even more bluntly: flip `ENGINE=InnoDB` to `ENGINE=MEMORY` and the table runs entirely in RAM, no disk in the path — the full relational structure with zero disk, which by itself buries the idea that the relational model is some disk-shaped artifact.
+
+That invariance — **the logical model held constant while the physical storage is swapped underneath it** — is not evidence of an abstraction. It *is* the abstraction. Storage you can replace without the consumer knowing is, by definition, abstracted away.
+
+### Proof, part three: it abstracts the algorithms too
+
+And it's not just the storage. You write a declarative query — *invoices where amount = 100* — and you never say how. The optimizer reads its statistics and chooses: sequential scan, index scan, bitmap heap scan; nested loop, hash join, merge join. `EXPLAIN` will show the same query text using a sequential scan on a small table and silently switching to an index scan as it grows — and you never touched the query.
+
+Which also disposes of "to mitigate disk delay, you need indexes." An index doesn't fight disk latency; it avoids checking every row. Linear search is slow as a function of *data volume*, not *medium* — a billion-row scan is `O(n)` on disk and `O(n)` in RAM and `O(n)` on Martin's disk-free future. An index turns it into `O(log n)` everywhere, for the same reason, regardless of where the bytes live. That's why **in-memory databases — Redis, SAP HANA, VoltDB, SingleStore — keep everything in RAM and are still full of indexes.** If indexes existed to fight disks, a RAM-only database wouldn't have any. They're full of them.
+
+So storage is abstracted, algorithms are abstracted, data structures are abstracted. The developer is relieved of all three — which, you'll notice, are the exact three things this chapter set out to talk about.
+
+### Proof, part four: the experiment already ran
+
+Martin made a prediction: when disks die, the relational database dies with them, and we return to plain in-memory structures.
+
+That future partly arrived. SAP HANA, VoltDB, SingleStore, OrioleDB, Postgres on `tmpfs`, MySQL's MEMORY engine. We removed the disk. The relational model and SQL did not die — they came along for the ride. The thing he called a disk-artifact **outlived the disk.** I don't have to guess how his thought experiment ends; I can point at the production systems where it already ran, and it ran backwards from his prediction.
+
+(It leaks, yes. Performance bleeds through; sometimes you must know about an index or a partition. But every useful abstraction leaks — you can drop to assembly from C, and C still abstracts the machine. `EXPLAIN ANALYZE` is the abstraction exposing a controlled hatch to the layer below, which is what good abstractions do. It is not a reason to throw away the best one we have.)
+
+---
+
+### So what happens when you build on the wrong premise?
+
+The premise is false. The database isn't storage; it's the abstraction over storage, and over the algorithms and structures on top of it. So what does it cost you to spend an entire architecture pretending otherwise?
+
+It costs more than diagrams. It costs correctness.
+
+**You rebuild the database, badly, in application code.** Once the database is demoted to a bucket of bits, every responsibility it was quietly handling has to be re-homed upstairs. Identity, change tracking, unit-of-work, query construction, caching, concurrency — reimplemented in the domain and service layers, by application developers, decades behind the people who do this for a living. The Repository that "presents an in-memory collection" is the tell: you are writing your own little database on top of the real one, and yours is slower, leakier, and wrong in ways you won't discover until production.
+
+**You lose the guarantees that were the whole point.** A relational database makes illegal states unrepresentable — foreign keys, unique constraints, check constraints, types, transactions. Move that validation "up" into the domain and one of two things happens. Either you now have two sources of validation truth that drift apart, or you switch the database's constraints off entirely ("the ORM handles it") and your data quietly rots — orphaned rows, duplicate keys, broken invariants written by some other code path your domain layer never saw: a migration script, a second service, a bulk import. The aggregate guarded the invariant in memory. The data violated it on disk.
+
+**You invite the race conditions you tried to design away.** This is the sharpest cost, so look at it closely. If the real state is pretended to live in memory and the database is just where you sync it, your invariants are enforced on a *snapshot*. Load the entity, check the rule in application code, save it back — and in the gap between load and save, another transaction changed the row you were reasoning about. Classic time-of-check-to-time-of-use. The database could have closed that gap for free with a constraint or the right transaction isolation. But you took that job away from it, so now you get lost updates, double-bookings, oversold inventory — the exact failures the architecture was supposed to prevent, caused by the architecture that was supposed to prevent them.
+
+**You fight your own engine.** The optimizer, the statistics, the access-method selection — neutralized, because you only ever issue trivial row-at-a-time CRUD through the repository. Set-based operations decompose into N+1 storms. The one component that could have answered your question in a single planned query never gets to see the question. You have performed an abstraction inversion: reimplementing low-level facilities on top of a high-level facility that already provided them, then wondering why it's slow.
+
+**And you pay for all of it, forever.** Mapping layers, DTOs, repository interfaces, unit-of-work, the onion of indirection — an enormous standing tax in accidental complexity, levied solely to maintain the fiction that the database isn't there. Every new feature pays it. Every new hire learns it before they learn the domain.
+
+That's what a wrong abstraction does. It doesn't just make the system slower or more elaborate. It mislocates the source of truth — insisting it lives in memory when it has always lived in the database — and then systematically dismantles the one component built, over fifty years by an enormous number of very talented people, to keep that truth correct.
+
+Strip the storage, the structures, the algorithms, the integrity, and the concurrency out of your "domain" — because the database already handles every one of them — and ask what's actually left.
+
+The business rules. The logic. The part your users actually care about. The part that belonged next to the data the entire time.
+
+A lie repeated often does not become true, no more than a database becomes a storage device. But it does create the illusion of one — and we have built an entire industry inside that illusion.
+
+---
+the old stuff:
 
 ## Those Who Cannot Remember the Past
 

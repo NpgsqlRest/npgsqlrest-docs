@@ -36,7 +36,7 @@ head:
 
 ---
 
-What if a database schema change could break your TypeScript build *before* it ever reaches production? With [NpgsqlRest's automatic type generation](/config/codegen), that's exactly what happens. This post walks through a complete example demonstrating end-to-end static type checking from PostgreSQL functions to TypeScript client code.
+With [NpgsqlRest's automatic type generation](/config/codegen), a database schema change breaks your TypeScript build *before* it ever reaches production. This post walks through a complete example of end-to-end static type checking, from PostgreSQL functions to TypeScript client code.
 
 ## The Problem with Traditional API Development
 
@@ -51,12 +51,12 @@ This gap exists because types are defined in multiple places - database schemas,
 
 ## Why PostgreSQL Functions?
 
-PostgreSQL functions are powerful tools that allow developers to encapsulate business logic within the database itself. When you keep logic within the database:
+PostgreSQL functions let you encapsulate business logic in the database. When you keep logic there:
 
-- **Centralized Logic**: All application instances interact with the data consistently. This is particularly beneficial in environments where multiple applications or instances access the same database.
+- **Centralized Logic**: All application instances interact with the data consistently - especially valuable when multiple applications share the same database.
 - **Improved Performance**: By pushing logic down to the database layer, you reduce the need for data to travel back and forth between the database and application.
 - **Atomic Operations**: Functions can be executed as a single transaction, ensuring operations are atomic and consistent - particularly useful when making changes that involve multiple tables.
-- **Ease of Maintenance**: When business logic resides in functions, it becomes easier to update and manage without having to redeploy the entire application. Fixing a bug or optimizing a query can be done directly in the database, with immediate effect across all instances.
+- **Ease of Maintenance**: Fixing a bug or optimizing a query can be done directly in the database, with immediate effect across all instances - no application redeploy.
 
 But perhaps the most underappreciated benefit is **static type checking**. PostgreSQL functions have explicit return types that the database enforces. This creates a natural contract that can be propagated all the way to your client code.
 
@@ -94,7 +94,7 @@ The example follows this structure:
 └── config.json                       # NpgsqlRest configuration
 ```
 
-The key insight is in the file naming convention:
+The file naming convention carries the weight:
 
 - **`R__` prefix**: Repeatable migrations - recreate schema and tables
 - **`A__` prefix**: Always-run migrations - recreate functions on every build
@@ -139,7 +139,7 @@ insert into example_2.posts (user_id, content, created_at) values
 
 ## Functions That Define the API Contract
 
-The magic happens in the function definitions. These functions are **recreated on every build**, which means:
+The function definitions are where the contract lives. They are **recreated on every build**, which means:
 
 1. The function signature is always authoritative
 2. NpgsqlRest regenerates TypeScript types from the current function definition
@@ -223,7 +223,7 @@ This function uses an explicit `returns table(...)` definition, specifying exact
 
 ## Static Type Checking at the SQL Level
 
-Before we even get to TypeScript, PostgreSQL itself performs static type checking on function definitions. This is a crucial first line of defense.
+Before we even get to TypeScript, PostgreSQL itself performs static type checking on function definitions. That's the first line of defense.
 
 ### How PostgreSQL Enforces Return Types
 
@@ -337,7 +337,7 @@ This is database-level unit testing that runs on every deployment.
 
 ## Unit Testing PostgreSQL Functions: Beyond Fixed Data
 
-The example above uses fixed test data that's inserted during migration. This approach is simple and effective, but what about testing with dynamic data or edge cases? Let's explore more robust testing patterns.
+The example above uses fixed test data that's inserted during migration. This approach is simple and effective, but what about testing with dynamic data or edge cases? Here are sturdier testing patterns.
 
 ### Co-located Tests: Function and Test in the Same File
 
@@ -378,7 +378,7 @@ The function and its test live together. When the function changes, the test is 
 
 ### Test Isolation with Rollback
 
-Unit tests must not interfere with each other. They must maintain perfect isolation. The solution is simple: **end your test block with `rollback;`** to undo any data modifications.
+Unit tests must not interfere with each other. The solution: **end your test block with `rollback;`** to undo any data modifications.
 
 ```sql
 -- Test: get_users() returns newly inserted users
@@ -527,7 +527,7 @@ user_id int references example_2.users(user_id) deferrable
 
 The `deferrable` keyword is crucial for testing. By default, foreign key constraints are checked immediately when you insert a row. With deferrable constraints, checks can be deferred until the end of the transaction.
 
-Since test transactions are rolled back anyway, deferrable constraints allow you to insert test data without worrying about inserting data into a dozen related tables first. This dramatically simplifies test setup.
+Since test transactions are rolled back anyway, deferrable constraints let you insert test data without first populating a dozen related tables. That removes most of the test setup work.
 
 ```sql
 -- Test: Posts with deferred constraints
@@ -870,7 +870,7 @@ Types are enforced at compile time. The generated JavaScript has zero overhead c
 
 ## Conclusion
 
-End-to-end static type checking transforms how you build database-backed applications. By making PostgreSQL the single source of truth and regenerating types on every build, you catch schema mismatches before they reach production.
+Make PostgreSQL the single source of truth, regenerate types on every build, and schema mismatches get caught before they reach production.
 
 The key ingredients:
 
@@ -893,9 +893,9 @@ TypeScript Interfaces
 Application Code
 ```
 
-Every layer validates types. Errors surface at the earliest possible moment - during development, not in production. Schema changes naturally propagate through the entire stack, with compilers and databases acting as your safety net.
+Schema changes propagate through the entire stack, with the database and the compilers acting as your safety net.
 
-Unit testing in PostgreSQL isn't slow or difficult. With simple anonymous blocks, transaction rollback, and deferrable constraints, you can achieve the same TDD workflows you'd use in any other language - but with the added benefit of testing your actual database logic, not a mock of it.
+And unit testing in PostgreSQL isn't slow or difficult. Anonymous blocks, transaction rollback, and deferrable constraints support the same TDD workflows you'd use in any other language - against your actual database logic, not a mock of it.
 
 ## Why This Stack is Superior
 
@@ -918,14 +918,14 @@ The code you don't write has no bugs.
 
 ### Performance That Scales
 
-This isn't just about developer experience - it's about production performance. NpgsqlRest's architecture eliminates the overhead that traditional frameworks accumulate:
+The architecture also pays off at runtime, because NpgsqlRest skips the overhead that traditional frameworks accumulate:
 
 - **No ORM overhead**: Direct PostgreSQL protocol communication
 - **No routing framework**: Endpoints derived from database metadata
 - **No serialization layer**: PostgreSQL's native JSON functions handle serialization
 - **Minimal memory allocation**: Optimized hot paths using buffer pooling
 
-The result? NpgsqlRest consistently outperforms traditional frameworks. In [benchmarks](/blog/postgresql-rest-api-benchmark-2026), it achieves 4,588 requests per second at 100 concurrent users, placing it in the elite performance tier alongside Swoole PHP and ahead of Bun, Go, Fastify, and Spring Boot.
+In [benchmarks](/blog/postgresql-rest-api-benchmark-2026), it achieves 4,588 requests per second at 100 concurrent users - alongside Swoole PHP and ahead of Bun, Go, Fastify, and Spring Boot.
 
 ### Maximum Type Safety, Minimum Code
 
@@ -951,13 +951,11 @@ This stack delivers:
 
 - **Full end-to-end type safety** from PostgreSQL to TypeScript
 - **The least amount of code** - no boilerplate layers to maintain
-- **Superior performance** - direct database-to-HTTP pipeline
+- **A direct database-to-HTTP pipeline** with no intermediate layers
 - **Built-in testing** that runs on every deployment
 - **Automatic documentation** through generated code
 
 When you combine database-enforced types, automated type generation, compile-time checking, and co-located SQL tests, you get a development experience where "it works on my machine" actually means "it will work in production."
-
-NpgsqlRest delivers the best performance with the least code - a rare combination that eliminates entire categories of bugs and maintenance burden.
 
 <BlogNav
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking"

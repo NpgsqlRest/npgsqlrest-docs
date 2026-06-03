@@ -136,7 +136,7 @@ Cache-Control: no-cache';
 
 ### Dynamic Headers from Parameters
 
-Header values can include parameter values using the `{param_name}` template syntax:
+Header values can include parameter values using the `{param_name}` template syntax. The matching and substitution rules (case-sensitivity, NULL handling, etc.) are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
 
 ```sql
 create function export_report(_type text, _file text)
@@ -179,7 +179,7 @@ Access-Control-Allow-Methods: GET, POST
 Access-Control-Allow-Headers: Content-Type';
 ```
 
-Note: For comprehensive CORS support, use the [CORS configuration](../config/cors) instead.
+Note: To configure CORS centrally (origins, methods, credentials, preflight), use the [CORS configuration](../config/cors) instead.
 
 ## Common Headers
 

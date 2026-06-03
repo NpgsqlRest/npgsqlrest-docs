@@ -35,6 +35,7 @@ Static file serving configuration with authorization and content parsing support
     "ParseContentOptions": {
       "Enabled": false,
       "AvailableClaims": [],
+      "AvailableEnvVars": [],
       "CacheParsedFile": true,
       "Headers": [
         "Cache-Control: no-store, no-cache, must-revalidate",
@@ -100,6 +101,7 @@ Parse static files and replace tags with claim values from authenticated users.
     "ParseContentOptions": {
       "Enabled": false,
       "AvailableClaims": [],
+      "AvailableEnvVars": [],
       "CacheParsedFile": true,
       "Headers": [
         "Cache-Control: no-store, no-cache, must-revalidate",
@@ -119,7 +121,8 @@ Parse static files and replace tags with claim values from authenticated users.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `Enabled` | bool | `false` | Enable content parsing for static files. |
-| `AvailableClaims` | array | `[]` | Claim types to parse. Replaced with `NULL` if not found or user is unauthenticated. |
+| `AvailableClaims` | array \| object | `[]` | Claim types to parse. Array form (`["name"]`) replaces missing claims with `NULL`; object form (`{"name":"guest"}`) uses the given default when the claim is absent. |
+| `AvailableEnvVars` | array \| object | `[]` | Environment variable names templated into static content (same `{NAME}` tags as claims). Array form (`["BUILD_LABEL"]`) yields the empty string when unset; object form (`{"DEMO_FLAG":"false"}`) uses the given default. Resolved once at startup. **Public — never list a secret.** |
 | `CacheParsedFile` | bool | `true` | Cache parsed file templates in memory. Caching applies to templates before parsing, not final content. |
 | `Headers` | array | *(see below)* | Response headers for parsed static files. Set to `null` or empty array to ignore. |
 | `FilePaths` | array | `["*.html"]` | File patterns to parse. |
@@ -137,6 +140,80 @@ When `Enabled` is `true`, tags in the format `{claimType}` are replaced with val
 ```
 
 For unauthenticated users or missing claims, values are replaced with `NULL`.
+
+You can also give a claim an explicit default with the object form:
+
+```json
+"AvailableClaims": { "name": "guest", "email": "" }
+```
+
+### Environment Variable Injection
+
+`AvailableEnvVars` templates **app-wide, request-independent** environment
+variable values into static content using the same `{NAME}` tag syntax.
+This is useful for Single-Page Apps deployed to Kubernetes: build the
+bundle once, and inject per-environment values (build label, feature
+flags, analytics IDs) from pod env vars at boot — no per-environment
+rebuild.
+
+```json
+{
+  "StaticFiles": {
+    "ParseContentOptions": {
+      "Enabled": true,
+      "FilePaths": ["/index.html"],
+      "AvailableClaims": ["user_id", "user_name"],
+      "AvailableEnvVars": {
+        "BUILD_LABEL": "local",
+        "DEMO_FLAG": "false",
+        "TRACKING_ID": ""
+      }
+    }
+  }
+}
+```
+
+Values are substituted as complete, JSON-escaped literals, so the
+template uses the **bare** `{NAME}` token with no surrounding quotes:
+
+```html
+<script>
+  window.__appConfig = {
+    userId: {user_id},          // claim → 123 or null
+    userName: {user_name},      // claim → "alice" or null
+    buildLabel: {BUILD_LABEL},  // env   → "demo" (or "local" default)
+    demoMode: {DEMO_FLAG} === "true",
+    trackingId: {TRACKING_ID}
+  };
+</script>
+```
+
+Guarantees:
+
+- **Two forms.** An array of names (`["BUILD_LABEL"]`) — a missing
+  variable becomes the empty string `""`. Or an object of name→default
+  pairs (`{"DEMO_FLAG":"false"}`) — the default is used when the variable
+  is absent.
+- **Resolved once at startup.** A value change requires a restart (a
+  Kubernetes pod restart re-reads the values).
+- **JSON-escaped.** An accidental quote or backslash in a value cannot
+  break the JS string. (The relaxed encoder does not escape `<`/`>`, the
+  same as the claim path — env values are operator-controlled, not
+  untrusted input.)
+- **Claims win on collision.** If a name is both a user claim and an env
+  var, the per-request claim value takes precedence.
+
+:::danger Public allowlist
+Anything you list in `AvailableEnvVars` is templated into static content
+served to **any** client. Templating a secret (database password, API
+key, signing token) into `index.html` leaks it to every user via browser
+DevTools. Treat the list as a public allowlist, never as a "make this
+reachable to the app" shortcut. Secrets stay in server-side code paths
+that read env directly. This is distinct from the server-side
+[`Config:ParseEnvironmentVariables`](./config-section) mechanism, which
+substitutes `{ENV}` tokens into `appsettings.json` values that never
+leave the server.
+:::
 
 ### Default Headers
 

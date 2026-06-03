@@ -79,4 +79,4 @@ Two endpoint sources, one binary, zero boilerplate:
 - **SQL Files** — write a query, get an endpoint
 - **Functions and procedures** — formal data contracts with static type checking
 
-If you want to learn how to do this with PostgreSQL, check out the [Quick Start Guide](/guide/quick-start) or dive into the [Tutorials](/blog/).
+If you want to learn how to do this with PostgreSQL, check out the [Quick Start Guide](/guide/quick-start) or work through the [Tutorials](/blog/).

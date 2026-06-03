@@ -1,0 +1,121 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ./15_mcp_server/sql/get_product.sql
+//
+// HTTP GET
+// @param $1 id int
+// @single
+// @mcp_description Get a single product by its id, including price and current stock.
+//  Dev note: @mcp_description above is the authoritative tool description and opts the routine in (like
+//  @mcp), so this comment is IGNORED — an explicit description suppresses comment prose, so notes like this
+//  never leak into what the agent sees. (Without an explicit description, prose would become the description.)
+GET {{host}}/api/get-product?id=1
+
+###
+
+// SQL file: ./15_mcp_server/sql/place_order.sql
+//
+// HTTP POST
+// @param $1 productId int
+// @param $2 quantity int default 1
+// @single
+// @mcp Place an order for a product. Decrements stock and returns the created order.
+POST {{host}}/api/place-order
+content-type: application/json
+
+{
+    "productId": 1,
+    "quantity": 2
+}
+
+###
+
+// SQL file: ./15_mcp_server/sql/product_count.sql
+//
+// HTTP GET
+// @single
+// @mcp Total number of products in the catalog.
+// @mcp_name catalog_size
+GET {{host}}/api/product-count
+
+###
+
+// SQL file: ./15_mcp_server/sql/restock_product.sql
+//
+// HTTP POST
+// @param $1 productId int
+// @param $2 newStock int
+// @single
+// @authorize manager
+// @mcp Set a product's stock to an exact value. Manager-only — a privileged, mutating operation.
+//  The ONLY protected operation in this example. `@authorize manager` gates it by role, so the same
+//  routine enforces auth on BOTH interfaces it is exposed on:
+//    • REST   POST /api/restock-product   (Authorization: Bearer <jwt>)
+//    • MCP    tools/call restock_product  (Authorization: Bearer <jwt> on the /mcp request)
+//  Outcomes the demo shows: no token → 401; a 'staff'-role token (clerk) → 403; a 'manager' token → success.
+//  Everything else in the store stays anonymous — enabling JWT auth does not require gating the endpoint.
+POST {{host}}/api/restock-product
+content-type: application/json
+
+{
+    "productId": 1,
+    "newStock": 2
+}
+
+###
+
+// SQL file: ./15_mcp_server/sql/list_categories.sql
+//
+// HTTP GET
+// @mcp List all distinct product categories in the catalog.
+GET {{host}}/api/list-categories
+
+###
+
+// SQL file: ./15_mcp_server/sql/login.sql
+//
+// HTTP POST
+// @login
+// @allow_anonymous
+// @param $1 username
+// @define_param password text
+//  Issues a JWT for a staff member. `scheme = 'jwt'` selects the JWT auth scheme (see config.json Auth),
+//  so a successful response body carries { accessToken, refreshToken, tokenType, expiresIn, ... }.
+//  `password` is declared with @define_param: it is accepted from the request but NOT bound to the SQL —
+//  NpgsqlRest's built-in verifier matches it against the returned password_hash column (HashColumnName).
+//  The `roles` column becomes the token's role claims, which is what `@authorize manager` checks later.
+//  This is a REST-only endpoint (no @mcp): you log in over HTTP, then present the token to the MCP tools.
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "username": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ./15_mcp_server/sql/cancel_order.sql
+//
+// HTTP DELETE
+// @param $1 orderId int
+// @mcp Cancel an order by id and return its quantity to stock.
+DELETE {{host}}/api/cancel-order
+content-type: application/json
+
+{
+    "orderId": 1
+}
+
+###
+
+// SQL file: ./15_mcp_server/sql/search_products.sql
+//
+// HTTP GET
+// @param $1 query text default null
+// @param $2 maxPrice numeric default null
+// @mcp Search the product catalog by name or category and/or a maximum price; returns matching products with their price and stock.
+GET {{host}}/api/search-products?query=ABC&maxPrice=2
+
+###
+

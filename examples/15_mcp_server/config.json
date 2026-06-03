@@ -1,0 +1,68 @@
+{
+  "ApplicationName": "15_mcp_server",
+
+  "StaticFiles": {
+    "RootPath": "./15_mcp_server/public"
+  },
+
+  // Authorization demo (see README "Authorization"). The store is anonymous; only the restock_product
+  // tool is gated (`@authorize manager`). We enable JWT so tokens are *validated when present* — we do
+  // NOT set RequiresAuthorization, so the /mcp endpoint and every other tool stay open. The login
+  // endpoint (sql/login.sql) returns `scheme = 'jwt'`, so it issues a signed JWT.
+  // https://npgsqlrest.github.io/config/auth.html#jwt-authentication
+  "Auth": {
+    "JwtAuth": true,
+    "JwtAuthScheme": "jwt",
+    // Demo secret only — HS256 needs ≥32 chars. Use a real secret (and a secret store) in production.
+    "JwtSecret": "acme-store-demo-signing-key-change-me-please",
+    "JwtIssuer": "acme-store",
+    "JwtAudience": "acme-store",
+    "JwtExpire": "60 minutes",
+    "JwtValidateIssuer": true,
+    "JwtValidateAudience": true
+  },
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": false,
+
+    // Maps the columns the login function returns onto the principal's claims. DefaultRoleClaimType is
+    // what makes the `roles` column become role claims, which `@authorize manager` then checks.
+    // HashColumnName tells the built-in verifier which returned column holds the password hash.
+    // https://npgsqlrest.github.io/config/authentication-options.html
+    "AuthenticationOptions": {
+      "DefaultUserIdClaimType": "user_id",
+      "DefaultNameClaimType": "username",
+      "DefaultRoleClaimType": "roles",
+      "HashColumnName": "password_hash"
+    },
+
+    // Tools come from .sql files, not database routines.
+    "RoutineOptions": {
+      "Enabled": false
+    },
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./15_mcp_server/sql/**/*.sql"
+    },
+
+    // MCP server options: https://npgsqlrest.github.io/config/mcp.html
+    // Each .sql file annotated with @mcp becomes a tool at the single /mcp endpoint (POST).
+    "McpOptions": {
+      "Enabled": true,
+      "UrlPath": "/mcp",
+      "ServerName": "Acme Store",
+      "ServerVersion": "1.0.0",
+      "Instructions": "You are a shopping assistant for the Acme Store. Use search_products and get_product to explore the catalog, place_order to buy, and cancel_order to undo. Prices are in USD.",
+      "ToolDescriptionSuffix": "(Acme Store demo.)"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./15_mcp_server/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./15_mcp_server/src/{0}Api.ts",
+      "ExportTypes": true
+    }
+  }
+}

@@ -38,9 +38,21 @@ The `Config` section controls how the configuration file itself is processed.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `AddEnvironmentVariables` | bool | `false` | Allow environment variables to override configuration settings. |
-| `ParseEnvironmentVariables` | bool | `true` | Parse `{ENV_VAR_NAME}` placeholders in config values and replace with environment variable values. |
+| `ParseEnvironmentVariables` | bool | `true` | Parse `{ENV_VAR_NAME}` (optional) and `{!ENV_VAR_NAME}` (required) placeholders in config values and replace with environment variable values. See below. |
 | `EnvFile` | string | `null` | Path to a `.env` file for loading environment variables. See below. |
 | `ValidateConfigKeys` | string | `"Warning"` | Validate configuration keys against known defaults at startup. See below. |
+
+## Placeholder Forms: Optional and Required (3.17.0+)
+
+With `ParseEnvironmentVariables` enabled, config values support two placeholder forms, for **every** value type (bool, int, string, enum, arrays, dictionaries):
+
+- **`{NAME}` — optional.** Substituted with the variable's value when set; **left untouched when not set** — typed reads (`bool`, `int`, …) fall back to their defaults instead of crashing, and legitimate non-env brace syntax (e.g. a Serilog `OutputTemplate`) is preserved.
+- **`{!NAME}` — required.** Substituted with the value, or **throws a clear startup error naming the variable** when it is not set.
+
+```jsonc
+"Enabled": "{GITHUB_AUTH_ENABLED}"   // env unset → feature defaults to off (no crash)
+"Enabled": "{!GITHUB_AUTH_ENABLED}"  // env unset → startup error naming the variable
+```
 
 ## Environment Variable Override
 

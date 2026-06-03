@@ -1,0 +1,30 @@
+{
+  "ApplicationName": "17_scrap_demo_2",
+
+  "StaticFiles": {
+    "RootPath": "./17_scrap_demo_2/public"
+  },
+
+  "NpgsqlRest": {
+    // Expose only this example's schema. The endpoint is the PostgreSQL
+    // function example_17.average_book_price.
+    "IncludeSchemas": [ "example_17" ],
+
+    // No authentication for this demo - the single endpoint is anonymous.
+    "RequiresAuthorization": false,
+
+    // Enable outgoing HTTP calls used by HTTP Custom Types.
+    // see https://npgsqlrest.github.io/config/http-client.html
+    "HttpClientOptions": {
+      "Enabled": true
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./17_scrap_demo_2/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "FilePath": "./17_scrap_demo_2/src/{0}Api.ts"
+    }
+  }
+}

@@ -25,7 +25,7 @@ NpgsqlRest is a **production-ready**, standalone **web server** that automatical
 - **Automatic HTTP REST endpoints** from SQL files, functions, and procedures
 - **SQL files as endpoints** — write plain `.sql` files containing PostgreSQL commands and get REST endpoints automatically
 - **Code generation** for JavaScript/TypeScript client libraries
-- **Code generation** for [HTTP files](https://www.google.com/search?q=http+files&oq=http+files&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOTIGCAEQRRg8MgYIAhBFGDzSAQgxNTI4ajBqMagCALACAA&sourceid=chrome&ie=UTF-8) for a simple way to quickly invoke and TEST your API.
+- **Code generation** for [HTTP files](/config/http-files) for a simple way to quickly invoke and TEST your API.
 - **Declarative configuration** using SQL comments and annotations
 
 To get started, you need:

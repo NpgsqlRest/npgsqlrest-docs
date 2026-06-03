@@ -166,6 +166,7 @@ Each authenticated user gets their own quota instead of all users sharing one gl
 - Returns `429 Too Many Requests` when limit exceeded (status code and message are [configurable](../config/rate-limiter#settings-reference))
 - Policy defines requests per time window based on the [policy type](../config/rate-limiter#policy-types) (FixedWindow, SlidingWindow, TokenBucket, or Concurrency)
 - Policies with a `Partition` block bucket requests per-user / per-IP / per-header instead of using a single global bucket
+- The policy applies to **HTTP requests hitting this endpoint's route**. It is not consulted when the endpoint is invoked in-process — via HTTP client type self-calls, proxy self-calls, or MCP `tools/call` (use [`McpOptions.RateLimiterPolicy`](../config/mcp#ratelimiterpolicy) for agent traffic). See [Rate Limiting Scope](../config/rate-limiter#rate-limiting-scope)
 
 ## Related
 

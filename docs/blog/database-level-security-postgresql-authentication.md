@@ -40,7 +40,7 @@ head:
 
 Most web applications treat databases as dumb storage - a place to persist data that the application logic protects. This is backwards. Your database is the last line of defense, and it should be the strongest.
 
-This post demonstrates how to build a secure authentication system using PostgreSQL as the security boundary, implementing the Principle of Least Privilege at the database level, and using advanced password hashing techniques that go beyond standard bcrypt limitations.
+This post demonstrates how to build an authentication system that uses PostgreSQL as the security boundary: the Principle of Least Privilege enforced at the database level, plus a password hashing scheme that sidesteps bcrypt's 72-byte limit.
 
 > **Source Code**: The complete working example is available at [github.com/NpgsqlRest/npgsqlrest-docs/examples/3_security_and_auth](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/3_security_and_auth)
 
@@ -75,7 +75,7 @@ flowchart TB
     end
 ```
 
-The key insight: **the application role cannot access tables directly**. It can only call functions in a public schema, and those functions use `SECURITY DEFINER` to access protected data.
+The whole design rests on one rule: **the application role cannot access tables directly**. It can only call functions in a public schema, and those functions use `SECURITY DEFINER` to access protected data.
 
 ## Schema Architecture
 
@@ -299,7 +299,7 @@ $$;
 
 ### Understanding SECURITY DEFINER
 
-Before diving into the functions, let's clarify how `SECURITY DEFINER` works:
+First, what `SECURITY DEFINER` actually does:
 
 - **Default behavior (`SECURITY INVOKER`)**: Functions run with the privileges of the user calling them
 - **`SECURITY DEFINER`**: Functions run with the privileges of the user who *created* them
@@ -604,13 +604,7 @@ The segmented password hashing ensures long passwords remain secure. An attacker
 
 ## Conclusion
 
-Security should be built into the architecture, not bolted on. By implementing the Principle of Least Privilege at the database level, you create applications that are **secure by default**:
-
-1. **Restricted roles** ensure the application can only do what it's supposed to
-2. **Schema separation** isolates internal data from the API surface
-3. **`SECURITY DEFINER` functions** provide controlled access to protected data
-4. **Database-level password hashing** keeps secrets out of application code
-5. **Segmented bcrypt** eliminates the 72-byte password limit vulnerability
+Security should be built into the architecture, not bolted on. A restricted application role, a separate public schema, `SECURITY DEFINER` functions with a pinned `search_path`, and segmented bcrypt hashing inside the database add up to an application that stays **secure by default** - even when the layer above it is compromised.
 
 Combined with NpgsqlRest's [end-to-end type safety](/blog/end-to-end-static-type-checking-postgresql-typescript) and [superior performance](/blog/postgresql-rest-api-benchmark-2026), this approach delivers applications that are not only faster and more maintainable, but fundamentally more secure.
 

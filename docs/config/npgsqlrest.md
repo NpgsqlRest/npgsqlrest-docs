@@ -38,7 +38,7 @@ NpgsqlRest HTTP middleware general configuration for endpoint generation and req
     "NameNotSimilarTo": null,
     "IncludeNames": null,
     "ExcludeNames": null,
-    "CommentsMode": "OnlyWithHttpTag",
+    "CommentsMode": "OnlyAnnotated",
     "UrlPathPrefix": "/api",
     "KebabCaseUrls": true,
     "CamelCaseNames": true,
@@ -140,7 +140,7 @@ Filter by name pattern:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `CommentsMode` | string | `"OnlyWithHttpTag"` | How comment annotations affect endpoint creation. |
+| `CommentsMode` | string | `"OnlyAnnotated"` | How comment annotations affect endpoint creation. |
 
 Available modes:
 
@@ -148,9 +148,14 @@ Available modes:
 |------|-------------|
 | `Ignore` | Create all endpoints, ignore comment annotations. |
 | `ParseAll` | Create all endpoints, parse comment annotations to modify them. |
-| `OnlyWithHttpTag` | Only create endpoints for routines with [HTTP](../annotations/http) annotation in comments (default). |
+| `OnlyWithHttpTag` | Only create endpoints for routines with an [HTTP](../annotations/http) annotation in comments. Kept as an identical-behavior alias of `OnlyAnnotated` for existing configs. |
+| `OnlyAnnotated` | Only create endpoints for routines with an [HTTP](../annotations/http) annotation **or** a plugin annotation that requests an endpoint (e.g. [`@mcp`](../annotations/mcp) — so an MCP-only routine can exist with no HTTP route). Client default since 3.17.0. |
 
-With the default `OnlyWithHttpTag` mode, routines without the `HTTP` annotation in their comment will not be exposed as endpoints. This provides explicit control over which database routines are accessible via the API.
+With the default `OnlyAnnotated` mode, routines without an `HTTP` (or endpoint-requesting plugin) annotation in their comment will not be exposed as endpoints. This provides explicit control over which database routines are accessible via the API.
+
+::: info Client vs. library default
+The standalone client (`npgsqlrest` executable) defaults to `OnlyAnnotated` since 3.17.0. The C# library (`NpgsqlRestOptions.CommentsMode`) defaults to `OnlyWithHttpTag`; the two behave identically unless a plugin (such as MCP) requests endpoints.
+:::
 
 ## URL and Naming
 
@@ -187,6 +192,8 @@ With default settings, `get_user_profile` becomes `/api/get-user-profile`.
 | `LogConnectionNoticeEventsMode` | string | `"FirstStackFrameAndMessage"` | How to format notice event logs. |
 | `LogCommands` | bool | `false` | Log every executed command and query at debug level. |
 | `LogCommandParameters` | bool | `false` | Include parameter values in command logs. Only applies when `LogCommands` is `true`. |
+| `DebugLogEndpointCreateEvents` | bool | `true` | Emit a debug log for each endpoint created at startup (URL and method). |
+| `DebugLogCommentAnnotationEvents` | bool | `true` | Emit a debug log for each comment annotation that is successfully processed. |
 
 ### Notice Event Modes
 
@@ -392,6 +399,22 @@ The `X-Accel-Buffering: no` header is commonly needed when running behind nginx 
 - [SSE_EVENTS_LEVEL Annotation](../annotations/sse-events-level) - Override notice level per endpoint
 - [SSE_EVENTS_SCOPE Annotation](../annotations/sse-events-scope) - Control event distribution scope
 
+### Unbound RAISE warning
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `WarnUnboundServerSentEventsNotices` | bool | `true` | When at least one SSE endpoint exists, log a one-time warning per endpoint whose `RAISE` matches the SSE notice level but is not annotated as an SSE publisher (a likely missing [`sse_publish`](../annotations/sse) annotation). Apps with no SSE endpoints pay zero overhead and see no warnings. |
+
+## Environment Variables in Annotation Values
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `AvailableEnvVars` | array or object | `[]` | Allowlist of environment variable names available to [`{name}` placeholder substitution](../annotations/parameter-substitution) in comment annotation values (response headers, custom parameters, HTTP custom type calls), alongside the routine's parameters. Array form lists names (a missing variable becomes the empty string); object form maps `name → default`. Resolved once at startup; matched case-insensitively; a routine parameter of the same name takes precedence. |
+
+::: warning Security
+A value substituted into a *response* header is sent to the client. Reserve secrets (API keys, tokens) for outbound HTTP custom type calls, and use response headers only for non-secret values (e.g. a server/environment name). Only allowlisted names are ever read from the environment.
+:::
+
 ## Complete Example
 
 Production configuration:
@@ -404,7 +427,7 @@ Production configuration:
     "CommandTimeout": "30 seconds",
     "IncludeSchemas": ["api"],
     "ExcludeSchemas": ["internal"],
-    "CommentsMode": "OnlyWithHttpTag",
+    "CommentsMode": "OnlyAnnotated",
     "UrlPathPrefix": "/api",
     "KebabCaseUrls": true,
     "CamelCaseNames": true,

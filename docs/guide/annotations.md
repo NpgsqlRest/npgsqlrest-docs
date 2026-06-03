@@ -111,7 +111,7 @@ This comment contains:
 
 ## The HTTP Annotation
 
-The `HTTP` annotation is the primary way to expose a function or table as an endpoint. Without it (when using the default `CommentsMode: OnlyWithHttpTag`), the object won't be exposed.
+The `HTTP` annotation is the primary way to expose a function or table as an endpoint. Without it (when using the client's default `CommentsMode: OnlyAnnotated`, or the library's `OnlyWithHttpTag`), the object won't be exposed — unless a loaded plugin annotation requests an endpoint (e.g. [`@mcp`](../annotations/mcp), which can create an MCP-only routine with no HTTP route).
 
 ### Syntax Variations
 

@@ -83,6 +83,8 @@ These examples use PostgreSQL functions and procedures as the endpoint source:
 | [12_custom_types](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types) | Custom PostgreSQL composite types and multiset returns for complex nested JSON responses | [Custom Types & Multiset](/blog/custom-types-multiset-rest-api) |
 | [13_passkey](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/13_passkey) | WebAuthn passkey authentication with pure SQL: passwordless login using device biometrics | [Passkey SQL Auth](/blog/passkey-sql-auth) |
 | [14_table_format](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format) | Excel export and stats endpoints with HTML table format output and cookie authentication | [Excel Exports Done Right](/blog/excel-export-table-format-postgresql-npgsqlrest) |
+| [16_scrap_demo](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/16_scrap_demo) | Web scraping in SQL: fetch a product listing with an HTTP Custom Type, parse the HTML with PostgreSQL XPath, and return the best-value laptop by a weighted score | [Web Scraping with HTTP Types](/blog/web-scraping-postgresql-http-types-xml) |
+| [17_scrap_demo_2](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/17_scrap_demo_2) | Web scraping in SQL: fetch a book catalog with an HTTP Custom Type, parse it with XML functions, and return the average book price on the page | [Web Scraping with HTTP Types](/blog/web-scraping-postgresql-http-types-xml) |
 
 ### SQL File Examples (SqlFileSource) <Badge type="tip" text="v3.12.0" />
 
@@ -102,6 +104,14 @@ These examples use the new [SQL File Source](/config/sql-file-source) plugin —
 | [10_proxy_ai_service_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/10_proxy_ai_service_sql_file) | Reverse proxy with AI response caching using SQL files | [10_proxy_ai_service](#) |
 | [12_custom_types_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/12_custom_types_sql_file) | Custom composite types and nested JSON responses using SQL files | [12_custom_types](#) |
 | [14_table_format_sql_file](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format_sql_file) | Excel export and stats endpoints with HTML table format using SQL files | [14_table_format](#) |
+
+### MCP Server (SqlFileSource) <Badge type="tip" text="v3.17.0" />
+
+Expose your `.sql` files as [Model Context Protocol](/config/mcp) tools that an AI agent can discover and call — one source, two interfaces (REST + MCP).
+
+| Example | Description | Related Blog Post |
+|---------|-------------|-------------------|
+| [15_mcp_server](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/15_mcp_server) | An "Acme Store" MCP server: each `.sql` file is both a typed REST endpoint and an `@mcp` tool. Includes a dual-panel web page (REST storefront + live MCP browser), a real Claude agent driving the store, MCP-only tools, and per-tool authorization | [PostgreSQL as MCP Tools](/blog/mcp-server-postgresql-ai-tools-npgsqlrest) |
 
 ## Available Commands
 

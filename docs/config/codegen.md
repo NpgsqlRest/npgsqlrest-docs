@@ -38,6 +38,7 @@ Configuration for generating TypeScript/JavaScript client code for NpgsqlRest en
       "BySchema": true,
       "IncludeStatusCode": true,
       "CreateSeparateTypeFile": true,
+      "ExportTypes": false,
       "ImportBaseUrlFrom": null,
       "ImportParseQueryFrom": null,
       "IncludeParseUrlParam": false,
@@ -58,7 +59,8 @@ Configuration for generating TypeScript/JavaScript client code for NpgsqlRest en
       "CustomHeaders": {},
       "IncludeSchemaInNames": true,
       "ErrorExpression": "await response.json()",
-      "ErrorType": "{status: number; title: string; detail?: string | null} | undefined"
+      "ErrorType": "{status: number; title: string; detail?: string | null} | undefined",
+      "OmitAutomaticParameters": false
     }
   }
 }
@@ -113,9 +115,11 @@ These options allow customization of error handling in generated code. Void func
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `CreateSeparateTypeFile` | bool | `true` | Create separate `{name}Types.d.ts` file for global types. |
+| `ExportTypes` | bool | `false` | Emit interfaces with the `export` keyword so they can be imported by other modules. When `true` and `CreateSeparateTypeFile` is `true`, the separate type file becomes an importable module `{name}Types.ts` (instead of an ambient `{name}Types.d.ts`) and the client file imports the named types from it. No effect when `SkipTypes` is `true`. |
 | `DefaultJsonType` | string | `"any"` | Default TypeScript type for JSON types. |
 | `SkipTypes` | bool | `false` | Skip type generation for pure JavaScript output (changes `.ts` to `.js`). |
 | `UniqueModels` | bool | `false` | Merge models with same fields/types into one (reduces generated models). |
+| `OmitAutomaticParameters` | bool | `false` | Omit server-filled parameters from the generated request interface, query string, and body. See [`OmitAutomaticParameters: true`](#omitautomaticparameters-true). |
 
 ## Import Configuration
 
@@ -253,6 +257,43 @@ export async function whoAmI(request: IWhoAmIRequest): Promise<IWhoAmIResponse> 
 
 Errors throw or surface as runtime exceptions instead of being part of the return type. Use this if you have application-level error handling middleware.
 
+### `OmitAutomaticParameters: true`
+
+::: tip New in 3.18.2
+`OmitAutomaticParameters` was added in 3.18.2 (also available on the [HTTP File](./http-files#omitting-automatic-parameters) and [OpenAPI](./openapi#omitting-automatic-parameters) generators). Default is `false`, so generated output is unchanged unless you opt in.
+:::
+
+Some parameters are filled by the server, so a value passed from the client would simply be ignored — emitting them as settable request properties is misleading. When `true`, such a parameter is dropped from the generated request interface, the query string, and the body when it is **automatic and optional**. "Automatic" covers:
+
+- [HTTP Custom Type](../annotations/http-type) fields (e.g. an auto-filled `responseBody`),
+- [resolved-parameter](../annotations/resolved-parameters) expressions,
+- upload-metadata parameters,
+- and — on endpoints that use [user parameters](../annotations/user-parameters) — IP-address and user-claim parameters.
+
+For a function whose only client-settable parameter is `query`, with an HTTP Custom Type field `responseBody` filled server-side:
+
+```typescript
+// OmitAutomaticParameters: false (default) — responseBody appears even though the server overrides it
+interface ISearchRequest {
+    query?: string | null;
+    responseBody?: string | null;
+}
+
+// OmitAutomaticParameters: true — only the real input remains
+interface ISearchRequest {
+    query?: string | null;
+}
+```
+
+When **every** parameter is automatic, the request shape collapses entirely — the generated function takes no `request` argument:
+
+```typescript
+export async function ping(): Promise<{ status: number; response: IPingResponse; /* ... */ }> {
+    const response = await fetch(baseUrl + "/api/ping", { method: "GET" });
+    // ...
+}
+```
+
 ### `CreateSeparateTypeFile: true` — Type-Only Files
 
 When `true` (default), interfaces are emitted into a sibling `.d.ts` file:
@@ -282,6 +323,47 @@ interface IWhoAmIResponse {
 ```
 
 Set `CreateSeparateTypeFile: false` to emit interfaces inline in the same file as the functions.
+
+### `ExportTypes: true` — Importable Interfaces
+
+By default, interfaces are emitted as plain `interface` declarations. That makes them **module-private** when inlined (`CreateSeparateTypeFile: false`) and **ambient/global** when in the separate `.d.ts` file — in neither case can another module `import` them. Set `ExportTypes: true` to emit them as `export interface` so they can be imported.
+
+**Inline** (`CreateSeparateTypeFile: false`) — interfaces and functions share one file, with the interfaces now exported:
+
+```typescript
+export interface ISearchProductsRequest {
+    query?: string | null;
+    maxPrice?: number | null;
+}
+
+export interface ISearchProductsResponse {
+    id: number | null;
+    name: string | null;
+    price: number | null;
+}
+
+export async function searchProducts(
+    request: ISearchProductsRequest
+) : Promise<ApiResult<ISearchProductsResponse[]>> {
+    // ...
+}
+```
+
+**Separate file** (`CreateSeparateTypeFile: true`) — the type file becomes an importable module `{name}Types.ts` (not an ambient `{name}Types.d.ts`), and the client file imports the named types from it:
+
+```text
+src/api/searchProducts.ts        ← functions + `import type { ... } from "./searchProductsTypes"`
+src/api/searchProductsTypes.ts   ← `export interface ...`
+```
+
+```typescript
+// searchProducts.ts
+import type { ISearchProductsRequest, ISearchProductsResponse } from "./searchProductsTypes";
+const baseUrl = "";
+// ...
+```
+
+`ExportTypes` has no effect when `SkipTypes` is `true` (no types are generated). Defaulting to `false` keeps existing output unchanged.
 
 ### `ExportUrls: true` — URL Constants
 

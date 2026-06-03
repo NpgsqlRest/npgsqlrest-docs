@@ -39,16 +39,14 @@ head:
   <span class="tag">Multi-Tenancy</span>
 </p>
 
-**[NpgsqlRest 3.13.0](/guide/changelog/v3.13.0)** is a release focused on real-world production patterns. Four scenarios that previously required custom middleware, external services, or hacky workarounds now have first-class declarative support:
+**[NpgsqlRest 3.13.0](/guide/changelog/v3.13.0)** gives first-class declarative support to four production scenarios that previously required custom middleware, external services, or hacky workarounds:
 
-1. **Caching that adapts to query inputs** — historical data cached forever, "open-ended" data cached briefly, real-time queries bypass the cache entirely.
+1. **Caching that adapts to query inputs** — historical data cached for hours, "open-ended" data cached briefly, real-time queries bypassing the cache entirely.
 2. **Short-lived sensitive sessions** alongside a normal long-lived session, e.g., for recovery-code or admin flows.
 3. **Per-user rate limits** instead of global buckets shared by all users.
 4. **pgBouncer / RDS Proxy / Supabase Pooler compatibility** with multi-tenant `search_path` driven by JWT claims.
 
-All four patterns ship as configuration, not code. Walkthroughs below.
-
-For the full reference and migration notes, see the [v3.13.0 changelog](/guide/changelog/v3.13.0).
+All four patterns ship as configuration, not code. Walkthroughs below; full reference and migration notes in the [v3.13.0 changelog](/guide/changelog/v3.13.0).
 
 ## 1. Conditional Caching: Historical vs Current vs Live
 

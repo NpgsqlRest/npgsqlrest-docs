@@ -6,7 +6,7 @@
       "name": "examples",
       "devDependencies": {
         "@vbilopav/pgmigrations": "^0.58.0",
-        "npgsqlrest": "^3.6.3",
+        "npgsqlrest": "^3.18.1",
       },
     },
   },
@@ -18,6 +18,6 @@
 
     "dotenv": ["dotenv@16.6.1", "", {}, "sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow=="],
 
-    "npgsqlrest": ["npgsqlrest@3.8.0", "", { "bin": { "npgsqlrest": "node_modules/.bin/npgsqlrest", "npgsqlrest-config-copy": "config-copy.js" } }, "sha512-L4DRP+qPHoQmOo02y4s292VFTSd9+QZf9M0tNnjYw+bPDzalbqK9b4vC8nkctsVMdUf2MUGShD5KB1hyCml+gA=="],
+    "npgsqlrest": ["npgsqlrest@3.18.2", "", { "bin": { "npgsqlrest": "bin/npgsqlrest.js" } }, "sha512-xYGHQ1DkPB/LpkOsFYNqvWadMoe4wu8Pn+DAi0/dFqgsR2EsLrP+rhhm4JWpVRXbC4mo03GwlR83PCegpd+jmw=="],
   }
 }

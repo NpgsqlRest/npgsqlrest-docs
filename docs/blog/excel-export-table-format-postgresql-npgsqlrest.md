@@ -41,7 +41,7 @@ head:
 
 After 20 years of maintaining codebases, I can confidently say: **Excel export code is the worst part of any system.** It eats all the memory. It crashes servers. It brings down production. I've seen teams isolate export services behind separate infrastructure just so a report download doesn't take the rest of the application with it.
 
-NpgsqlRest 3.7.0 changes this completely. One SQL annotation turns any PostgreSQL function into a streaming `.xlsx` download with **constant memory usage**, **zero allocations per cell**, and **native Excel type mapping** - all without writing a single line of application code.
+NpgsqlRest 3.7.0 removes the problem at the source. One SQL annotation turns any PostgreSQL function into a streaming `.xlsx` download with **constant memory usage**, **zero allocations per cell**, and **native Excel type mapping** - all without writing a single line of application code.
 
 > **Source Code**: The complete working example is available at [github.com/NpgsqlRest/npgsqlrest-docs/examples/14_table_format](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format)
 
@@ -63,7 +63,7 @@ This is why export endpoints are the number one cause of `OutOfMemoryException` 
 
 ## The NpgsqlRest Approach: Pure Streaming
 
-NpgsqlRest's table format rendering takes a fundamentally different approach:
+NpgsqlRest's table format rendering never builds a workbook at all:
 
 ```mermaid
 flowchart LR
@@ -97,7 +97,7 @@ That's it. Your function's result set streams straight to the user's browser as 
 
 ### Zero-Allocation Cell Writing
 
-The implementation is powered by [SpreadCheetah](https://github.com/sveinungf/spreadcheetah) - a library built from the ground up for high-performance, forward-only spreadsheet generation.
+The implementation uses [SpreadCheetah](https://github.com/sveinungf/spreadcheetah) - a library designed specifically for forward-only spreadsheet generation with minimal allocations.
 
 SpreadCheetah writes cells as value types (`DataCell` structs), avoiding heap allocations per cell. Combined with a pre-allocated cell array that gets reused for every row, memory pressure stays flat regardless of dataset size.
 
@@ -120,7 +120,7 @@ Since Excel is compressed XML under the hood, some buffering is needed for the c
 
 ### AOT/Trim Compatible
 
-No reflection, no expression trees, no runtime code generation. Works perfectly with .NET's `PublishAot` and full trimming - important for the single-binary deployment that NpgsqlRest uses.
+No reflection, no expression trees, no runtime code generation. Works with .NET's `PublishAot` and full trimming - important for the single-binary deployment that NpgsqlRest uses.
 
 ## Building an Excel Export Endpoint
 
@@ -183,7 +183,7 @@ HTTP GET
 | `@excel_sheet = {_excel_sheet}` | Custom worksheet name from parameter |
 | `@tsclient_url_only = true` | Generate only URL constant in TypeScript (not a fetch function) |
 
-The `{_format}` placeholder is the key pattern here. It resolves the table format from a function parameter, allowing the same endpoint to serve both HTML table views and Excel downloads depending on what the client requests.
+The `{_format}` placeholder resolves the table format from a function parameter, so the same endpoint serves both HTML table views and Excel downloads depending on what the client requests.
 
 ### Step 3: Configure Table Format
 
@@ -483,18 +483,9 @@ Open `http://localhost:8080`, log in with `alice` / `password123`, and try both 
 
 ## Conclusion
 
-Excel exports don't have to be the worst part of your system. With NpgsqlRest's table format rendering:
+Write the report as a PostgreSQL function, add `@table_format = excel`, and rows stream to the browser with native Excel types and a constant ~80KB buffer. No export library, no separate report server, no server crash at 3 AM because someone exported a large report.
 
-1. **Write your report as a PostgreSQL function** - the query IS the export
-2. **Add `@table_format = excel`** - one annotation, done
-3. **Rows stream directly to the browser** - no memory accumulation
-4. **Native Excel types** - numbers, dates, and booleans just work
-5. **Dynamic filenames and worksheets** - parameterized per request
-6. **HTML preview built-in** - same endpoint, different format
-
-No export libraries to learn. No memory to tune. No separate export services. No server crashes at 3 AM because someone exported a large report.
-
-Just PostgreSQL functions streaming straight to `.xlsx` - one row at a time, start to finish, with constant memory usage.
+One caveat: this produces raw tabular `.xlsx` - if you need charts, merged cells, or conditional formatting, you still want a workbook library. For plain data exports of any size, this is the simpler and safer option.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/14_table_format_sql_file).

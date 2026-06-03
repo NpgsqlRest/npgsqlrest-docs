@@ -46,6 +46,7 @@ Each annotation has its own page with:
 - [DISABLED](./disabled) - Disable endpoint for specific tags
 - [TAGS](./tags) - Filter annotations by tags
 - [OPENAPI](./openapi) - Hide from the OpenAPI document or override the section tag
+- [MCP](./mcp) - Expose a routine as a Model Context Protocol (MCP) tool for AI agents
 - [HTTP CUSTOM TYPES](./http-type) - Define HTTP request on composite type for external API calls
 - [INTERNAL](./internal) - Mark endpoint as internal-only (accessible via proxy/HTTP client types, not public HTTP)
 

@@ -372,6 +372,18 @@ Configuration with multiple policies:
 }
 ```
 
+## Rate Limiting Scope
+
+Rate-limit policies are applied at the **HTTP route level**. Every request arriving over HTTP is metered by the policy of the route it hits. Three invocation paths execute endpoints **in-process**, without passing through the target endpoint's route — by design, the target's own `rate_limiter` policy is **not** consulted on these paths:
+
+| Invocation path | What still applies | How it is throttled |
+|---|---|---|
+| [HTTP client type](./http-client) self-calls (a type's URL targets the same server) | the target's `authorize` and all execution-level annotations (the caller's principal is forwarded) | by the **calling** endpoint's own route policy |
+| [Proxy](../annotations/proxy) self-calls (`@proxy` / `@proxy_out` targeting own URL) | same as above | by the **proxy** endpoint's own route policy |
+| [MCP](../config/mcp) `tools/call` | same as above | by [`McpOptions.RateLimiterPolicy`](../config/mcp#ratelimiterpolicy) on the whole `/mcp` route (a routine's `@rate_limiter` does not carry to tool calls; a startup warning is logged for `@mcp` routines that also have `@rate_limiter`) |
+
+In short: these paths cannot be reached by a client directly — they exist only where you explicitly composed them in SQL or config — and the outer route that the client *does* hit is where its rate limit applies.
+
 ## Related
 
 - [rate_limiter_policy annotation](../annotations/rate-limiter-policy) - Apply rate limiting policies to endpoints

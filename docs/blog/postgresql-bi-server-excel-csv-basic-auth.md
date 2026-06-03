@@ -39,9 +39,9 @@ head:
   <span class="tag">NpgsqlRest</span>
 </p>
 
-What if you could turn your PostgreSQL database into a fully-featured Business Intelligence server - serving CSV reports directly to Excel, secured with authentication, all without writing a single line of application code?
+A PostgreSQL function with a CSV annotation is a report endpoint that Excel can consume directly over Basic Auth - with no application code in between.
 
-This post demonstrates how to build a complete BI data delivery system using NpgsqlRest, where PostgreSQL functions become CSV endpoints that Excel can consume directly. Change the function, and every connected Excel workbook updates automatically.
+This post builds that into a working BI data delivery setup with NpgsqlRest: secured CSV endpoints, an audit trail, SSL, and Power Query on the consuming end. Change the function, and every connected Excel workbook picks up the change on its next refresh.
 
 > **Source Code**: The complete working example is available at [github.com/NpgsqlRest/npgsqlrest-docs/examples/5_csv_basic_auth](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/5_csv_basic_auth)
 
@@ -69,7 +69,7 @@ flowchart TB
     end
 ```
 
-The key insight: **your reporting logic lives in PostgreSQL functions**, not application code. Business analysts connect Excel directly to these endpoints, and you control everything from one central place - the database.
+**Your reporting logic lives in PostgreSQL functions**, not application code. Business analysts connect Excel directly to these endpoints, and you control everything from one central place - the database.
 
 ## Defense in Depth: The Principle of Least Privilege
 
@@ -158,7 +158,7 @@ The `_user_name` parameter is automatically populated from the authenticated use
 
 ### CSV Annotations
 
-The magic happens in the function comment:
+Everything HTTP-related is declared in the function comment:
 
 ```sql
 comment on function example_5_public.sales_report(text) is '
@@ -194,9 +194,9 @@ The result:
 
 ## Type Reuse and Composition
 
-NpgsqlRest supports a powerful feature: **composite type expansion**. When a function returns a table that includes a composite type alongside other columns, NpgsqlRest automatically expands the type's fields and merges them with the additional columns into a flat structure.
+NpgsqlRest supports **composite type expansion**. When a function returns a table that includes a composite type alongside other columns, NpgsqlRest automatically expands the type's fields and merges them with the additional columns into a flat structure.
 
-This isn't just a convenience feature - it's an architectural pattern that promotes the **DRY principle** (Don't Repeat Yourself) at the database level and enables applications to maintain consistency across multiple endpoints.
+This is **DRY** at the database level: define the record shape once and reuse it across endpoints, so consumers see consistent structures everywhere.
 
 ### The Problem: Schema Duplication
 
@@ -542,7 +542,7 @@ The `SslRequirement` setting controls SSL enforcement:
 
 ## No Code Generation Required
 
-Unlike traditional approaches that require generated API clients, CSV endpoints work with just a URL. The `index.html` in this example is trivially simple:
+Unlike traditional approaches that require generated API clients, CSV endpoints work with just a URL. The `index.html` in this example is one link:
 
 ```html
 <a href="/api/example-5-public/sales-report">Download Sales Report (CSV)</a>
@@ -569,7 +569,7 @@ When you run this query, Excel prompts for Basic Auth credentials. Enter your us
 
 ### The Power of Central Control
 
-Here's where it gets interesting. When you modify the PostgreSQL function:
+When you modify the PostgreSQL function:
 
 ```sql
 -- Add a new column to the report
@@ -659,20 +659,9 @@ Then open `https://localhost:8080` in your browser or connect Excel to `https://
 
 ## Conclusion
 
-You've just built a complete BI data delivery system:
+PostgreSQL functions define the reports, annotations turn them into authenticated CSV endpoints, and Excel consumes them directly - structure changes reach every workbook on the next refresh. The caveats above still apply: point heavy reporting at a replica, and treat Basic Auth as internal-network-only, always behind SSL.
 
-1. **PostgreSQL functions** define your reports - one source of truth
-2. **CSV annotations** transform functions into downloadable endpoints
-3. **Basic Auth** secures access with built-in audit trails
-4. **SSL** protects credentials in transit
-5. **Excel connects directly** - no middleware, no ETL, no BI tools
-6. **Schema changes propagate automatically** to all consumers
-
-This is serious power. For the cost of running PostgreSQL (free) and NpgsqlRest (free), you can serve your entire organization's BI needs. Business analysts get data in Excel, where they can create any visualization they want. You maintain control from one central place.
-
-No expensive BI licenses. No complex ETL pipelines. No data warehouses to manage. Just PostgreSQL functions serving CSV to Excel.
-
-That's what "database as the application" really means.
+Within those bounds, no BI licenses, no ETL pipelines, no data warehouse - just PostgreSQL functions serving CSV to Excel. That's what "database as the application" means in practice.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/5_csv_basic_auth_sql_file).

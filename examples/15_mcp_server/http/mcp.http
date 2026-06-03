@@ -1,0 +1,97 @@
+@host=http://127.0.0.1:8080
+
+###############################################################################
+# MCP (Model Context Protocol) — raw JSON-RPC over the single /mcp endpoint.
+#
+# A complete, ordered walk-through of the wire protocol. Run top to bottom with
+# the VS Code "REST Client" extension (or copy any block into curl). This is the
+# zero-dependency way to "test with something real" — see README.md for pointing
+# an actual MCP client (Inspector / Claude Desktop) at the same endpoint.
+###############################################################################
+
+### 1. initialize — negotiate the protocol version, learn serverInfo + instructions
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {} }
+
+### 2. notifications/initialized — client acknowledges (no id → notification, 202)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "method": "notifications/initialized" }
+
+### 3. tools/list — discover every @mcp tool (name, description, inputSchema, outputSchema, hints)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {} }
+
+### 4. tools/call: search_products — set of rows; both args optional (find Peripherals under $100)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 3, "method": "tools/call",
+  "params": { "name": "search_products", "arguments": { "query": "Peripherals", "maxPrice": 100 } } }
+
+### 5. tools/call: get_product — single record (structuredContent is an object, not an array)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 4, "method": "tools/call",
+  "params": { "name": "get_product", "arguments": { "id": 1 } } }
+
+### 6. tools/call: list_categories — set of scalars → { "items": [ ... ] }
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 5, "method": "tools/call",
+  "params": { "name": "list_categories", "arguments": {} } }
+
+### 7. tools/call: catalog_size — scalar → { "value": N }. Note the @mcp_name rename (routine: product_count)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 6, "method": "tools/call",
+  "params": { "name": "catalog_size", "arguments": {} } }
+
+### 8. tools/call: place_order — write tool (POST routine). Buys 2 of product 1
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 7, "method": "tools/call",
+  "params": { "name": "place_order", "arguments": { "productId": 1, "quantity": 2 } } }
+
+### 9. tools/call: cancel_order — destructive tool (DELETE routine). Cancel order 1
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 8, "method": "tools/call",
+  "params": { "name": "cancel_order", "arguments": { "orderId": 1 } } }
+
+### 10. tools/call: inventory_report — MCP-only tool (bare @mcp, no HTTP tag → no REST route)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 9, "method": "tools/call",
+  "params": { "name": "inventory_report", "arguments": {} } }
+
+### 11. business error → isError:true result (NOT a JSON-RPC error). Order out-of-stock product (id 8)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 10, "method": "tools/call",
+  "params": { "name": "place_order", "arguments": { "productId": 8, "quantity": 1 } } }
+
+### 12. unknown tool → JSON-RPC error -32602 (structural failure)
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 11, "method": "tools/call",
+  "params": { "name": "no_such_tool", "arguments": {} } }
+
+### 13. ping — liveness check, empty result
+POST {{host}}/mcp
+Content-Type: application/json
+
+{ "jsonrpc": "2.0", "id": 12, "method": "ping" }

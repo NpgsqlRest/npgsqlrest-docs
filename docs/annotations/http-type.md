@@ -31,14 +31,20 @@ HTTP Types are PostgreSQL composite types with a special comment that defines an
 The HTTP definition is added as a comment on the composite type:
 
 ```
+[@timeout directive]
+[@retry_delay directive]
+[@cache directive]
 METHOD URL [HTTP/version]
 Header-Name: Header-Value
 ...
 [@timeout directive]
 [@retry_delay directive]
+[@cache directive]
 
 [request body]
 ```
+
+Directives (`@timeout`, `@retry_delay`, `@cache`) may appear either **before** the request line or **after** the headers — both placements are equivalent.
 
 ## Supported Methods
 
@@ -250,7 +256,11 @@ Authorization: Bearer {_token}
 
 ## Placeholder Substitution
 
-Placeholders in the format `{parameter_name}` are replaced with function parameter values:
+Placeholders in the format `{name}` are replaced via the shared [Parameter Value Substitution](./parameter-substitution) mechanism (case-insensitive name matching, NULL → empty, unknown → left literal). For HTTP types the type's own field names are also valid placeholders. A `{name}` can be supplied by any of three sources:
+
+- a **request/function parameter** (shown below);
+- an **allowlisted [environment variable](./parameter-substitution#environment-variables)** — ideal for a static API key, without routing it through a parameter (e.g. `Authorization: Bearer {WEATHER_API_KEY}`);
+- a **[resolved parameter expression](./resolved-parameters)** — a value computed server-side from SQL (e.g. a token read from a table), never supplied by the client.
 
 ```sql
 comment on type api_type is 'GET https://api.example.com/users/{_user_id}/posts?limit={_limit}
@@ -295,40 +305,62 @@ The delay list defines both the **number of retries** and the **delay before eac
 - **With `on` filter**: Retries only when the status code matches a listed code. Timeouts and network errors always trigger retry.
 - **Retry exhaustion**: If all retries fail, the last error is passed to the function.
 
-## Resolved Parameter Expressions
+## Response Caching
 
-When using HTTP Types, sensitive values like API tokens can be resolved server-side via SQL expressions defined in **function** comment annotations. The resolved values are used in placeholder substitution but never appear in or originate from the client request.
-
-If a comment annotation on the function uses `key = value` syntax where the key matches a function parameter name, the value is treated as a SQL expression:
+The `@cache` directive caches the outbound HTTP response and reuses it for matching requests within a time window, instead of calling the upstream on every request:
 
 ```sql
-create type my_api_response as (body json, status_code int);
+comment on type books_api is '@cache 5m
+GET https://books.toscrape.com/';
+```
+
+A cached type fires **one outbound call** for a given request shape; subsequent matching requests are served from an in-memory cache until the TTL elapses. For a type with no per-request placeholders (a constant URL, headers, and body), that means a single shared upstream call per TTL window across the whole application — rather than one call per inbound request.
+
+```sql
+-- TTL accepts the same interval formats as @timeout:
+comment on type t is '@cache 30s
+GET https://api.example.com/data';
+
+comment on type t is '@cache 5m
+GET https://api.example.com/data';
+
+comment on type t is '@cache 00:05:00
+GET https://api.example.com/data';
+
+-- Combined with other directives (order and placement are flexible):
+comment on type t is '@timeout 10s
+@retry_delay 1s, 2s on 429, 503
+@cache 5m
+GET https://api.example.com/data';
+```
+
+**Behavior and rules:**
+
+- **Opt-in, per type.** Caching happens only when `@cache` is present. Without it, every request fires a fresh call (the previous behavior).
+- **GET only.** A `@cache` directive on any non-GET method is ignored with a startup warning — caching a mutating request is almost always a mistake.
+- **TTL.** `@cache <interval>` uses the [interval format](./interval-format) (`30s`, `5m`, `1h`, `00:05:00`, or a bare number of seconds). A bare `@cache` (no interval) caches with no expiration — until the process restarts — and logs a warning.
+- **Successful responses only.** Only `2xx` responses are cached, so a transient upstream failure is never pinned for the whole TTL; the next request re-fetches.
+- **Stampede protection.** A burst of concurrent requests for the same cache key coalesces into a **single** outbound call; the rest await the in-flight result.
+- **Cache key.** The key is the HTTP method + resolved URL + resolved content-type + resolved headers + resolved body. [Placeholders](#placeholder-substitution) are resolved first, so per-request values vary the key naturally — each distinct resolved request is cached separately.
+
+Caching is configured globally under [`HttpClientOptions`](../config/http-client) (`CacheEnabled` kill switch, `MaxCacheEntries`, `CachePruneIntervalSeconds`).
+
+## Resolved Parameter Expressions
+
+A common need with HTTP Types is a value computed **server-side** — an API token read from a table, a secret derived from the user's claims — injected into a `{name}` placeholder without the client ever supplying it. A **resolved parameter expression** does this: a `param = <sql>` annotation on the **function** runs that SQL per request and binds the result to the parameter, which then substitutes into the URL/headers/body.
+
+```sql
 comment on type my_api_response is 'GET https://api.example.com/data
 Authorization: Bearer {_token}';
 
-create function get_secure_data(
-    _user_id int,
-    _req my_api_response,
-    _token text default null
-)
-returns table (body json, status_code int)
-language plpgsql as $$
-begin
-    return query select (_req).body, (_req).status_code;
-end;
-$$;
-comment on function get_secure_data(int, my_api_response, text) is '
+comment on function get_secure_data(_user_id int, _req my_api_response, _token text) is '
 _token = select api_token from user_tokens where user_id = {_user_id}
 ';
 ```
 
-The client calls `GET /api/get-secure-data/?user_id=42`. The server resolves `_token` from the database, substitutes it into the `Authorization` header, and makes the HTTP call. The token never leaves the server.
+The server resolves `_token` from the database, substitutes it into the `Authorization` header, and makes the call — the token never leaves the server or appears in client input.
 
-- **Server-side only**: Cannot be overridden by client input.
-- **Parameterized execution**: Placeholders are converted to `$N` parameters to prevent SQL injection.
-- **Works with user_params**: Can reference parameters auto-filled from JWT claims.
-
-See [HTTP Client Options](../config/http-client#resolved-parameter-expressions) for full details.
+See **[Resolved Parameters](./resolved-parameters)** for the full reference (behavior, security, multiple expressions, table/refresh-token patterns).
 
 ## Behavior
 

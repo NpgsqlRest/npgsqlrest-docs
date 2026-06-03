@@ -39,11 +39,9 @@ head:
   <span class="tag">NpgsqlRest</span>
 </p>
 
-Importing CSV and Excel files into PostgreSQL is one of the most common data engineering tasks. Traditional approaches require you to **know the file structure in advance**, hardcode that structure into your application code, and **redeploy on every change**.
+Most CSV and Excel import code makes you **know the file structure in advance**, hardcode it into your application, and **redeploy on every change**.
 
-What if you could handle any file structure dynamically, adjust to changes without redeployment, and reduce hundreds of lines of code to a single SQL function?
-
-This tutorial demonstrates how NpgsqlRest's CSV and Excel upload handlers transform file ingestion into a declarative, row-by-row processing pipeline - with automatic TypeScript client generation and progress tracking included.
+NpgsqlRest's CSV and Excel upload handlers move that structure into a SQL function instead: adding a column becomes a `CREATE OR REPLACE`, not a deployment. This tutorial walks through the row-by-row processing pipeline, with the auto-generated TypeScript client and progress tracking included.
 
 > **Source Code**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/7_csv_excel_uploads](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads)
 
@@ -66,11 +64,11 @@ And that's just the structure problem. You also need to:
 - **Write error handling** for malformed files and partial failures
 - **Create TypeScript types** manually for the frontend
 
-This creates a rigid system where a simple change like adding a column requires code changes, testing, and redeployment - not to mention the hundreds of lines of boilerplate code you have to write and maintain just to get the basics working.
+The result: a simple change like adding a column requires code changes, testing, and redeployment, on top of the hundreds of lines of boilerplate you wrote just to get the basics working.
 
 ## The NpgsqlRest Approach: Dynamic and Flexible
 
-NpgsqlRest takes a fundamentally different approach. **All of that boilerplate comes out of the box:**
+**All of that boilerplate comes out of the box:**
 
 - CSV and Excel parsing? **Built-in.**
 - File upload handling? **Built-in.**
@@ -185,7 +183,7 @@ $$;
 
 ## Row Chaining: The Power of `$3`
 
-The `$3` parameter (`_prev_result`) receives whatever the previous row's function call returned. For the first row, it's `NULL`. This enables powerful accumulation patterns:
+The `$3` parameter (`_prev_result`) receives whatever the previous row's function call returned. For the first row, it's `NULL`. This enables accumulation patterns:
 
 **Counting rows:**
 ```sql
@@ -638,7 +636,7 @@ where m->>'type' = 'csv' and (m->>'success')::boolean = true;
 
 If any row command fails or raises an exception, the entire transaction rolls back - including the Large Object storage. The original file won't be saved if processing fails.
 
-This gives you the best of both worlds: structured data extraction with original file preservation, all with transactional consistency.
+You get structured data extraction and original-file preservation in a single transaction.
 
 For more details on Large Object and File System handlers, see [Secure Image Uploads with PostgreSQL](/blog/secure-image-uploads-postgresql-typescript).
 
@@ -733,7 +731,7 @@ NpgsqlRest's approach gives you per-row control while maintaining transaction sa
 
 ### ETL Tools (Talend, Pentaho, etc.)
 
-Enterprise ETL tools are powerful but:
+Enterprise ETL tools handle far more than imports, but:
 - Require separate infrastructure
 - Complex visual configuration
 - Overkill for simple imports
@@ -751,18 +749,7 @@ NpgsqlRest streams rows to PostgreSQL, using database-native transactions.
 
 ## Conclusion: What You Don't Have to Write
 
-To implement CSV/Excel import the **traditional way**, you need:
-
-- CSV/Excel parsing library integration (pandas, Apache Commons CSV, csv-parse, etc.)
-- HTTP endpoint for file upload handling
-- File validation (MIME types, size limits, format checking)
-- Transaction management code (BEGIN, COMMIT, ROLLBACK)
-- Error handling and partial failure recovery
-- Authentication and authorization integration
-- Database insertion logic with column mappings
-- TypeScript/JavaScript types for the frontend (manual)
-- Frontend upload form with progress tracking
-- **And then redeploy** whenever the file structure changes
+Implementing this the traditional way means everything on the checklist at the top of this post: parsing library, upload endpoint, validation, transactions, error handling, auth integration, hand-written frontend types - and a redeploy whenever the structure changes.
 
 With **NpgsqlRest**, you write:
 
@@ -770,13 +757,7 @@ With **NpgsqlRest**, you write:
 - One SQL upload function (~8-10 lines)
 - A few annotation lines (~4 lines)
 
-And you get:
-- Automatic file parsing (CSV and Excel)
-- Built-in validation (MIME types, format checking)
-- Transaction management (automatic rollback on error)
-- Authentication integration (user claims in metadata)
-- TypeScript client with progress tracking (auto-generated)
-- **No redeployment** when file structure changes - just update the SQL function
+Parsing, validation, transactions, user claims, and the TypeScript client all come from the handler and the annotations - and a structure change is a `CREATE OR REPLACE`, not a redeploy.
 
 ### The Numbers
 
@@ -793,7 +774,7 @@ And you get:
 
 The `text[]` approach means your row function receives whatever data is in the file. When you know the structure, cast and transform inline. When you don't, store raw and process later. When the structure changes, update the function - no application restart required.
 
-This covers virtually all CSV and Excel import scenarios - from simple data loads to complex ETL pipelines - with minimal code and maximum flexibility.
+One caveat: if you control the file format, need no per-row logic, and are loading very large files, plain `COPY` will still be faster. For everything user-facing, this approach covers it.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads_sql_file).

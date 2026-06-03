@@ -44,6 +44,7 @@ File upload configuration for handling uploads via PostgreSQL Large Objects, fil
         "TextTestBufferSize": 4096,
         "TextNonPrintableThreshold": 5,
         "AllowedImageTypes": "jpeg, png, gif, bmp, tiff, webp",
+        "RowCommandUserClaimsKey": "claims",
         "LargeObjectEnabled": true,
         "LargeObjectKey": "large_object",
         "LargeObjectCheckText": false,
@@ -103,6 +104,7 @@ Settings that apply to all upload handlers.
 | `TextTestBufferSize` | int | `4096` | Buffer sample size for testing textual content (4 KB). |
 | `TextNonPrintableThreshold` | int | `5` | Maximum non-printable characters allowed in text buffer. |
 | `AllowedImageTypes` | string | `"jpeg, png, gif, bmp, tiff, webp"` | Comma-separated list of allowed image types. |
+| `RowCommandUserClaimsKey` | string | `"claims"` | For row-processing handlers (CSV, Excel), includes the authenticated user's claims in the row metadata JSON (`$4`) under this key. Set to `null` or `""` to disable. Example: with `"claims"`, access in SQL via `(_meta->'claims'->>'name_identifier')`. |
 
 ## Large Object Handler
 
@@ -201,7 +203,7 @@ Uploads CSV files and processes rows via a PostgreSQL command.
 | `$1` | int | Row index (1-based). |
 | `$2` | text[] | Parsed values as text array. |
 | `$3` | text | Result of previous row command. |
-| `$4` | json | Upload metadata JSON. |
+| `$4` | json | Upload metadata JSON. Includes the user's claims under the `RowCommandUserClaimsKey` key (default `"claims"`) when set. |
 
 ## Excel Upload Handler
 
@@ -246,7 +248,7 @@ Uploads Excel files and processes rows via a PostgreSQL command.
 | `$1` | int | Row index (1-based). |
 | `$2` | text[] or json | Parsed values as text array (or JSON if `ExcelRowDataAsJson` is true). |
 | `$3` | text | Result of previous row command. |
-| `$4` | json | Upload metadata JSON. |
+| `$4` | json | Upload metadata JSON. Includes the user's claims under the `RowCommandUserClaimsKey` key (default `"claims"`) when set. |
 
 ## Complete Example
 

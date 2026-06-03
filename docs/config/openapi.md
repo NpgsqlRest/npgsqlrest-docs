@@ -42,7 +42,8 @@ Configuration for generating OpenAPI specification files and endpoints for Npgsq
       "ExcludeSchemas": [],
       "NameSimilarTo": null,
       "NameNotSimilarTo": null,
-      "RequiresAuthorizationOnly": false
+      "RequiresAuthorizationOnly": false,
+      "OmitAutomaticParameters": false
     }
   }
 }
@@ -67,6 +68,7 @@ Configuration for generating OpenAPI specification files and endpoints for Npgsq
 | `NameSimilarTo` | string | `null` | PostgreSQL `SIMILAR TO` pattern matched against routine names (anchored). When set, only matching routines are documented. |
 | `NameNotSimilarTo` | string | `null` | PostgreSQL `SIMILAR TO` pattern for exclusion. Applied alongside `NameSimilarTo`. |
 | `RequiresAuthorizationOnly` | bool | `false` | When `true`, document only endpoints that require authorization — health, login, and other anonymous probes drop out. |
+| `OmitAutomaticParameters` | bool | `false` | When `true`, omit server-filled parameters from documented query parameters and request bodies. See [Omitting automatic parameters](#omitting-automatic-parameters). |
 
 ## Document Info
 
@@ -303,6 +305,32 @@ The internal cookie-authenticated surface stays reachable on the same host — o
 ::: warning One document per process
 Only one OpenAPI document is generated per host. To serve both a partner and an internal spec, run two NpgsqlRest hosts with different filter configs, or filter to a single audience.
 :::
+
+## Omitting Automatic Parameters
+
+::: tip New in 3.18.2
+`OmitAutomaticParameters` was added in 3.18.2 (also available on the [Code Generation](./codegen#omitautomaticparameters-true) and [HTTP File](./http-files#omitting-automatic-parameters) generators). Default is `false`, so the generated document is unchanged unless you opt in.
+:::
+
+Some parameters are filled by the server and a client value would simply be ignored — documenting them as settable is misleading. When `OmitAutomaticParameters` is `true`, such a parameter is left out of the generated document (query parameters and request body) when it is **automatic and optional**. "Automatic" covers:
+
+- [HTTP Custom Type](../annotations/http-type) fields,
+- [resolved-parameter](../annotations/resolved-parameters) expressions,
+- upload-metadata parameters,
+- and — on endpoints that use [user parameters](../annotations/user-parameters) — IP-address and user-claim parameters.
+
+```json
+{
+  "NpgsqlRest": {
+    "OpenApiOptions": {
+      "Enabled": true,
+      "OmitAutomaticParameters": true
+    }
+  }
+}
+```
+
+When every parameter of an endpoint is omitted, the operation is documented with no `parameters` and no `requestBody`.
 
 ## Related
 

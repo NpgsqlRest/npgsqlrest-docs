@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.16.2.
+This is the latest default configuration reference for NpgsqlRest version 3.18.2.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.16.2):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.2/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.16.2/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.2/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.16.2/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 3.18.2):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.18.2/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.18.2/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.18.2/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.18.2/NpgsqlRestClient/appsettings.json)
 
-Replace `3.16.2` with your desired version number.
+Replace `3.18.2` with your desired version number.
 :::
 
 ```json
@@ -1129,8 +1129,15 @@ Replace `3.16.2` with your desired version number.
       "Enabled": false,
       //
       // List of claims types used. These will be parsed to NULL if not found in the claims collection or user is not authenticated.
+      // Accepts an array of claim names ["name","email"] or an object of name->default {"name":"guest"} where the default is used when the claim is absent.
       //
       "AvailableClaims": [],
+      //
+      // List of environment variable names whose values are templated into static content (the same {NAME} tag syntax as claims).
+      // Resolved once at startup. Accepts an array ["BUILD_LABEL"] (missing -> empty string) or an object {"DEMO_FLAG":"false"} with per-name defaults.
+      // SECURITY: every listed value is served to any client - never list a secret (DB password, API key, signing token).
+      //
+      "AvailableEnvVars": [],
       //
       // Set to true to cache the parsed files in memory. This will improve the performance of the static files. It only applies to parsed content.
       // Note: caching will occur before parsing, it applies only to templates, not parsed content.
@@ -1184,8 +1191,10 @@ Replace `3.16.2` with your desired version number.
     ],
     //
     // Allow credentials (cookies, authorization headers) in CORS requests.
+    // Disabled by default: credentials must be enabled deliberately and only together with
+    // an explicit AllowedOrigins list (never with wildcard origins).
     //
-    "AllowCredentials": true,
+    "AllowCredentials": false,
     //
     // Maximum age in seconds for preflight request caching (10 minutes).
     //
@@ -1901,9 +1910,9 @@ Replace `3.16.2` with your desired version number.
     //
     "ExcludeNames": null,
     //
-    // Configure how the comment annotations will behave. `Ignore` will create all endpoints and ignore comment annotations. `ParseAll` will create all endpoints and parse comment annotations to alter the endpoint. `OnlyWithHttpTag` (default) will only create endpoints that contain the `HTTP` tag in the comments and then parse comment annotations.
+    // Configure how comment annotations behave and which routines become endpoints. `Ignore` creates all endpoints and ignores annotations. `ParseAll` creates all endpoints and parses annotations. `OnlyAnnotated` (default) creates only routines whose comment has a recognized exposure tag — an `HTTP` tag, or a plugin annotation that requests an endpoint (e.g. `mcp`); modifier-only comments (e.g. just `authorize`) create nothing. `OnlyWithHttpTag` is a backward-compatible alias of `OnlyAnnotated` (identical behavior; existing configs keep working).
     //
-    "CommentsMode": "OnlyWithHttpTag",
+    "CommentsMode": "OnlyAnnotated",
     //
     // The URL prefix string for every URL created by the default URL builder or `null` to ignore the URL prefix.
     //
@@ -2032,6 +2041,10 @@ Replace `3.16.2` with your desired version number.
     //
     "CustomRequestHeaders": {
     },
+    //
+    // Allowlist of environment variable names available to {name} placeholder substitution in comment annotation values (response headers, custom parameters, HTTP custom type calls), alongside the routine's parameters. Resolved once at startup (a value change requires a restart). Array form lists names (a missing variable becomes the empty string); object form maps name -> default {"WEATHER_API_KEY":""} where the default is used when the variable is absent. Names are matched case-insensitively, and a routine parameter of the same name takes precedence. SECURITY: a value used in a RESPONSE header is sent to the client - reserve secrets (API keys, tokens) for outbound HTTP custom type calls, and use response headers only for non-secret values (e.g. server/environment name).
+    //
+    "AvailableEnvVars": [],
     //
     // Name of the request ID header that will be used to track requests. This is used to correlate requests with server event streaming connection ids.
     //
@@ -2477,7 +2490,11 @@ Replace `3.16.2` with your desired version number.
       //
       // Set to true to overwrite existing files.
       //
-      "FileOverwrite": true
+      "FileOverwrite": true,
+      //
+      // When true, parameters filled by the server and not settable by the client are omitted from the generated HTTP file's query string and request body. Covers optional automatic parameters: HTTP Custom Type fields, resolved-parameter expressions, upload metadata, and (on endpoints using user parameters) IP-address and user-claim parameters. Default is false.
+      //
+      "OmitAutomaticParameters": false
     },
 
     //
@@ -2579,9 +2596,76 @@ Replace `3.16.2` with your desired version number.
       // documented. Anonymous endpoints — typically health, login, probes — are omitted. Useful
       // for partner-facing documents. Default false = document everything.
       //
-      "RequiresAuthorizationOnly": false
+      "RequiresAuthorizationOnly": false,
+      //
+      // When true, parameters filled by the server and not settable by the client are omitted from documented query parameters and request bodies. Covers optional automatic parameters: HTTP Custom Type fields, resolved-parameter expressions, upload metadata, and (on endpoints using user parameters) IP-address and user-claim parameters. Default is false.
+      //
+      "OmitAutomaticParameters": false
     },
-    
+    //
+    // Enable or disable the MCP (Model Context Protocol) server endpoint. Disabled by default. Tools are NEVER auto-exposed: only routines explicitly opted in with the `mcp` comment annotation become MCP tools. Implements MCP specification 2025-11-25.
+    //
+    "McpOptions": {
+      "Enabled": false,
+      //
+      // URL path for the MCP endpoint (Streamable HTTP, single JSON-RPC endpoint).
+      //
+      "UrlPath": "/mcp",
+      //
+      // serverInfo.name reported in the MCP initialize handshake. When null, the database name from the connection string is used (falling back to "NpgsqlRest").
+      //
+      "ServerName": null,
+      //
+      // serverInfo.version reported in the MCP initialize handshake.
+      //
+      "ServerVersion": "1.0.0",
+      //
+      // Optional server-level instructions returned in the MCP initialize handshake (high-level guidance for the agent).
+      //
+      "Instructions": null,
+      //
+      // Optional text appended to every MCP tool description. Null = no-op. Use for short shared context the agent should always see (e.g. "Read-only Acme CRM."); for longer server-wide guidance prefer Instructions.
+      //
+      "ToolDescriptionSuffix": null,
+      //
+      // Name of an ASP.NET rate-limiter policy applied to the whole /mcp endpoint. Null = no limiting. A routine's own rate_limiter annotation does not carry to MCP (tools/call bypasses route middleware), so this is how MCP traffic is throttled. The named policy must be registered on the host (AddRateLimiter + UseRateLimiter); an unregistered name surfaces as the framework's error when a request hits the endpoint.
+      //
+      "RateLimiterPolicy": null,
+      //
+      // Allowed values of the HTTP Origin header (DNS-rebinding protection for the Streamable HTTP transport). A request whose Origin is present but matches neither this list nor the server's own origin is rejected with 403. Requests without an Origin header (e.g. server-to-server) are allowed. Empty = only same-origin browser requests pass.
+      //
+      "AllowedOrigins": [],
+      //
+      // OAuth 2.1 Resource Server settings. Token validation reuses the host's bearer authentication; these keys configure the transport gate and the Protected Resource Metadata document (RFC 9728). NpgsqlRest is not an Authorization Server — point AuthorizationServers at an external IdP.
+      //
+      "Authorization": {
+        //
+        // When true, every MCP request requires an authenticated principal. When false (default), anonymous is allowed and a tool's own `authorize` annotation still gates it per call.
+        //
+        "RequireAuthorization": false,
+        //
+        // Authorization Server issuer URL(s) advertised in the Protected Resource Metadata. When empty, no PRM document is served.
+        //
+        "AuthorizationServers": [],
+        //
+        // Optional scopes advertised in the Protected Resource Metadata (scopes_supported).
+        //
+        "ScopesSupported": [],
+        //
+        // Canonical resource URI tokens must target (RFC 8707 audience) and the PRM "resource" value. Null = derived from the request (scheme + host + UrlPath).
+        //
+        "Audience": null,
+        //
+        // Path the Protected Resource Metadata document is served at. Null = the RFC 9728 well-known path derived from UrlPath.
+        //
+        "ProtectedResourceMetadataPath": null,
+        //
+        // When true, tools/list hides tools the calling principal could not run (their routine's authorize/role check would deny it). When false (default), every opted-in tool is listed (discoverable) and authorization is enforced on tools/call.
+        //
+        "FilterToolsByRole": false
+      }
+    },
+
     //
     // Enable or disable the generation of TypeScript/Javascript client source code files for NpgsqlRest endpoints.
     //
@@ -2626,6 +2710,10 @@ Replace `3.16.2` with your desired version number.
       // Create separate file with global types {name}Types.d.ts
       //
       "CreateSeparateTypeFile": true,
+      //
+      // Emit interfaces with the `export` keyword so they can be imported by other modules. When true and CreateSeparateTypeFile is true, the separate type file becomes an importable module ({name}Types.ts) instead of an ambient {name}Types.d.ts, and the client file imports the named types from it. No effect when SkipTypes is true.
+      //
+      "ExportTypes": false,
       //
       // Module name to import "baseUrl" constant, instead of defining it in a module.
       //
@@ -2712,7 +2800,11 @@ Replace `3.16.2` with your desired version number.
       //
       // TypeScript type for error response. Only used when IncludeStatusCode is true.
       //
-      "ErrorType": "{status: number; title: string; detail?: string | null} | undefined"
+      "ErrorType": "{status: number; title: string; detail?: string | null} | undefined",
+      //
+      // When true, parameters filled by the server and not settable by the client are omitted from the generated request interface, query string, and body. Covers optional automatic parameters: HTTP Custom Type fields, resolved-parameter expressions, upload metadata, and (on endpoints using user parameters) IP-address and user-claim parameters. Default is false.
+      //
+      "OmitAutomaticParameters": false
     },
 
     //
@@ -2747,7 +2839,22 @@ Replace `3.16.2` with your desired version number.
       //
       // Default name for the response error message field within annotated types.
       //
-      "ResponseErrorMessageField": "error_message"
+      "ResponseErrorMessageField": "error_message",
+      //
+      // Global kill switch for HTTP type response caching. When false, the '@cache' directive on
+      // individual types is ignored and every request fires a fresh outbound call. Caching is opt-in
+      // per type via the '@cache <interval>' type-comment directive.
+      //
+      "CacheEnabled": true,
+      //
+      // Maximum number of distinct cached HTTP responses held in memory. Once full, new responses are
+      // not cached (existing entries are still served and expire normally).
+      //
+      "MaxCacheEntries": 10000,
+      //
+      // Interval in seconds at which expired cached HTTP responses are pruned from memory.
+      //
+      "CachePruneIntervalSeconds": 60
     },
 
     //
@@ -2811,7 +2918,11 @@ Replace `3.16.2` with your desired version number.
       //
       // When true, for upload endpoints marked as proxy, the raw multipart/form-data content is forwarded directly to the upstream proxy instead of being processed locally. This allows the upstream service to handle file uploads. When false (default), upload endpoints with proxy annotation will process uploads locally and upload metadata will not be available to the proxy.
       //
-      "ForwardUploadContent": false
+      "ForwardUploadContent": false,
+      //
+      // Maximum length (characters) of a single automatic parameter value appended to the proxy upstream query string. Server-filled values (claims, IP, HTTP Custom Type fields, resolved-parameter expressions) longer than this are skipped with a warning instead of producing an unusable request line (HTTP 414/431). 0 or less disables the guard. To forward a large value, use a body-carrying proxy method (POST/PUT/PATCH). Default is 2048.
+      //
+      "MaxForwardedQueryParamLength": 2048
     },
 
     //
@@ -2831,10 +2942,11 @@ Replace `3.16.2` with your desired version number.
       "FilePattern": "",
       //
       // How comment annotations are processed for SQL file endpoints.
-      // Possible values: Ignore, ParseAll, OnlyWithHttpTag.
-      // OnlyWithHttpTag requires an explicit HTTP annotation (e.g., "-- HTTP GET") in the file.
+      // Possible values: Ignore, ParseAll, OnlyAnnotated, OnlyWithHttpTag.
+      // OnlyAnnotated (default; OnlyWithHttpTag is a back-compat alias) requires an explicit
+      // HTTP annotation (e.g., "-- HTTP GET") for a SQL file to become an endpoint.
       //
-      "CommentsMode": "OnlyWithHttpTag",
+      "CommentsMode": "OnlyAnnotated",
       //
       // Which comments in the SQL file to parse as annotations.
       // Possible values: All (default), Header (only comments before the first statement).

@@ -251,7 +251,7 @@ Named additional authentication schemes registered alongside the main one.
 
 `Auth:Schemes` is a named-dict section that registers additional ASP.NET Core authentication schemes alongside the main one. Each entry is a fully-fledged scheme of any of the three supported types — `Cookies`, `BearerToken`, or `Jwt` — with its own options. A login function selects which scheme to use by returning the scheme's name in its `scheme` column.
 
-**Use cases this unlocks:**
+**What this enables:**
 
 - Short-lived sensitive sessions for admin or payment flows (Cookies scheme with shorter `CookieValid` + `CookieMultiSessions: false`).
 - Per-scope JWT signing keys so a key leak has limited blast radius (separate `JwtSecret` per Jwt scheme).

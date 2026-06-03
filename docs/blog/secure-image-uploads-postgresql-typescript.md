@@ -38,7 +38,7 @@ head:
   <span class="tag">NpgsqlRest</span>
 </p>
 
-This tutorial shows how to build a complete image upload system with NpgsqlRest. You'll learn to store images on the file system, in PostgreSQL Large Objects, or both - all with automatic TypeScript client generation and progress tracking.
+Image uploads in NpgsqlRest come down to one SQL function and one annotation: the annotation picks the storage - file system, PostgreSQL Large Objects, or both - and the function records the metadata. The TypeScript client, progress tracking included, is generated for you.
 
 > **Source Code**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/6_image_uploads](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/6_image_uploads)
 
@@ -133,7 +133,7 @@ See [upload configuration](/config/uploads) for all options.
 
 ## Step 3: Create the Upload Function
 
-Here's the key insight: **all upload functions use identical code**. Only the annotation changes.
+**All three upload functions use identical code** - only the annotation changes.
 
 ```sql
 create or replace function example_6.upload_to_file_system(
@@ -362,7 +362,7 @@ Large Objects are included in `pg_dump` automatically. With combined storage, yo
 
 ## Traditional Approach Comparison
 
-To appreciate what NpgsqlRest provides, consider what a traditional implementation requires:
+For comparison, here is the same feature in three common stacks:
 
 **ASP.NET Core (C#):**
 ```csharp

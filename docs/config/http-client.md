@@ -34,7 +34,10 @@ Configuration for HTTP Types - composite types that enable PostgreSQL functions 
       "ResponseHeadersField": "headers",
       "ResponseContentTypeField": "content_type",
       "ResponseSuccessField": "success",
-      "ResponseErrorMessageField": "error_message"
+      "ResponseErrorMessageField": "error_message",
+      "CacheEnabled": true,
+      "MaxCacheEntries": 10000,
+      "CachePruneIntervalSeconds": 60
     }
   }
 }
@@ -51,6 +54,9 @@ Configuration for HTTP Types - composite types that enable PostgreSQL functions 
 | `ResponseContentTypeField` | string | `"content_type"` | Field name for Content-Type header value. |
 | `ResponseSuccessField` | string | `"success"` | Field name for success flag (true for 2xx status codes). |
 | `ResponseErrorMessageField` | string | `"error_message"` | Field name for error message if request failed. |
+| `CacheEnabled` | bool | `true` | Global kill switch for HTTP type response caching. When `false`, the [`@cache`](../annotations/http-type#response-caching) directive on individual types is ignored and every request fires a fresh outbound call. Caching is still opt-in per type. |
+| `MaxCacheEntries` | int | `10000` | Maximum number of distinct cached HTTP responses held in memory. Once full, new responses are not cached (existing entries are still served and expire normally). |
+| `CachePruneIntervalSeconds` | int | `60` | Interval in seconds at which expired cached HTTP responses are pruned from memory. |
 
 ## How HTTP Types Work
 
@@ -307,73 +313,24 @@ Returns the GitHub user data or an error response.
 
 ## Resolved Parameter Expressions
 
-Sensitive values like API tokens or secrets are often needed in outgoing HTTP requests (e.g., in an `Authorization` header). Normally, these would have to be supplied as regular HTTP parameters — exposing them to the client. **Resolved parameter expressions** solve this by resolving values server-side via SQL expressions defined in comment annotations.
-
-Resolved values are used in HTTP Client Type placeholder substitution (headers, URL, body) and are also passed to the PostgreSQL function — but they never appear in or originate from the client HTTP request.
-
-### How It Works
-
-If a comment annotation on the **function** uses the `key = value` syntax and the key matches an actual function parameter name, the value is treated as a SQL expression to execute at runtime:
+A placeholder in an outgoing request (e.g. `Authorization: Bearer {_token}`) often needs a value the client must **not** supply — a DB-stored API token, a claim-derived secret. A **resolved parameter expression** (`param = <sql>` on the function) computes that value server-side per request and binds it to the parameter, which then substitutes into the URL/headers/body. It never originates from, or is overridable by, the client.
 
 ```sql
-create type my_api_response as (body json, status_code int);
 comment on type my_api_response is 'GET https://api.example.com/data
 Authorization: Bearer {_token}';
 
-create function get_secure_data(
-    _user_id int,
-    _req my_api_response,
-    _token text default null
-)
-returns table (body json, status_code int)
-language plpgsql as $$
-begin
-    return query select (_req).body, (_req).status_code;
-end;
-$$;
-comment on function get_secure_data(int, my_api_response, text) is '
+comment on function get_secure_data(_user_id int, _req my_api_response, _token text) is '
 _token = select api_token from user_tokens where user_id = {_user_id}
 ';
 ```
 
-The client calls `GET /api/get-secure-data/?user_id=42`. The server:
+A call to `GET /api/get-secure-data/?user_id=42` resolves `_token` from the database (parameterized as `$1 = 42`), substitutes it into the `Authorization` header, and makes the request — the token never leaves the server.
 
-1. Fills `_user_id` from the query string (value `42`).
-2. Executes the resolved expression: `select api_token from user_tokens where user_id = $1` (parameterized, with `$1 = 42`).
-3. Sets `_token` to the result (e.g., `"secret-abc"`).
-4. Substitutes `{_token}` in the outgoing HTTP request header: `Authorization: Bearer secret-abc`.
-5. Makes the HTTP call and returns the response.
+A `{name}` placeholder can also be filled from a request parameter or an [allowlisted environment variable](../annotations/parameter-substitution#environment-variables) (good for a static API key); a resolved expression is for values computed server-side per request.
 
-The token never leaves the server. The client never sees it.
-
-### Behavior
-
-- **Server-side only**: Resolved parameters cannot be overridden by client input. Even if the client sends `&token=hacked`, the DB-resolved value is used.
-- **NULL handling**: If the SQL expression returns no rows or NULL, the parameter is set to `DBNull.Value` (empty string in placeholder substitution).
-- **Name-based placeholders, parameterized execution**: Placeholders like `{_user_id}` reference other function parameters by name. Internally, placeholders are converted to positional `$N` parameters for safe execution (preventing SQL injection).
-- **Sequential execution**: When multiple parameters are resolved, expressions execute one-by-one on the same connection, in annotation order.
-- **Works with user_params**: Resolved expressions can reference parameters auto-filled from JWT claims via `user_params`, enabling fully zero-parameter authenticated calls.
-
-### Multiple Resolved Parameters
-
-Multiple parameters can each have their own resolved expression:
-
-```sql
-comment on function my_func(text, my_type, text, text) is '
-_token = select api_token from tokens where user_name = {_name}
-_api_key = select ''static-key-'' || api_token from tokens where user_name = {_name}
-';
-```
-
-### Resolved Parameters in URL, Headers, and Body
-
-Resolved values participate in all HTTP Client Type placeholder locations — URL path segments, headers, and request body templates:
-
-```sql
--- URL: GET https://api.example.com/resource/{_secret_path}
--- Header: Authorization: Bearer {_token}
--- Body: {"token": "{_token}", "data": "{_payload}"}
-```
+::: tip Full reference
+See **[Resolved Parameters](../annotations/resolved-parameters)** for behavior (server-side only, NULL handling, multiple expressions, ordering, `user_params`), the DB-stored / refresh-token pattern, and how it compares to the other placeholder sources.
+:::
 
 ## Retry Logic
 
@@ -427,6 +384,26 @@ $$;
 ```
 
 If the external API returns 429 (rate limited), the request is automatically retried after 1s, then 2s, then 5s. If it returns 400 (bad request), no retry occurs and the error is returned immediately.
+
+## Response Caching
+
+The `@cache` directive caches the outbound HTTP response and reuses it for matching requests within a time window, instead of calling the upstream on every request:
+
+```sql
+create type books_api as (body text, status_code int, success boolean);
+comment on type books_api is '@cache 5m
+GET https://books.toscrape.com/';
+```
+
+A cached type fires **one outbound call** for a given request shape; subsequent matching requests are served from an in-memory cache until the TTL elapses. For a type with no per-request placeholders, that means a single shared upstream call per TTL window across the whole application.
+
+- **Opt-in, GET only.** Caching happens only when `@cache` is present; a `@cache` on a non-GET method is ignored with a startup warning.
+- **TTL.** `@cache <interval>` uses the same [interval format](../annotations/interval-format) as `@timeout` (`30s`, `5m`, `1h`, `00:05:00`, or a bare number of seconds). A bare `@cache` caches with no expiration (until the process restarts) and warns.
+- **Successful responses only.** Only `2xx` responses are cached, so a transient upstream failure is never pinned for the whole TTL.
+- **Stampede protection.** A burst of concurrent requests for the same key coalesces into a single outbound call.
+- **Cache key** = method + resolved URL + resolved content-type + resolved headers + resolved body, so distinct resolved requests are cached separately.
+
+Caching is controlled by the `CacheEnabled`, `MaxCacheEntries`, and `CachePruneIntervalSeconds` settings above. See the [`@cache` directive reference](../annotations/http-type#response-caching) for full details.
 
 ## Self-Referencing Calls (Relative Paths)
 

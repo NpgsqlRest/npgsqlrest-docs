@@ -46,7 +46,7 @@ The second thing is **genuine code generation**. If you opt in, NpgsqlRest write
 
 Change a SQL function, restart the server, and your frontend **either compiles against the new shape or refuses to build**. No drift, no DTO classes to maintain.
 
-This post walks through the TypeScript client generator — what it produces and how to control it per-endpoint with `@tsclient` annotations.
+This post covers the TypeScript client generator: what it produces and how to control it per-endpoint with `@tsclient` annotations.
 
 ## The Pipeline
 
@@ -188,9 +188,9 @@ If you rename `users.username` to `users.name` in the database, the next server 
 
 There is a second, less-obvious payoff here: **the generated client is the cross-stack refactoring tool you've never had**. The TypeScript function `getUsers` is a real symbol — your IDE indexes it like any other. "Find All References" on `getUsers` across your frontend project lists every component that calls the endpoint, no matter how deep it sits in the call tree. Renaming a SQL function and regenerating the client doesn't just *catch* the drift at compile time; it gives you the call graph to fix it deliberately, in advance.
 
-In a conventional ASP.NET Core or FastAPI stack, an interface change made on the database side has to be hand-traced through controllers, DTOs, and API client code, with each layer providing its own opportunity for the rename to be applied incompletely. Here the call graph is a single hop — generated function to consumer — and the IDE walks it for you.
+In a conventional ASP.NET Core or FastAPI stack, an interface change made on the database side has to be hand-traced through controllers, DTOs, and API client code, and each layer is another chance for the rename to be applied incompletely. Here the call graph is a single hop — generated function to consumer — and the IDE walks it for you.
 
-Full end-to-end code in [examples/2_static_type_checking_sql_file/src/app.ts](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking_sql_file/src/app.ts). For a deeper dive into the schema-drift catching aspect, see the [End-to-End Static Type Checking blog post](/blog/end-to-end-static-type-checking-postgresql-typescript).
+Full end-to-end code in [examples/2_static_type_checking_sql_file/src/app.ts](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/2_static_type_checking_sql_file/src/app.ts). For more on catching schema drift, see the [End-to-End Static Type Checking blog post](/blog/end-to-end-static-type-checking-postgresql-typescript).
 
 ## Uploads: When the Generated Wrapper Isn't Just `fetch()`
 
@@ -278,7 +278,7 @@ You write one SQL file with an `@upload` annotation. You get an `XMLHttpRequest`
 
 ## Per-Endpoint Control with `@tsclient` Annotations
 
-Some endpoints don't need a TypeScript client. Some need a different module. Some need only the URL but not the fetch wrapper. The [`@tsclient` family of annotations](/annotations/tsclient) provides per-endpoint control.
+Some endpoints don't need a TypeScript client. Some need a different module. Some need only the URL but not the fetch wrapper. The [`@tsclient` family of annotations](/annotations/tsclient) covers all three.
 
 ### Disable Generation: Binary Endpoints
 
@@ -482,7 +482,7 @@ The static-vs-dynamic distinction matters most when you split your configuration
 }
 ```
 
-This is exactly right. Production has no need to write `.ts` files — by then, the frontend is a compiled bundle. The generated files exist in your repository (or are produced during CI) and are the *input* to the frontend build, not its output.
+Production has no need to write `.ts` files — by then, the frontend is a compiled bundle. The generated files exist in your repository (or are produced during CI) and are the *input* to the frontend build, not its output.
 
 ### Two Processes, One Tight Loop
 
@@ -527,7 +527,7 @@ The day-to-day loop when you need to evolve an endpoint is short:
 
 2. **Restart NpgsqlRest in dev mode.** That's it. The server re-introspects the catalog, regenerates the `*Api.ts` and `*ApiTypes.d.ts` files, and starts serving the new shape.
 
-3. **Watch the terminal.** Because the generated files just changed and your frontend toolchain is in watch mode, any line in your UI that no longer matches the new types fails type-checking immediately. Errors appear in the terminal and IDE within seconds — no need to click around the app to find what broke.
+3. **Watch the terminal.** Because the generated files just changed and your frontend toolchain is in watch mode, any line in your UI that no longer matches the new types fails type-checking immediately — no need to click around the app to find what broke.
 
 4. **Fix the frontend.** Hand the type errors to your favorite LLM along with the relevant component file and let it patch the calls. The errors are precise (`Property 'username' does not exist on type 'IGetUserResponse'`), so even a small model handles them well.
 

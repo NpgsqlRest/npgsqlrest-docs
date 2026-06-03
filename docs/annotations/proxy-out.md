@@ -48,11 +48,19 @@ This enables a common pattern where business logic in PostgreSQL prepares a payl
 Client Request → NpgsqlRest
   → Execute PostgreSQL function
   → Forward function result as request body to upstream service
-  → Forward original query string to upstream URL
+  → Append the original request path and query string to the upstream host
   → Return upstream response to client
 ```
 
 The client-facing HTTP method and the upstream HTTP method are independent — the client can send a GET while the upstream receives a POST.
+
+The upstream URL is built the same way as for [`proxy`](./proxy#how-the-target-url-is-built) — the incoming request path and query string are appended to the host:
+
+```
+target URL = host + incoming request path + incoming query string
+```
+
+The difference from `proxy` is only the *direction of the body*: `proxy_out` sends the **function's result** as the request body to the upstream, whereas `proxy` sends the **incoming request body**.
 
 ## Basic Usage
 
@@ -197,9 +205,9 @@ The target URL follows the same resolution rules as [`proxy`](./proxy#url-resolu
 - **Global `ProxyOptions.Host`** is used only when the annotation has no URL.
 - A **relative path** (starting with `/`) always creates an internal self-call, regardless of `ProxyOptions.Host`.
 
-## Query String Forwarding
+## Path and Query String Forwarding
 
-The original client query string is forwarded to the upstream service as-is. This allows the upstream to receive the same parameters that were used to invoke the function:
+The original client **request path and query string** are both appended to the upstream host as-is (`host + path + query`). This lets the upstream receive the same path and parameters that were used to invoke the function:
 
 ```sql
 create function generate_report(p_format text, p_id int)
@@ -214,7 +222,13 @@ comment on function generate_report(text, int) is 'HTTP GET
 @proxy_out POST';
 ```
 
-Calling `GET /api/generate-report/?pFormat=pdf&pId=123` executes the function, then POSTs the result to the upstream with `?pFormat=pdf&pId=123` appended to the URL.
+With `ProxyOptions.Host = "https://api.example.com"`, calling `GET /api/generate-report/?pFormat=pdf&pId=123` executes the function, then POSTs the result body to **`https://api.example.com/api/generate-report/?pFormat=pdf&pId=123`** — both the path and query string are appended.
+
+To send the result to a fixed upstream path instead, put it in the annotation host (e.g. `@proxy_out POST https://api.example.com/render`, which forwards to `https://api.example.com/render/api/generate-report/?...`), or change the endpoint path with `HTTP <method> <path>`.
+
+::: tip Self-calls are the exception
+For a relative self-call (host starting with `/`, e.g. `@proxy_out POST /api/processor`), the annotation path *is* the full target and the incoming request path is **not** appended.
+:::
 
 ## Error Handling
 

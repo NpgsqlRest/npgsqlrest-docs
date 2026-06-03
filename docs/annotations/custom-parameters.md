@@ -32,7 +32,7 @@ The `@` prefix is optional - both `@key = value` and `key = value` work identica
 
 ## Dynamic Parameter Values
 
-Some parameters support dynamic values using the `{param_name}` format, where `param_name` references a function parameter. The value is resolved at runtime from the actual parameter value passed to the endpoint.
+Some parameters support dynamic values using the `{param_name}` format, where `param_name` references a function parameter. The value is resolved at runtime from the actual parameter value passed to the endpoint. The matching and substitution rules are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
 
 ### Example
 

@@ -124,7 +124,7 @@ The Relying Party (RP) identifies your application to the authenticator.
 |---------|------|---------|-------------|
 | `RelyingPartyId` | string | `null` | Domain name (e.g., `"example.com"`). Auto-detected if null. **Note:** IP addresses not permitted - use `"localhost"` for development. |
 | `RelyingPartyName` | string | `null` | Human-readable name shown during registration. Uses `ApplicationName` if null. |
-| `RelyingPartyOrigins` | string[] | `[]` | Allowed origins (e.g., `["https://example.com"]`). Auto-detected if empty. |
+| `RelyingPartyOrigins` | string[] | `[]` | Allowed origins (e.g., `["https://example.com"]`). ⚠️ When empty, origin validation accepts ANY origin — a startup warning is logged (3.17.0+). Always set explicitly in production. |
 
 ### Endpoint Paths
 

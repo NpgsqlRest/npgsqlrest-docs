@@ -414,7 +414,7 @@ Resulting JSON for `/api/example-12/get-authors-with-details-type` now looks lik
 ]
 ```
 
-So, this a powerful way to build tailored API responses using custom types, while keeping the database functions clean and reusable. But, wait, there is more!
+So, this a powerful way to build tailored API responses using custom types, while keeping the database functions clean and reusable. There is one more piece.
 
 ## NEW: Nested JSON Objects
 
@@ -542,7 +542,7 @@ Unfortunately, PostgreSQL does not have built-in support and in general, multise
 | MySQL         | ❌              | JSON_ARRAYAGG           |
 | Teradata      | Partial         | SET/MULTISET tables     |
 
-As we can see, we can use array workarounds in PostgreSQL to achieve similar results. And from NpgsqlRest 3.4.0, we can now leverage this to return nested JSON arrays using custom types. Let's see how that works.
+As we can see, we can use array workarounds in PostgreSQL to achieve similar results. And from NpgsqlRest 3.4.0, we can now use this to return nested JSON arrays using custom types. Let's see how that works.
 
 ```sql
 create function get_authors_and_books(
@@ -736,7 +736,7 @@ This is a consideriation when using aggregations excessively, especially with la
 
 ### Conclusion And Workaround
 
-Using custom types and multiset patterns in PostgreSQL with NpgsqlRest allows us to build powerful and efficient REST APIs with hierarchical JSON responses but as we can see, there are some limitations to be aware of.
+Using custom types and multiset patterns in PostgreSQL with NpgsqlRest allows us to build expressive and efficient REST APIs with hierarchical JSON responses but as we can see, there are some limitations to be aware of.
 
 There is a good workaround taht I use in my projects. More like different pattern. Simply, run multiple queries, preferably in parallel, instead of a single complex query with multiple levels of nesting. This pattern gives us:
 

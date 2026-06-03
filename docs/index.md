@@ -6,7 +6,7 @@ description: "Your SQL is the API. Annotate PostgreSQL functions and SQL files t
 head:
   - - meta
     - name: keywords
-      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, typescript code generation, database first development
+      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, typescript code generation, database first development, postgresql mcp server, mcp tools, ai agent api, model context protocol, declarative backend
   - - meta
     - property: og:image
       content: https://npgsqlrest.github.io/terminal.png
@@ -51,16 +51,23 @@ features:
   - icon: 🔒
     title: Secure by default
     details: Cookies, JWT, OAuth2, conditional caching, per-user limits — built in.
+  - icon: 🤖
+    title: AI-agent ready
+    details: "@mcp exposes any endpoint as an MCP tool for AI agents — same auth, same rate limits (v3.17)."
   - icon: 💚
     title: Open source
     details: MIT-licensed. No paid tier, no telemetry, no vendor lock-in.
 
 ---
 
+<script setup>
+import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
+</script>
+
 <div class="hero-stats">
   <div class="stat">
-    <div class="stat-num">4,500+</div>
-    <div class="stat-label">req/s on a single host<sup><a href="/blog/postgresql-rest-api-benchmark-2026" title="2026 benchmark">¹</a></sup></div>
+    <div class="stat-num">#1 of 14</div>
+    <div class="stat-label">frameworks benchmarked,<br/>4,500+ req/s<sup><a href="/blog/postgresql-rest-api-benchmark-2026" title="2026 benchmark, high-concurrency scenario">¹</a></sup></div>
   </div>
   <div class="stat">
     <div class="stat-num">0</div>
@@ -84,8 +91,38 @@ features:
     <li><strong>No middle tier</strong> — no controllers, no models, no mapping layers, no boilerplate.</li>
     <li><strong>Iterate 5× faster</strong> — schema is the single source of truth; signature changes propagate to typed clients automatically, and an entire class of type-drift bugs simply cannot happen.</li>
     <li><strong>Production-grade by default</strong> — response caching, rate limiting, retries, PostgreSQL multi-host failover, load balancing, and Excel/HTML response rendering — configured in JSON, not custom middleware.</li>
+    <li><strong>You write SQL, not a URL query language</strong> — unlike client-composed query APIs, the API surface is exactly the SQL you wrote: joins, CTEs, window functions — auditable with grep.</li>
+    <li><strong>Built for the AI era</strong> — one type system to reason about, machine-verified output (schema check at startup, generated TypeScript checked by <code>tsc</code>), and MCP tools for AI agents arriving in v3.17.</li>
   </ul>
 </div>
+
+<h2 id="pitch" tabindex="-1" class="section-heading">
+  The Whole Idea, in 19 Slides
+  <a class="header-anchor" href="#pitch" aria-label="Permalink to &quot;The Whole Idea, in 19 Slides&quot;">​</a>
+</h2>
+
+<p class="section-sub">
+  PostgreSQL in. REST API, typed TypeScript client, and AI-agent tools out — with real, reproducible numbers from a product in production.
+  Use the arrows, thumbnails, or your keyboard (←/→, <strong>F</strong> for fullscreen, <strong>N</strong> for speaker notes).
+</p>
+
+<SlideDeck :slides="presentationSlides" title="The backend that writes itself · 2026" />
+
+<div style="text-align: center; margin: 1.5rem 0;">
+  <a href="/blog/the-backend-that-writes-itself-presentation" class="annotation-link">Open the full deck with narration →</a>
+</div>
+
+<h2 id="thesis" tabindex="-1" class="section-heading">
+  A Fully Declarative Backend
+  <a class="header-anchor" href="#thesis" aria-label="Permalink to &quot;A Fully Declarative Backend&quot;">​</a>
+</h2>
+
+<p class="section-sub">
+  SQL declares <em>what data</em>. Annotations declare <em>what behavior</em>. Configuration declares <em>what infrastructure</em>.
+  There is no imperative glue anywhere — no controllers, no services, no mappers to keep in sync.
+  And it is built on the declarative language that has been running the world's data for 50 years —
+  the one every developer, and every LLM, already knows: <strong>SQL</strong>.
+</p>
 
 <h2 id="annotations" tabindex="-1" class="section-heading">
   Declarative Annotations
@@ -135,6 +172,16 @@ features:
 </div>
 
 <div class="blog-links">
+  <a href="/blog/the-backend-that-writes-itself-presentation" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>The Backend That Writes Itself — NpgsqlRest in 19 Slides</strong>
+    <span>An interactive slide deck with page controls, keyboard navigation, and speaker notes — the whole NpgsqlRest pitch with real, reproducible numbers from a product in production.</span>
+  </a>
+  <a href="/blog/mcp-server-postgresql-ai-tools-npgsqlrest" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Turn PostgreSQL into MCP Tools an AI Agent Can Call</strong>
+    <span>NpgsqlRest 3.17.0 adds Model Context Protocol support. Annotate a function or .sql file with @mcp and it becomes a tool an AI agent can discover and call — one source, two interfaces (REST + MCP), structured output, and per-tool authorization.</span>
+  </a>
   <a href="/blog/typescript-codegen-walkthrough" class="featured">
     <strong>From SQL to Type-Safe TypeScript</strong>
     <span>Generate typed fetch modules and TypeScript interfaces directly from PostgreSQL functions and SQL files. End-to-end type safety with @tsclient annotations.</span>

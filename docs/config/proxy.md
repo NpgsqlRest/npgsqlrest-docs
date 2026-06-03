@@ -41,7 +41,8 @@ Reverse proxy configuration for NpgsqlRest endpoints. When an endpoint is marked
       "ResponseContentTypeParameter": "_proxy_content_type",
       "ResponseSuccessParameter": "_proxy_success",
       "ResponseErrorMessageParameter": "_proxy_error_message",
-      "ForwardUploadContent": false
+      "ForwardUploadContent": false,
+      "MaxForwardedQueryParamLength": 2048
     }
   }
 }
@@ -59,6 +60,7 @@ Reverse proxy configuration for NpgsqlRest endpoints. When an endpoint is marked
 | `ForwardResponseHeaders` | bool | `true` | Forward response headers from upstream to client. |
 | `ExcludeResponseHeaders` | array | `["Transfer-Encoding", "Content-Length"]` | Response headers to exclude from forwarding. |
 | `ForwardUploadContent` | bool | `false` | Forward raw multipart/form-data to upstream instead of processing locally. |
+| `MaxForwardedQueryParamLength` | int | `2048` | Maximum length (characters) of a single automatic parameter value appended to the proxy upstream **query string**. Server-filled values longer than this are skipped with a warning instead of producing an unusable request line (HTTP 414/431). `0` or less disables the guard. See [Query-string length guard](#query-string-length-guard). |
 
 ## Response Parameter Names
 
@@ -131,24 +133,39 @@ comment on function get_and_transform(int, text, json, text, boolean, text) is '
 
 ## Response Parameters
 
-When the PostgreSQL function has parameters matching these names, the proxy response data is passed to the function:
+When the PostgreSQL function has parameters matching these names (the defaults below, or whatever you set in the [Response Parameter Names](#response-parameter-names) settings above), the upstream response data is bound to them after the request returns:
 
 | Parameter Name | Type | Description |
 |----------------|------|-------------|
-| `_proxy_status_code` | `int` | HTTP status code from upstream (e.g., 200, 404). |
+| `_proxy_status_code` | `int` or `text` | HTTP status code from upstream (e.g., 200, 404). Bound as text if the parameter is declared `text`/`varchar`, otherwise as an integer. |
 | `_proxy_body` | `text` | Response body content. |
 | `_proxy_headers` | `json` | Response headers as JSON object. |
 | `_proxy_content_type` | `text` | Content-Type header value. |
 | `_proxy_success` | `boolean` | True for 2xx status codes. |
 | `_proxy_error_message` | `text` | Error message if request failed. |
 
-## User Claims Forwarding
+Parameters are matched **by name** (case-insensitive), not by position, and only the ones your function actually needs have to be declared. See [How parameters are mapped](../annotations/proxy#how-parameters-are-mapped) in the annotation reference for the full rules.
 
-### Query Parameters (user_params)
+## Automatic Parameter Forwarding
 
-When `user_params` is enabled on the endpoint, user claim values are forwarded to the upstream proxy as query string parameters:
+Parameters that NpgsqlRest fills **server-side** (not supplied by the client) are forwarded to the upstream so the proxy receives the same parameter set the function would. All automatic sources are treated **consistently**:
+
+- **user claims** (claim-mapped parameters, `user_params`),
+- the **IP address** parameter,
+- **HTTP Custom Type** fields (the auto-filled `responseBody` / `responseStatusCode` / … on a routine with an [HTTP Custom Type](../annotations/http-type) parameter),
+- **resolved-parameter expressions** (values looked up server-side via SQL).
+
+### Placement follows the endpoint shape, not the HTTP verb
+
+Where each automatic parameter is placed mirrors how the endpoint itself receives parameters — it is decided by [`RequestParamType`](../annotations/request-param-type), **not** by the HTTP method (a `POST` endpoint can use `param_type query`):
+
+- The parameter designated as the body parameter (`@body_parameter_name`) carries the **raw request body**.
+- Otherwise: `QueryString` → appended to the proxy **query string**; `BodyJson` → merged into the proxy **JSON body** (typed: numbers, booleans, embedded JSON, or strings) when the proxy method can carry a body.
+
+Forwarding is **additive** — the verbatim incoming request is still forwarded; the automatic parameters are added on top. Body merging applies only when the forwarded request carries a JSON content type (multipart / non-JSON is forwarded verbatim).
 
 ```sql
+-- GET endpoint (QueryString): the auto-filled values are appended to the proxy query string.
 create function proxy_with_claims(
     _user_id text default null,        -- Forwarded as ?userId=...
     _user_name text default null,      -- Forwarded as ?userName=...
@@ -168,6 +185,25 @@ comment on function proxy_with_claims(text, text, text, json, int, text) is 'HTT
 @user_params
 @proxy https://api.example.com/data';
 ```
+
+::: tip Behavior note (3.18.1)
+Before 3.18.1, user-claim and IP parameters were always forwarded on the query string, and HTTP Custom Type fields / resolved parameters were not forwarded at all. They are now unified under the rule above. For `QueryString` endpoints (the default for GET) the result is unchanged — values stay on the query string; for `BodyJson` endpoints the automatic parameters are now merged into the JSON body instead.
+:::
+
+### Query-string length guard
+
+When an automatic parameter is placed on the proxy **query string** (a `QueryString` endpoint — see above), an oversized value would be percent-encoded into the request line and produce a URL the upstream rejects (HTTP 414 *URI Too Long* / 431 *Request Header Fields Too Large*) or that resets the connection. A common trigger is an [HTTP Custom Type](../annotations/http-type) field whose `body` holds a large payload (e.g. a scraped HTML page).
+
+`MaxForwardedQueryParamLength` (default `2048`) caps this. A single server-filled value longer than the limit is **skipped with a warning** rather than appended to the query string — the rest of the request still forwards normally. Set it to `0` (or less) to disable the guard entirely.
+
+To forward a large value to the upstream, move it into the request **body** instead of the query string:
+
+- use a body-carrying proxy method (`POST` / `PUT` / `PATCH`) so it travels in the request body, and
+- designate the field with [`@body_parameter_name`](../annotations/body-parameter-name) to carry the raw body, while the remaining small fields stay on the query string under the length guard.
+
+::: tip New in 3.18.2
+`MaxForwardedQueryParamLength` was added in 3.18.2. Previously a large auto-filled value (such as an HTTP Custom Type `body` field) was percent-encoded into the upstream query string unconditionally.
+:::
 
 ### HTTP Headers (user_context)
 
@@ -267,7 +303,8 @@ Production configuration with proxy enabled:
       "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding", "Authorization"],
       "ForwardResponseHeaders": true,
       "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length"],
-      "ForwardUploadContent": false
+      "ForwardUploadContent": false,
+      "MaxForwardedQueryParamLength": 2048
     }
   }
 }

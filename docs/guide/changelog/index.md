@@ -6,13 +6,56 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 ---
 
-## Version 3.16 (Latest)
+## Version 3.18 (Latest)
 
 | Version | Date |
 |---------|------|
+| [v3.18.2](/guide/changelog/v3.18.2) | 2026-06-26 |
+| [v3.18.1](/guide/changelog/v3.18.1) | 2026-06-23 |
+| [v3.18.0](/guide/changelog/v3.18.0) | 2026-06-23 |
+
+- New: `ProxyOptions.MaxForwardedQueryParamLength` (default `2048`) — a server-filled value too long for the proxy query string is skipped with a warning instead of producing an unusable request line (HTTP 414/431); forward large values via a body-carrying method and `@body_parameter_name`
+- New: `OmitAutomaticParameters` on the TypeScript client, HTTP file, and OpenAPI generators (default `false`) — omit optional server-filled parameters (HTTP Custom Type fields, resolved-parameter expressions, upload metadata, IP/claim params) from generated request shapes
+- Fix: `@body_parameter_name` now matches an HTTP Custom Type field by its converted, actual, or expanded signature name, case-insensitively — applied consistently by request handling and all code generators (also fixes the HTTP file and OpenAPI generators leaving the field in the query string)
+- Fix: TypeScript client generation for `@body_parameter_name` endpoints — no leaked `?` in the body property name, the body parameter is excluded from the query string, and no `fetch` body is emitted for `GET`
+- Fix: all automatic (server-filled) proxy parameters — user claims, IP, HTTP Custom Type fields, and resolved-parameter expressions — now forward to proxy endpoints uniformly, with placement following the endpoint's `RequestParamType` (query string or merged into the JSON body) rather than the HTTP verb
+- New: HTTP Custom Type response caching via the `@cache` directive — opt-in, GET-only outbound response caching with TTL, success-only storage, and stampede protection; configured globally under `HttpClientOptions` (`CacheEnabled`, `MaxCacheEntries`, `CachePruneIntervalSeconds`)
+- Fix: an HTTP Custom Type parameter on a database-function endpoint fired one outbound call per composite field (a 6-field type → 6 identical calls); now one call per distinct type, shared from a single response
+- Fix: `@timeout`, `@retry_delay`, and `@cache` directives placed after the headers (as the docs showed) were silently ignored — both before-request-line and after-headers placements are now equivalent
+
+---
+
+## Version 3.17
+
+| Version | Date |
+|---------|------|
+| [v3.17.0](/guide/changelog/v3.17.0) | 2026-06-10 |
+
+- New plugin `NpgsqlRest.Mcp` — expose opted-in PostgreSQL routines as MCP tools (`tools/list` / `tools/call` over Streamable HTTP) via the `@mcp` annotation; a bare `@mcp` with no HTTP tag is an MCP-only tool with no public route
+- MCP OAuth 2.1 resource-server authorization: Protected Resource Metadata (RFC 9728), audience binding (RFC 8707), per-tool `@authorize` enforcement on `tools/call`
+- Neutral plugin extension points on `RoutineEndpoint` (`HandleCommentLine`, `Items`, `UnhandledCommentLines`) and new `CommentsMode.OnlyAnnotated` (now the client default)
+- New: `{name}` annotation substitution can resolve allowlisted environment variables (`NpgsqlRest:AvailableEnvVars`); matching is now case-insensitive, unknown placeholders log a build-time warning
+- New: optional `{NAME}` and required `{!NAME}` environment-variable placeholders in config values — missing optional variables no longer crash typed reads
+- Breaking: safer configuration defaults — `Cors:AllowCredentials` is now `false`, passkey `UserVerificationRequirement` / `ResidentKeyRequirement` default to `"required"`, `TestConnectionStrings` defaults to `true`
+- Breaking (C# API only): `RoutineEndpoint.OpenApiHide` / `OpenApiTags` removed — the OpenAPI plugin parses the `@openapi` annotation itself; annotation users are unaffected
+- 🔴 Security fix: SSE per-event `USING HINT` scopes were not enforced — hint-scoped events were delivered to every subscriber; upgrade strongly recommended for hint-based SSE scoping
+- Fix: bare `@cached` (no parameter list) keyed only on the routine name, serving the first cached response to all inputs
+- Fix: HybridCache silently bypassed the cache on null cached parameters (`Cache key contains invalid content`)
+- Fix: malformed JSON request body now returns `400 Bad Request` (was `404`)
+- Fix: JSON command parameters accept `json`, `jsonb`, or `text` target types
+
+---
+
+## Version 3.16
+
+| Version | Date |
+|---------|------|
+| [v3.16.3](/guide/changelog/v3.16.3) | 2026-06-03 |
 | [v3.16.2](/guide/changelog/v3.16.2) | 2026-06-02 |
 | [v3.16.1](/guide/changelog/v3.16.1) | 2026-06-01 |
 | [v3.16.0](/guide/changelog/v3.16.0) | 2026-05-20 |
+
+- New: `AvailableEnvVars` under `StaticFiles:ParseContentOptions` templates environment-variable values into served static content (same `{NAME}` tags as claims) — build a SPA bundle once, inject per-environment values from pod env vars at boot
 
 - New: rate-limiter rejection `StatusCode`/`StatusMessage` are now overridable per policy (the global values stay as defaults); ships a ready-to-use disabled `login_throttle` policy
 

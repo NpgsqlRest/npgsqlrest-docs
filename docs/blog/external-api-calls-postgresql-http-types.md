@@ -36,17 +36,17 @@ head:
 
 ---
 
-What if you could call external REST APIs directly from your PostgreSQL function - with just a type comment? No HTTP client libraries, no middleware services, no API gateway configuration, no PostgreSQL HTTP extensions to install. Just SQL.
+Calling an external REST API from a PostgreSQL function takes one type comment - no HTTP client libraries, no middleware services, no API gateway configuration, no PostgreSQL HTTP extensions to install. Just SQL.
 
 NpgsqlRest's HTTP Types feature lets you define external API calls using the familiar `.http` file syntax right in your database. The HTTP request definition lives in a type comment, with function parameters automatically substituted into URLs, headers, and request bodies.
 
-This tutorial demonstrates how to build a **Financial Dashboard** that aggregates data from two public APIs - currency exchange rates and cryptocurrency prices - combining them into a single, unified response. All with about 50 lines of SQL.
+This tutorial builds a **Financial Dashboard** that aggregates data from two public APIs - currency exchange rates and cryptocurrency prices - combining them into a single response. All with about 50 lines of SQL.
 
 > **Source Code**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/9_http_calls](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls)
 
 ## The Problem: Backend-for-Frontend API Aggregation
 
-Modern applications often need to combine data from multiple external APIs before presenting it to users. A financial dashboard might need:
+A financial dashboard typically combines several external feeds before anything reaches the user:
 
 - Currency exchange rates from one service
 - Cryptocurrency prices from another
@@ -65,7 +65,7 @@ This creates a substantial codebase just to proxy external data.
 
 ## Why Not Use PostgreSQL HTTP Extensions?
 
-PostgreSQL has extensions like `http` and `pgsql-http` that allow making HTTP requests directly from SQL. While these work, they come with significant drawbacks:
+PostgreSQL has extensions like `http` and `pgsql-http` that allow making HTTP requests directly from SQL. They work, but the drawbacks add up:
 
 ### Installation and Distribution Overhead
 
@@ -129,7 +129,7 @@ Header-Name: Header-Value
 [request body]
 ```
 
-With one powerful addition: **placeholders**. Any `{parameter_name}` in the URL, headers, or body is replaced with the corresponding function parameter value.
+With one addition that does the heavy lifting: **placeholders**. Any `{parameter_name}` in the URL, headers, or body is replaced with the corresponding function parameter value.
 
 ```sql
 comment on type my_api is 'GET https://api.example.com/users/{_user_id}
@@ -148,7 +148,7 @@ Accept: application/json
 
 ## Building the Financial Dashboard
 
-Let's build a dashboard that fetches real data from two free, public APIs:
+The dashboard fetches real data from two free, public APIs:
 
 1. **Exchange Rate API** (`open.er-api.com`) - Fiat currency rates
 2. **CoinGecko API** (`api.coingecko.com`) - Cryptocurrency prices
@@ -211,7 +211,7 @@ create type example_9.financial_dashboard_result as (
 );
 ```
 
-This return type becomes a TypeScript interface in the generated client - providing **end-to-end type safety**.
+This return type becomes a TypeScript interface in the generated client, so the type contract extends all the way to the frontend.
 
 ### Step 3: Create the Aggregation Function
 
@@ -401,7 +401,7 @@ if (response.response.cryptoSuccess) {
 
 ## Traditional Approach: What It Would Take
 
-Let's compare with a traditional Node.js/Express implementation:
+The equivalent Node.js/Express implementation:
 
 ### Traditional Backend (Node.js)
 
@@ -715,18 +715,7 @@ Consider alternatives for:
 
 ## Conclusion
 
-NpgsqlRest's HTTP Types eliminate the boilerplate of external API integration. By defining HTTP requests in type comments using familiar `.http` file syntax:
-
-- **No HTTP client libraries** to configure
-- **No PostgreSQL HTTP extensions** to install and maintain
-- **No service classes** to write and maintain
-- **No manual type definitions** - generated automatically
-- **No routing configuration** - derived from function annotations
-- **Placeholder substitution** handles parameterization automatically
-
-The Financial Dashboard example demonstrates aggregating two external APIs into a unified response with about 80 lines of SQL. The traditional approach would require 250+ lines of code across multiple files, plus dependencies, plus manual TypeScript types.
-
-**The code you don't write has no bugs.** HTTP Types let you focus on business logic while NpgsqlRest handles the plumbing.
+HTTP Types reduce external API integration to a type comment: no client libraries, no PostgreSQL extensions, no service classes, no manual type definitions. The Financial Dashboard aggregates two external APIs in about 80 lines of SQL where the traditional approach needs 250+ lines across multiple files, plus dependencies, plus manual TypeScript types. They're the wrong tool for high-frequency polling or streaming - use background services or SSE for those - but for request-scoped API aggregation, **the code you don't write has no bugs**.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls_sql_file).

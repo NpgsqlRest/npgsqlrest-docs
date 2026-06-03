@@ -36,7 +36,7 @@ head:
 
 ---
 
-Passwords are a security nightmare. Users reuse them across sites, forget them constantly, fall for phishing attacks, and even the strongest passwords can be compromised through database breaches. WebAuthn passkeys solve these problems by using public-key cryptography tied to biometric authentication on user devices.
+WebAuthn passkeys replace the weakest part of most systems - the password - with public-key cryptography tied to biometric or PIN verification on the user's device. There is no shared secret to phish, reuse across sites, or leak in a database breach.
 
 NpgsqlRest now supports **built-in passkey authentication** that lets you implement passwordless login with your authentication logic written entirely in PostgreSQL functions. No external authentication libraries, no third-party services—just your database, a few SQL functions, and a client-side script to call the browser's WebAuthn API (see the [passkey.ts example](https://github.com/NpgsqlRest/npgsqlrest-docs/blob/main/examples/13_passkey/src/passkey.ts) you can use as a starting point).
 
@@ -62,15 +62,15 @@ flowchart LR
     (SQL Functions)"]
 ```
 
-- **Browser**: A client script that calls the browser's WebAuthn API and communicates with NpgsqlRest endpoints. See the [passkey.ts example](https://github.com/NpgsqlRest/npgsqlrest-docs/blob/main/examples/13_passkey/src/passkey.ts) for a complete TypeScript implementation you can use as a starting point.
+- **Browser**: A client script that calls the browser's WebAuthn API and communicates with NpgsqlRest endpoints. See the [passkey.ts example](https://github.com/NpgsqlRest/npgsqlrest-docs/blob/main/examples/13_passkey/src/passkey.ts) for a complete TypeScript implementation.
 - **NpgsqlRest**: Provides the HTTP endpoints and handles CBOR parsing/verification.
 - **PostgreSQL**: Your SQL functions control the entire authentication flow—challenge creation, user management, credential storage.
 
-The key insight is that NpgsqlRest handles the cryptographic heavy lifting (parsing CBOR attestation objects, verifying signatures with EC and RSA keys) while your SQL functions define the business logic.
+The division of labor: NpgsqlRest does the cryptographic work (parsing CBOR attestation objects, verifying signatures with EC and RSA keys) while your SQL functions define the business logic.
 
 ## Complete Example Walkthrough
 
-Let's walk through a complete working example. The full source is available in the [examples/13_passkey](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/13_passkey) directory.
+The full source for the example below is in the [examples/13_passkey](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/13_passkey) directory.
 
 ### 1. Database Schema
 
@@ -1193,7 +1193,7 @@ The [complete example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/e
 
 ## Conclusion
 
-Passkeys represent a significant improvement in authentication security. With NpgsqlRest's built-in support, you can implement passwordless authentication while keeping your authentication logic in SQL where it belongs—close to your data, version-controlled, and fully under your control.
+If you take one recommendation from this post: keep `EnableRegister` off, let users add passkeys to accounts created through your existing verified registration flow, and put a rate limiter on the endpoints. The rest—challenge storage, claims, audit logging—is ordinary SQL, version-controlled next to your schema.
 
 <BlogNav
   :get-started="[

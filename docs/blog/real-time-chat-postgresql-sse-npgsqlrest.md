@@ -39,11 +39,11 @@ head:
   <span class="tag">NpgsqlRest</span>
 </p>
 
-Real-time features like chat, notifications, and live updates are expected in modern applications. Traditional implementations require WebSocket servers, message brokers, pub/sub infrastructure, and hundreds of lines of code across multiple services.
+Adding chat to an application usually means adding a WebSocket server, a message broker, pub/sub plumbing, and hundreds of lines of code spread across multiple services.
 
 What if you could build a fully functional, **secure real-time chat** with just a single SQL procedure and a few lines of TypeScript?
 
-This tutorial demonstrates how NpgsqlRest's Server-Sent Events (SSE) support transforms PostgreSQL's `RAISE` statements into real-time events - enabling you to build secure chat applications in minutes, not days.
+This tutorial shows how NpgsqlRest's Server-Sent Events (SSE) support turns PostgreSQL `RAISE` statements into real-time events.
 
 > **Source Code**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/8_simple_chat_client](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/8_simple_chat_client)
 
@@ -60,11 +60,11 @@ Building real-time chat the traditional way requires:
 7. **Backend API** - REST endpoints for message history, user management
 8. **Database Integration** - Separate persistence layer for messages
 
-This creates a complex distributed system with multiple failure points, deployment complexity, and significant development time.
+That's eight moving parts, each one a failure point, a deployment concern, and development time.
 
 ## The NpgsqlRest Approach: PostgreSQL IS Your Real-Time Server
 
-NpgsqlRest takes a radically different approach. Instead of adding infrastructure, it uses what you already have:
+NpgsqlRest inverts this. Instead of adding infrastructure, it uses what you already have:
 
 - **PostgreSQL `RAISE` statements become SSE events** - No message broker needed
 - **Cookie authentication works automatically** - Same auth for REST and SSE
@@ -72,7 +72,7 @@ NpgsqlRest takes a radically different approach. Instead of adding infrastructur
 - **Single deployment** - No separate WebSocket server
 - **Auto-generated TypeScript client** - Including EventSource factory functions
 
-The key insight: **PostgreSQL already supports sending messages during query execution via `RAISE`**. NpgsqlRest captures these messages and streams them to connected clients via Server-Sent Events.
+The mechanism is mundane: **PostgreSQL already supports sending messages during query execution via `RAISE`**. NpgsqlRest captures these messages and streams them to connected clients via Server-Sent Events.
 
 ## How SSE Works in NpgsqlRest
 
@@ -187,7 +187,7 @@ HTTP POST
 
 **That's it.** The entire real-time messaging backend is 25 lines of SQL.
 
-Let's break down the annotations:
+Three annotations do the work:
 
 | Annotation | Purpose |
 |------------|---------|
@@ -543,7 +543,7 @@ SSE (Server-Sent Events) is ideal for:
 - **Server-to-client streaming** - Chat messages, notifications, live updates
 - **Simple integration** - Uses standard HTTP, works through proxies
 - **Auto-reconnection** - Built into the EventSource API
-- **Cookie auth works seamlessly** - Cookies are sent automatically with EventSource connections
+- **Cookie auth works unchanged** - Cookies are sent automatically with EventSource connections
 
 WebSockets are better for:
 - **Bidirectional high-frequency** - Gaming, collaborative editing
@@ -582,7 +582,7 @@ NpgsqlRest's SSE implementation uses `RAISE INFO/NOTICE/WARNING` instead of `NOT
 
 **RAISE statements are connection-local** - they emit notices to the current connection's notice handler without any global coordination. NpgsqlRest captures these notices during query execution and streams them to SSE clients. No locks, no contention, no scalability ceiling.
 
-This is why NpgsqlRest chose `RAISE` over `NOTIFY` for real-time events - it's architecturally sound for high-concurrency systems.
+This is why NpgsqlRest uses `RAISE` instead of `NOTIFY` for real-time events.
 
 ## Advanced: Execution-ID correlation as soft channels
 
@@ -606,16 +606,7 @@ This is a *soft* filter. If the listener has no execution ID, or the emitter doe
 
 ## Conclusion
 
-NpgsqlRest's SSE support transforms PostgreSQL's notice system into a powerful real-time messaging infrastructure. By using `RAISE INFO` to emit events and annotations to control distribution, you can build secure real-time features with minimal code and zero additional infrastructure.
-
-The key benefits:
-- **No WebSocket server** - SSE uses standard HTTP
-- **No message broker** - PostgreSQL handles everything
-- **Secure by default** - Same cookie auth as your REST API
-- **Scoped distribution** - Control exactly who receives events
-- **Auto-generated client** - Including EventSource factories
-
-For chat, notifications, live dashboards, and most real-time use cases, this approach eliminates complexity while maintaining security and scalability.
+NpgsqlRest's SSE support turns PostgreSQL's notice system into real-time messaging: `RAISE INFO` emits the events, annotations control who receives them, and the same cookie auth covers both your REST API and the event stream. For chat, notifications, and live dashboards, that means one deployment and zero extra infrastructure. Reserve WebSockets for the cases that genuinely need them - bidirectional high-frequency traffic or binary data - and use SSE for everything else.
 
 ::: tip SQL File Source
 Everything in this post also works with [SQL file endpoints](/guide/sql-files) — no functions needed. See the [SQL file version of this example](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/8_simple_chat_client_sql_file).

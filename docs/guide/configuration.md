@@ -124,6 +124,20 @@ For non-string configuration values, use the quoted form `"{VARIABLE_NAME}"` in 
 }
 ```
 
+### Optional and Required Placeholders <Badge type="tip" text="3.17.0+" />
+
+Placeholders come in two forms, supported for **every** value type (bool, int, string, enum, arrays, dictionaries):
+
+- **`{NAME}` — optional.** Substituted with the variable's value when set; **left untouched when not set** — so typed `bool`/`int` reads fall back to their default instead of crashing, and legitimate non-env brace syntax (e.g. a Serilog `OutputTemplate`) is preserved.
+- **`{!NAME}` — required.** Substituted with the value, or **throws a clear startup error naming the variable** when it is not set.
+
+```jsonc
+"Enabled": "{GITHUB_AUTH_ENABLED}"   // env unset → feature defaults to off (no crash)
+"Enabled": "{!GITHUB_AUTH_ENABLED}"  // env unset → startup error naming the variable
+```
+
+Placeholder parsing is controlled by [`Config:ParseEnvironmentVariables`](../config/config-section) (enabled by default).
+
 ### Enabling Environment Variable Binding
 
 To enable automatic environment variable binding (where variables override configuration values directly), set `AddEnvironmentVariables` to `true`:

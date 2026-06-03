@@ -65,7 +65,7 @@ Eight lines of DDL wrapping a 1-line query. Requires a migration. Lives in the d
 
 The SQL file version: 3 lines. Edit the file, restart the server. All existing NpgsqlRest features — auth, caching, SSE, uploads, proxy, exports — work unchanged.
 
-For the full technical reference, see the [SQL File Endpoints Guide](/guide/sql-files). This post shows what the feature looks like in practice with real, working examples.
+For the full technical reference, see the [SQL File Endpoints Guide](/guide/sql-files). This post shows the feature in practice.
 
 > All code in this post is taken verbatim from the [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples).
 
@@ -215,7 +215,7 @@ $$;
 end;
 ```
 
-This shows several patterns working together:
+Several patterns work together here:
 
 - **`@sse`** makes this a Server-Sent Events endpoint — `RAISE INFO` broadcasts JSON to all connected clients
 - **`@void`** returns 204 to the sender (the message is delivered via SSE, not the response)
@@ -392,7 +392,7 @@ This is the most advanced SQL file pattern: temp table bridge, `@returns`, `@ski
 
 ## The Important Part
 
-Every feature shown above — authentication, SSE, CSV export, Excel streaming, file uploads, HTTP custom types, proxy, composite types, caching — **existed before SQL File Source**. They were designed for function endpoints. SQL File Source simply makes them available to plain SQL files with zero changes.
+Every feature shown above — authentication, SSE, CSV export, Excel streaming, file uploads, HTTP custom types, proxy, composite types, caching — **existed before SQL File Source**. They were designed for function endpoints. SQL File Source makes them available to plain SQL files with zero changes.
 
 If you're already using NpgsqlRest with functions, you can migrate endpoints one by one. If you're new, you can start with SQL files and add functions when you need procedural logic, testing, or optimization hints.
 

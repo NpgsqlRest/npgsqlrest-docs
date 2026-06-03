@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir ./public",
+    "watch": "bun build ./src/app.ts --outdir ./public --watch",
+    "dev": "cd .. && bun npgsqlrest ./config.json ./15_mcp_server/config.json",
+    "agent": "bun run ./src/agent.ts",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./15_mcp_server/migrations_15",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./15_mcp_server/migrations_15"
+  }
+}

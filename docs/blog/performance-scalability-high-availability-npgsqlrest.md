@@ -36,9 +36,9 @@ head:
 
 ---
 
-Building production-ready APIs requires more than just functional correctness. You need **caching** to reduce load, **retry logic** to handle transient failures, **rate limiting** to protect your infrastructure, and **high availability** configurations to ensure uptime.
+A functionally correct API is the easy part. Production adds the rest: **caching** to reduce load, **retry logic** to handle transient failures, **rate limiting** to protect your infrastructure, and **high availability** configuration to survive a server going down.
 
-NpgsqlRest provides comprehensive built-in support for all of these concerns. This guide walks through each feature with practical examples you can implement today.
+NpgsqlRest has built-in support for all of these. This guide walks through each feature with practical examples.
 
 ::: tip Functions or SQL files — same annotations, different placement
 Every annotation in this post works identically with **PostgreSQL functions** (via `comment on function ... is '...'`) and with **SQL files** (via `-- @annotation` header comments in a `.sql` file). Same semantics, same defaults, same ordering rules — only the comment placement differs. Examples below use both forms; pick whichever fits your codebase.
@@ -78,7 +78,7 @@ When a browser or CDN has a cached response that hasn't expired, **your server r
 
 #### Setting Cache Headers in Annotations
 
-NpgsqlRest allows you to set any HTTP response header directly in comment annotations using the `Header-Name: value` format:
+NpgsqlRest can set any HTTP response header directly from comment annotations using the `Header-Name: value` format:
 
 ```sql
 create function get_product_catalog()
@@ -159,7 +159,7 @@ Cache-Control: public, max-age=31536000';
 
 The `_v` parameter exists only to differentiate cache keys. When you update your products, change `v=1` to `v=2` in your client code, and every user gets fresh data. With this pattern, you can set very long cache times (the example uses 1 year) because you control invalidation through URL changes.
 
-This technique is particularly powerful when combined with CDNs like Cloudflare or CloudFront, which cache at edge locations globally.
+This technique pays off most when combined with CDNs like Cloudflare or CloudFront, which cache at edge locations globally.
 
 ### Server-Side Caching
 
@@ -231,7 +231,7 @@ Or as a SQL file — note that positional parameters need `@param` to get a read
 select row_to_json(u) from users u where id = $1;
 ```
 
-Different `_user_id` values create separate cache entries. A request for user 1 and user 2 are cached independently.
+Different `_user_id` values create separate cache entries. Requests for user 1 and user 2 are cached independently.
 
 For multiple parameters:
 
@@ -356,7 +356,7 @@ The invalidation endpoint:
 - Accepts the same parameters (to match the cache key)
 - Returns `{"invalidated": true}` or `{"invalidated": false}`
 
-This is invaluable when you need to programmatically invalidate cache after data modifications without waiting for expiration.
+Use it to invalidate cache right after data modifications instead of waiting for expiration.
 
 ### Caching Set-Returning Functions
 
@@ -616,7 +616,7 @@ The full list is available in the [PostgreSQL Error Codes documentation](https:/
 
 ## Rate Limiting
 
-Rate limiting protects your API from abuse and ensures fair resource allocation. NpgsqlRest integrates ASP.NET Core's rate limiting middleware with four policy types.
+Rate limiting protects your API from abuse and keeps one client from starving the rest. NpgsqlRest integrates ASP.NET Core's rate limiting middleware with four policy types.
 
 ### Enabling Rate Limiting
 
@@ -726,7 +726,7 @@ Limits simultaneous requests rather than rate:
 
 Only 10 requests can execute concurrently. Additional requests queue (up to 5) until a slot opens.
 
-Perfect for expensive operations where you want to limit database load regardless of request rate:
+Use it for expensive operations where you want to cap database load regardless of request rate:
 
 ```sql
 comment on function generate_large_report() is
@@ -782,7 +782,7 @@ A `Partition` block makes each request resolve its own bucket based on something
 
 `per_user` gives each authenticated user their own 100-per-minute bucket, falls back to per-IP for anonymous requests, and lumps anything else into a shared `anonymous` bucket. `throttle_anon_only` waves signed-in users through entirely (`BypassAuthenticated: true`) and applies a stricter 10-per-minute limit per IP for everyone else — a common pattern for protecting unauthenticated endpoints from scraping.
 
-Policies *without* a `Partition` block still use a single global bucket, so partitioning is purely additive and only kicks in where you ask for it.
+Policies *without* a `Partition` block still use a single global bucket, so partitioning only kicks in where you ask for it.
 
 ### Combining Policies
 
@@ -825,7 +825,7 @@ If you have 8 CPU cores and suddenly receive 100 concurrent requests, it could t
 
 ### Configuring Minimum Threads
 
-NpgsqlRest allows you to configure thread pool settings to eliminate this cold-start penalty:
+NpgsqlRest exposes thread pool settings so you can eliminate this cold-start penalty:
 
 ```json
 {
@@ -924,7 +924,7 @@ Combined with the retry and caching strategies above, your API remains responsiv
 
 ## High Availability
 
-For production deployments, single-server databases are a single point of failure. NpgsqlRest leverages Npgsql's multi-host connection support for failover and load balancing across PostgreSQL clusters.
+For production deployments, single-server databases are a single point of failure. NpgsqlRest uses Npgsql's multi-host connection support for failover and load balancing across PostgreSQL clusters.
 
 ### Multi-Host Connections
 
@@ -1180,7 +1180,7 @@ select json_build_object(
 
 ## Summary
 
-NpgsqlRest provides enterprise-grade infrastructure for production APIs:
+What each feature buys you:
 
 | Feature | Benefit |
 |---------|---------|
@@ -1200,7 +1200,7 @@ The result is an API that's not just fast under normal conditions, but resilient
 
 ### Development Time Saved
 
-Implementing these features manually in a traditional backend requires significant effort:
+For comparison, here is what each feature costs to build by hand in a traditional backend:
 
 | Feature | Manual Implementation | NpgsqlRest |
 |---------|----------------------|------------|
@@ -1229,7 +1229,7 @@ Beyond line count, consider what you're *not* dealing with:
 - No maintaining compatibility across library upgrades
 - No security audits of custom retry/caching code
 
-The declarative approach means you describe *what* you want, not *how* to implement it. The infrastructure complexity is handled once by NpgsqlRest and reused across all your endpoints.
+The declarative approach means you describe *what* you want, not *how* to implement it. The infrastructure is implemented once, in NpgsqlRest, and reused by every endpoint.
 
 ## Related Documentation
 

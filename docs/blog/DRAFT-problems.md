@@ -1,95 +1,41 @@
----
-layout: doc
-outline: [2, 3]
-title: "DRAFT: 25th-ish Anniversary of Object–Relational Impedance Mismatch"
-titleTemplate: NpgsqlRest
-description: "DRAFT — A compilation of a decade of arguments about DDD, Clean Architecture, the wrong abstractions modern business software is built on, and the case for putting the database back where it belongs."
-badge: human
-head:
-  - - meta
-    - name: robots
-      content: noindex, nofollow
-  - - meta
-    - name: keywords
-      content: npgsqlrest postgresql clean architecture ddd database-first state abstraction sql platform business rules
----
+Here are the five, written tight enough to drop in as section intros, in your register. I kept #5 as a separate block clearly marked, since it's the one I argued you're missing — if you decide to stay at four, you fold it into #1 and #2 rather than lose it.
 
-# DRAFT: 25th-ish Anniversary of Object–Relational Impedance Mismatch
+1. State Data Abstraction
 
-<p class="blog-meta">
-  <span>DRAFT — TODO: date</span> ·
-  <span class="tag">NpgsqlRest</span>
-  <span class="tag">PostgreSQL</span>
-  <span class="tag">Architecture</span>
-  <span class="tag">DDD</span>
-  <span class="tag">Clean Architecture</span>
-  <span class="tag">Opinion</span>
-</p>
+Problem: OOP encapsulation and FP immutability both assume the authoritative state lives in memory, waiting to be protected from illegal mutation. In a business application it doesn't. The authoritative state lives in the relational database — it's the thing you query when you want to know what's true.
 
-![](https://img.shields.io/badge/Human-Written-blue)
-![](https://img.shields.io/badge/DRAFT-orange)
+Consequence: The in-memory "state" the paradigm guards is either transient — a copy downloaded from the database — or plumbing: connections, queries, transactions, mappings. The domain layer spends its effort protecting a copy, not the truth. And because that copy mirrors the database's logical model one-for-one, you maintain two physical implementations of a single logical model — the class diagram and the schema are the same model drawn twice — kept in sync by hand. Only one is load-bearing: the application runs without the object copy; it cannot run without the database.
 
-To celebrate the 25th-ish anniversary of the Object–Relational Impedance Mismatch, I am writing a long and detailed post that compiles a few decades of arguments about DDD, Clean Architecture, and the wrong abstractions that plague modern business software.
+2. Abstraction Over Storage Devices
 
-I have been writing about this topic for a long time and became somewhat infamous for it. There hasn't been a single aspect of the modern software architecture orthodoxy that I haven't criticised at some point. I have probably been called a heretic, and blocked by many prominent DDD and Clean Architecture advocates. 
+Problem: The orthodoxy treats the database as storage — a place to park bytes until the real program needs them back. But the relational database already abstracts storage for you; it abstracts your storage, not your application. Data independence — insulating the logical model from physical representation — is the reason the model was invented in the first place.
 
-To [paraphrase Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/05/15/NODB.html): 
+Consequence: Treating the engine as a dumb disk, you haul the processing it was built for up into the application. You throw away the layer that lets you swap tablespace, on-disk format, or even the whole machine without a single query noticing — and then you rebuild, badly, the storage abstraction that was already sitting right there. The bytes were never your problem until you decided to make them your problem.
 
-> *"I railed endlessly against the practice of moving all business rules into application memory. I quailed and quaked and ranted and raved as I read through entire mail-merge programs written without SQL."*
+3. Abstraction Over Data Structures
 
-Yeah, that is me. I have been doing that for a long time. My feeling is, and I can't prove it, that not only are we failing to solve this engineering problem, but it is getting worse, not better. For me, that could be a sign of strong cognitive dissonance in the industry.
+Problem: Business data is sets — sets of sets, graphs, sets of graphs. It does not fit the in-memory structures imperative code reaches for: push, pop, peek, traverse, add, remove. The engine already picks the right structure per query — heap, b-tree, hash — and hands you a result, not a container.
 
-And to be clear, this is not going to be a criticism of ORM tools. Those tools have problems, but they also have value for people who are not trained in SQL. I don't even think those tools are the real root cause of the problem. No, I think the problem is much wider. Design philosophies like DDD, Clean Architecture, Hexagonal Architecture, and Onion Architecture. Those are the culprits. 
+Consequence: To force the data into the language, you materialize every set into one fixed in-memory collection — the repository's "illusion of an in-memory collection" — and discard the structure the engine would have chosen. You over-fetch rows and object graphs you don't need, you turn one set operation into N+1 round trips, and you express set logic by walking references between objects. An update … set … where … becomes a loop.
 
-So lets put all the criticism that I have in one, single place. So, buckle up, make some coffee, this is going to be a long post.
+4. Abstraction Over Algorithms
 
----
+Problem: SQL is a higher-level, declarative, set-based language. You state the intent; the optimizer reads its statistics and chooses the algorithm — which scan, which join, in which order — and re-chooses as the data grows. Imperative code freezes the algorithm at the moment you write the loop.
 
-## The Beginning of Wisdom 
+Consequence: You swap a declarative set language for a lower-level imperative one, and instead of declaring a set operation you iterate over pretend data structures. The optimizer never sees the real question, so it can't answer it well — set operations collapse into row-at-a-time storms. It's a textbook abstraction inversion: hand-coding low-level access on top of a high-level engine that already provided it.
 
-... is to call things by their proper name.
+5. Abstraction Over Concurrency and Integrity — (the missing one; your strongest argument)
 
-And so shall we start with that as well. Thanks Confucius. According to [Wikipedia](https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch):
+Problem: The database abstracts correctness under concurrent access — MVCC, isolation levels, locking — and integrity — constraints, foreign keys, atomic transactions. This is not "where the state lives" from #1; it's keeping that state correct while many writers hit it at once. You declare a constraint or choose an isolation level. You don't implement two-phase locking yourself.
+Consequence: Move the invariant up into the domain and you enforce it on a stale in-memory snapshot, outside any transaction. Between the load and the save, another writer changes the row you were reasoning about — classic time-of-check-to-time-of-use. Lost updates, double-bookings, oversold inventory: the exact failures the architecture promised to prevent. And the whole Aggregate → Unit-of-Work → eventual-consistency → domain-events ladder is just ACID reimplemented in application code and then in messaging — arriving decades late and leakier. The aggregate guarded the invariant in memory; the data violated it on disk.
 
-> Object–relational impedance mismatch is a set of difficulties going between data in relational data stores and data in domain-driven object models.
+Two things to wire this into the rest of the piece. The spine is 2 + 3: two pillars about the truth — where it lives (#1) and keeping it correct under load (#5) — and three about the engine abstracting the stack beneath you (#2, #3, #4). State that split once and the five stop reading as a flat list of grievances. And it sets up your existing payoff cleanly: strip storage, structures, algorithms, integrity, and concurrency — because the database already does all five — and what's left is the business rules, which is the part that belonged next to the data the whole time.
+If you keep it at four: the race-condition material from #5 goes into #2 (treating the engine as dumb storage), and the "illegal states / two sources of validation truth" material folds into #1. But you lose the one pillar that's about correctness rather than elegance, which is the one that actually wins the argument.
 
-And then the article goes on to list Object-oriented concepts and then the differences with relational concepts, RDBMS and SQL and points of contention between the two. You can read the article for yourself. In essence, it is a list of differences between the two paradigms. 
-
-It is important to note that there is also a Functional impedance mismatch. Not everyone is into OOP these days. But the same problems apply to Functional programming. Functional people will want to use the Relational model, RDBMS, SQL and all that as well, and ergo Functional impedance mismatch is a thing too. 
-
-But more on that later. Lets now do quick overview what those differences and problems are, not in any particular order.
-
-1. **State Data Abstraction** 
-2. **Abstraction Over Storage Devices**
-3. **Abstraction Over Data Structures and Algorithms**
-
-Lets go over them one by one and what they actually mean in practice to developers.
-
-## State Data Abstraction
-
-Object-oriented programming has one of the core tenets called **encapsulation**. Encapsulation is supposed to protect internal data — **the state**. The object is the authoritative custodian of its state. Nobody else has it. Period. Without encapsulation, we don't really have OOP anymore.
-
-I think this is very reasonable. State is something that is shared between different parts of the system and if every part of the system can poke at it without other parts knowing about it, then you have a lot of bugs. Encapsulation is supposed to protect that state and make sure it is only mutated in controlled ways. Perfectly fine and it makes sense. 
-
-And we can also put some constraints on that state, to protect it even more. Like validation rules and such to defend against illegal states and undesirable mutations over time. That is also perfectly fine. Great idea to do so.
-
-Similarly, Functional programming has its own version of that — **state immutability**. A function takes values in and returns new values out, leaving the originals untouched — so there's no shared mutable state to corrupt in the first place. FP also enforces valid state through invariants, often by encoding them directly into the type system. Same goal, fewer bugs from uncontrolled state, arguably reached more elegantly. Fine. State status - protected, bugs - reduced. Great.
-
-Except for minor inconvenience — this doesn't work for the applications backed by a relational database. At all.
-
-Because that shared state lives in a shared, **relational database**. OOP and FP are designed to manage state in memory, but in a business application, the real state is in the database. The database, the relational database - is the source of truth, not your memory.
-
-And it is easy to prove this fact. Take any business application backed by relational database, how are you going to check the current state of the system? You are going to query the database for that, of course. Anyone who worked 5 seconds in industry knows this. The state lives in the database, not in memory.
-
-This inconvenient truth has a dramatic impact on the way we design our software. Whether we use the OOP version or the FP version of something designed on DDD/CA principles, if we are building a business application backed by a relational database, we are going to pretend that we are protecting the state in memory. In reality, we are just protecting the plumbing for the real state. It doesn't really matter whether we use an ORM or raw SQL or even Stored Procedures — we are making a huge ceremony around state data that is not even there. In the best case, it is just **transient state** — chunks of data downloaded from the database, temporarily held in memory. In the worst case, it is just **plumbing**: connections, queries, transactions, mappings, the boring stuff that is not really the point of our software.
-
-On the other hand, the relational database is already doing — and has been doing for forty years — exactly that: protecting your state, your data. So it can't get into illogical, illegal states. It is already doing that for you. It is already making illegal states unrepresentable. We have these things called data constraints, and yes, my God, we also have types. Many, many different types. But in your real data, not just in code.
+----
 
 
-## Abstraction Over Storage Devices
-
----
-claude:
+----
 
 ## Abstraction Over Storage Devices
 

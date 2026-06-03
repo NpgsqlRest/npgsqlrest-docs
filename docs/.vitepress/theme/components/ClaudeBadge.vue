@@ -29,38 +29,20 @@ const showAttentionNotice = computed(() => isBlogPost.value && !isHumanWritten.v
     </a>
     <a
       v-else
-      href="https://claude.ai"
-      target="_blank"
-      title="Written with Claude"
+      href="/about"
+      title="AI-assisted, verified against source"
     >
-      <img src="https://img.shields.io/badge/written_with-Claude-cc785c?logo=anthropic" alt="Written with Claude">
+      <img src="https://img.shields.io/badge/AI--assisted-verified_against_source-cc785c?logo=anthropic" alt="AI-assisted, verified against source">
     </a>
     <details v-if="showAttentionNotice" class="attention-notice">
-      <summary>IMPORTANT</summary>
+      <summary>How this page was made</summary>
       <p>
-        As you may notice, this page and pretty much the entire website were obviously created with the help of AI.
-        I wonder how you could tell? Was it a big "Written With Claude" badge on every page?
-        I moved it to the top now (with the help of AI of course) to make it even more obvious.
-        There are a few blogposts that were written by me manually, the old-fashioned way, I hope there will be more in the future,
-        and those have a similar "Human Written" badge.
-        This project (not the website), on the other hand, is a very, very different story.
-        It took me more than two years of painstaking and unpaid work in my own free time.
-        A story that, hopefully, I will tell someday. But meanwhile, what would you like me to do?
-        To create a complex documentation website with a bunch of highly technical articles
-        with the help of AI and fake it, to give you an illusion that I also did that manually?
-        Like half of the internet is doing at this point? How does that make any sense? Is that even fair to you?
-        Or maybe to create this website manually, the old-fashioned way, just for you?
-        While working a paid job for a salary, most of you wouldn't even get up in the morning.
-        Would you like me to sing you a song while we're at it? For your personal entertainment?
-        Seriously, get a grip.
-        Do you find this information less valuable because of the way this website was created?
-        I give my best to fix it to keep the information as accurate as possible, and I think it is very accurate at this point.
-        If you find some mistakes, inaccuracies or problems, there is a comment section at the bottom of every page,
-        which I also made with the help of the AI. And I would very much appreciate if you leave your feedback there.
-        Look, I'm just a guy who likes SQL, that's all.
-        If you don't approve of how this website was constructed and the use of AI tools,
-        I suggest closing this page and never ever coming back. And good riddance.
-        And I would ban your access if I could know how. Thank you for your attention to this matter.
+        This page was written with AI assistance and verified against the NpgsqlRest source code —
+        the same division of labor the product itself is built around: AI does the writing, machines
+        check the facts. The project itself (the library, parser, codegen, and runtime) is hand-written
+        and covered by 2,200+ integration tests. A few posts written entirely by hand carry a
+        "Human Written" badge instead. If you spot an inaccuracy, the comment section below goes
+        straight to the maintainer — more in <a href="/about">About</a>.
       </p>
     </details>
   </div>

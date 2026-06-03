@@ -7,6 +7,7 @@ export interface BlogPost {
 }
 
 export const blogPosts: BlogPost[] = [
+  { title: 'The Backend That Writes Itself (Slide Deck)', path: '/blog/the-backend-that-writes-itself-presentation' },
   { title: 'Case Study: 74 Endpoints, Zero Backend Code', path: '/blog/case-study-zero-backend-code' },
   { title: 'TypeScript Code Generation Walkthrough', path: '/blog/typescript-codegen-walkthrough' },
   { title: 'NpgsqlRest 3.13.0: Production Patterns', path: '/blog/npgsqlrest-3.13-production-patterns' },

@@ -25,7 +25,7 @@ Complete reference documentation for all NpgsqlRest configuration options.
 For an introduction to how configuration works (sources, precedence, environment variables, command-line arguments), see the [Configuration Guide](../guide/configuration).
 
 ::: tip Latest Default Configuration
-See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.16.2.
+See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.18.2.
 :::
 
 ## Reference Sections
@@ -59,6 +59,7 @@ See the [Latest Default Configuration](./latest) for a complete reference of all
 - [SQL File Source](./sql-file-source) - REST API endpoints from SQL files
 - [Proxy](./proxy) - Reverse proxy support for forwarding requests to upstream services
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation
+- [MCP](./mcp) - Model Context Protocol server — expose routines as MCP tools for AI agents
 - [HTTP Files](./http-files) - HTTP test file generation
 - [Code Generation](./codegen) - Client code generation (TypeScript, etc.)
 - [Uploads](./uploads) - File upload handling

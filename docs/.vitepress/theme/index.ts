@@ -14,6 +14,7 @@ import SponsorFooter from './components/SponsorFooter.vue'
 import HeroTerminal from './components/HeroTerminal.vue'
 import SqlFileShowcase from './components/SqlFileShowcase.vue'
 import FunctionShowcase from './components/FunctionShowcase.vue'
+import SlideDeck from './components/SlideDeck.vue'
 
 export default {
   extends: DefaultTheme,
@@ -22,6 +23,7 @@ export default {
     app.component('BlogNav', BlogNav)
     app.component('SqlFileShowcase', SqlFileShowcase)
     app.component('FunctionShowcase', FunctionShowcase)
+    app.component('SlideDeck', SlideDeck)
   },
   Layout() {
     const { frontmatter, isDark } = useData()
