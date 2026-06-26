@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Excel Exports Done Right: Zero-Allocation Streaming from PostgreSQL"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Stream .xlsx Excel exports directly from PostgreSQL with constant memory usage. Zero allocations, native type mapping, and one SQL annotation. No more server-crashing export code."
 head:

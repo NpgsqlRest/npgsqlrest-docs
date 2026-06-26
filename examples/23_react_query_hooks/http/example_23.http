@@ -1,0 +1,54 @@
+@host=http://127.0.0.1:8080
+
+// function example_23.create_todo(
+//     _title text
+// )
+// returns integer
+//
+// comment on function example_23.create_todo is 'HTTP POST
+POST {{host}}/api/example-23/create-todo
+content-type: application/json
+
+{
+    "title": "ABC"
+}
+
+###
+
+// function example_23.get_stats()
+// returns table(
+//     total integer,
+//     done integer
+// )
+//
+// comment on function example_23.get_stats is 'HTTP GET
+// single';
+GET {{host}}/api/example-23/get-stats
+
+###
+
+// function example_23.internal_recalculate()
+// returns void
+//
+// comment on function example_23.internal_recalculate is 'HTTP POST
+// tsclient_hooks=off';
+POST {{host}}/api/example-23/internal-recalculate
+
+###
+
+// function example_23.search_todos(
+//     _search text,
+//     _done boolean DEFAULT NULL::boolean
+// )
+// returns table(
+//     id integer,
+//     title text,
+//     done boolean
+// )
+//
+// comment on function example_23.search_todos is 'HTTP GET
+// request_param_type query_string';
+GET {{host}}/api/example-23/search-todos?search=ABC&done=true
+
+###
+

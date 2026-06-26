@@ -1,0 +1,31 @@
+{
+  "ApplicationName": "react_query_hooks",
+
+  "NpgsqlRest": {
+    // Include only the example_23 schema in the generated endpoints
+    "IncludeSchemas": [ "example_23" ],
+    // Disable authorization for this example
+    "RequiresAuthorization": false,
+
+    "HttpFileOptions": {
+      "NamePattern": "./23_react_query_hooks/http/{1}"
+    },
+
+    "ClientCodeGen": {
+      "Enabled": true,
+      // Output path for the generated client code file, {0} placeholder is schema name in camel case
+      "FilePath": "./23_react_query_hooks/src/{0}Api.ts",
+      "IncludeHost": false,
+      "IncludeSchemaInNames": false,
+      "CreateSeparateTypeFile": false,
+
+      "ReactQuery": {
+        "Enabled": true,
+        // Output path for the generated TanStack Query hooks module
+        "FilePath": "./23_react_query_hooks/src/{0}Hooks.ts",
+        // First element of every query key, so this API's cache entries are namespaced
+        "QueryKeyPrefix": "example23"
+      }
+    }
+  }
+}

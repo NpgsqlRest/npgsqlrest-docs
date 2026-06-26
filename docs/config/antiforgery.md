@@ -46,7 +46,7 @@ Antiforgery token configuration protects against Cross-Site Request Forgery (CSR
 | `FormFieldName` | string | `"__RequestVerificationToken"` | Name of the hidden form field containing the token. |
 | `HeaderName` | string | `"RequestVerificationToken"` | HTTP header name for sending the token (useful for AJAX requests). |
 | `SuppressReadingTokenFromFormBody` | bool | `false` | When true, skips reading tokens from form body (forces header-only validation). |
-| `SuppressXFrameOptionsHeader` | bool | `false` | When true, disables automatic X-Frame-Options header generation. |
+| `SuppressXFrameOptionsHeader` | bool | `false` | When true, disables the automatic `X-Frame-Options: SAMEORIGIN` header. |
 
 ## Token Submission
 
@@ -78,7 +78,7 @@ fetch('/api/submit', {
 
 ## X-Frame-Options Header
 
-When `SuppressXFrameOptionsHeader` is `false` (default), the server automatically adds the `X-Frame-Options` header to prevent clickjacking attacks.
+When `SuppressXFrameOptionsHeader` is `false` (default), the server automatically adds the `X-Frame-Options: SAMEORIGIN` header to prevent clickjacking attacks. While Antiforgery is enabled, the [Security Headers](./security-headers) middleware skips its own `XFrameOptions` value.
 
 ::: warning
 Only set `SuppressXFrameOptionsHeader` to `true` if you're handling frame protection elsewhere (e.g., Content-Security-Policy frame-ancestors directive).
@@ -100,6 +100,7 @@ Enable antiforgery with custom header name:
 
 ## Related
 
+- [Security Headers](./security-headers) - X-Frame-Options and other security headers
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

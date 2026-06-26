@@ -32,7 +32,7 @@ The `@` prefix is optional - both `@key = value` and `key = value` work identica
 
 ## Dynamic Parameter Values
 
-Some parameters support dynamic values using the `{param_name}` format, where `param_name` references a function parameter. The value is resolved at runtime from the actual parameter value passed to the endpoint. The matching and substitution rules are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
+Some parameters support dynamic values using the `{param_name}` format, where `param_name` references a function parameter or an [allowlisted environment variable](./parameter-substitution#environment-variables) (`NpgsqlRest:AvailableEnvVars`). Parameter values are resolved at runtime from the actual value passed to the endpoint; environment variables are resolved once at startup, and a parameter with the same name takes precedence. Since 3.21.0 the strict forms work here too: `{!name}` resolves like `{name}` for known names, and `{!name:fallback}` substitutes the inline fallback when an allowlisted variable is unset (with no configured default) or when a parameter value is null — e.g. `@file_system_path = {!UPLOAD_ROOT:/var/uploads}`. The matching and substitution rules are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
 
 ### Example
 
@@ -59,11 +59,13 @@ HTTP POST
 @upload for file_system
 @file_system_path = {path}
 @file_system_file = {file}
-@param $1 path
-@param $2 file
+@define_param path
+@define_param file
 */
 select;
 ```
+
+The SQL does not reference the two values, so [`@define_param`](./define-param) declares them as HTTP parameters that only feed the placeholders.
 
 When called with `{"_path": "/uploads/images", "_file": "photo.jpg"}`, the file will be saved to `/uploads/images/photo.jpg`.
 
@@ -81,6 +83,16 @@ These parameters are predefined annotations that also support the `key = value` 
 - [NEW_LINE](./new-line) — `new_line`, `raw_new_line`
 - [COLUMN_NAMES](./column-names) — `columns`, `names`, `column_names`
 - [CONNECTION](./connection) — `connection`, `connection_name`
+- [COMMAND_TIMEOUT](./command-timeout) — `timeout`, `command_timeout`
+- [SINGLE](./single) — `single`, `single_record`, `single_result`
+- [VOID](./void) — `void`, `void_result`
+- [USER_CONTEXT](./user-context) — `user_context`
+- [USER_PARAMETERS](./user-parameters) — `user_parameters`, `user_params`
+- [ENCRYPT / DECRYPT](./encrypt-decrypt) — `encrypt`, `decrypt` (`= true` encrypts all text parameters / decrypts all text columns)
+- [RETRY_STRATEGY](./retry-strategy) — `retry_strategy`, `retry_strategy_name`, `retry`
+- [RATE_LIMITER_POLICY](./rate-limiter-policy) — `rate_limiter`, `rate_limiter_policy`, `rate_limiter_policy_name`
+- [ERROR_CODE_POLICY](./error-code-policy) — `error_code_policy`, `error_code_policy_name`, `error_code`
+- [BASIC_AUTH_REALM](./basic-auth-realm), [BASIC_AUTH_COMMAND](./basic-auth-command) — `realm`, `challenge_command` (and their aliases)
 
 ### Upload
 

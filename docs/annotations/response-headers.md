@@ -97,7 +97,7 @@ Set-Cookie: theme=dark
 Set-Cookie: lang=en';
 ```
 
-Response includes: `Set-Cookie: session=abc123, theme=dark, lang=en`
+Response includes three `Set-Cookie` headers: `session=abc123`, `theme=dark`, `lang=en`
 
 ### Cache Control
 
@@ -136,7 +136,11 @@ Cache-Control: no-cache';
 
 ### Dynamic Headers from Parameters
 
-Header values can include parameter values using the `{param_name}` template syntax. The matching and substitution rules (case-sensitivity, NULL handling, etc.) are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
+Header values can include parameter values using the `{param_name}` template syntax — or an [allowlisted environment variable](./parameter-substitution#environment-variables) (`NpgsqlRest:AvailableEnvVars`), useful for per-deployment values like a server or environment name. Since 3.21.0 the strict forms work too: `{!name}` resolves like `{name}` for known names, and `{!name:fallback}` substitutes the inline fallback when an allowlisted variable is unset (with no configured default) or when a parameter value is null — e.g. `X-Plan: {!_plan:free}`. The matching and substitution rules (case-sensitivity, NULL handling, etc.) are shared across annotations — see [Parameter Value Substitution](./parameter-substitution).
+
+::: warning Secrets
+A value substituted into a response header is sent to the client. Use environment variables in response headers only for non-secret values — reserve API keys and tokens for outbound [HTTP custom type](./http-type) calls.
+:::
 
 ```sql
 create function export_report(_type text, _file text)
@@ -154,7 +158,7 @@ Content-Disposition: attachment; filename={_file}
 Cache-Control: no-cache';
 ```
 
-Request: `GET /api/export-report?_type=text/csv&_file=report.csv`
+Request: `GET /api/export-report?type=text/csv&file=report.csv`
 
 Response headers:
 ```

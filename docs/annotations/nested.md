@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# NESTED
+# NESTED (`nested_json`, `nested_composite`)
 
 ::: info Also known as
 `nested_json`, `nested_composite` (with or without `@` prefix)

@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Secure Image Uploads with PostgreSQL: File System and Large Objects"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Build a complete image upload system with PostgreSQL. Store files on disk or in Large Objects, with automatic TypeScript client and progress tracking."
 head:
@@ -562,7 +563,7 @@ To add image uploads to your NpgsqlRest application:
 1. Create an `uploads` table with `oid` and `file_path` columns
 2. Enable upload handlers in `config.json`
 3. Write a single upload function that inserts from `_meta` JSON
-4. Add `upload for <handler>` annotation to choose storage
+4. Add `@upload for <handler>` annotation to choose storage
 5. Use the generated TypeScript client with progress callbacks
 
 The same function code works for all three storage strategies - only the annotation changes.

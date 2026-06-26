@@ -1,0 +1,22 @@
+{
+  "ApplicationName": "dart_client",
+
+  "NpgsqlRest": {
+    // Include only the example_22 schema in the generated endpoints
+    "IncludeSchemas": [ "example_22" ],
+    // Disable authorization for this example
+    "RequiresAuthorization": false,
+
+    "HttpFileOptions": {
+      "NamePattern": "./22_dart_client/http/{1}"
+    },
+
+    "DartClientCodeGen": {
+      "Enabled": true,
+      // Output path for the generated Dart client code, {0} placeholder is schema name in snake case
+      "FilePath": "./22_dart_client/dart/lib/{0}_api.dart",
+      "IncludeHost": false,
+      "IncludeSchemaInNames": false
+    }
+  }
+}

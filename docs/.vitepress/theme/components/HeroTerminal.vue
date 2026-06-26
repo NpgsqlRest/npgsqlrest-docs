@@ -1,10 +1,11 @@
 <template>
-  <div class="hero-terminal" aria-label="SQL file source and curl request with JSON response">
+  <div class="hero-terminal" :class="{ paused }" aria-label="SQL file source and curl request with JSON response">
     <div class="terminal-chrome">
       <span class="dot dot-red"></span>
       <span class="dot dot-yellow"></span>
       <span class="dot dot-green"></span>
       <span class="terminal-title">~ npgsqlrest</span>
+      <TerminalPlayButton v-if="animated" :paused="paused" @toggle="toggle" />
     </div>
     <div class="terminal-body" :class="{ fading }">
       <template v-if="frame === 1">
@@ -35,7 +36,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted } from 'vue'
+import TerminalPlayButton from './TerminalPlayButton.vue'
+import { usePausableTimers } from '../usePausableTimers'
 
 const cmd1 = 'cat sql/users.sql'
 const sqlLines = [
@@ -61,10 +64,9 @@ const typedCmd2 = ref('')
 const visibleSqlLines = ref([])
 const visibleJsonLines = ref([])
 const fading = ref(false)
+const animated = ref(true)
 
-const timers = []
-const clearTimers = () => { while (timers.length) clearTimeout(timers.pop()) }
-const schedule = (fn, ms) => timers.push(setTimeout(fn, ms))
+const { paused, schedule, toggle } = usePausableTimers()
 
 function typeOut(target, text, onDone) {
   let i = 0
@@ -142,13 +144,10 @@ onMounted(() => {
     visibleSqlLines.value = [...sqlLines]
     frame.value = 1
     sub.value = 'idle'
+    animated.value = false
     return
   }
   schedule(showFrame1, 600)
-})
-
-onBeforeUnmount(() => {
-  clearTimers()
 })
 </script>
 
@@ -212,6 +211,15 @@ onBeforeUnmount(() => {
 
 .terminal-body.fading {
   opacity: 0;
+}
+
+/* keep content visible if paused mid-fade */
+.hero-terminal.paused .terminal-body.fading {
+  opacity: 1;
+}
+
+.hero-terminal.paused .cursor {
+  animation-play-state: paused;
 }
 
 .line {

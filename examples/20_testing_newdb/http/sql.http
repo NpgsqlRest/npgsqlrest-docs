@@ -1,0 +1,37 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ./20_testing_newdb/sql/login.sql
+//
+// HTTP POST
+// @allow_anonymous
+// @single
+//  POST /api/login — verify credentials with pgcrypto crypt(). Returns the matching user as a single
+//  object, or an empty result when the email/password do not match. In test mode this runs on the test's
+//  own connection/transaction, so it sees a user the test inserted (and has not committed).
+//  Named placeholders (:email, :password) instead of $1/$2: the API parameter names come from the
+//  placeholders themselves and the types are inferred by PostgreSQL, so no @param annotations are needed.
+POST {{host}}/api/login
+content-type: application/json
+
+{
+    "email": "ABC",
+    "password": "XYZ"
+}
+
+###
+
+// SQL file: ./20_testing_newdb/sql/get_users.sql
+//
+// HTTP GET
+// @authorize
+// @user_parameters
+// @param $1 _user_id text = null
+//  GET /api/get-users — authorized; lists every OTHER user with their role and nested addresses (each with
+//  its country). `_user_id` is filled from the authenticated user's `user_id` claim (mapped in
+//  AuthenticationOptions.ParameterNameClaimsMapping), NOT from the client — so the caller can never widen the
+//  result to include themselves. The filter `u.id <> _user_id` excludes the caller. All joins are LEFT JOINs
+//  so a user whose role / address / country rows are missing (e.g. a deferred-constraint fixture) still shows.
+GET {{host}}/api/get-users
+
+###
+

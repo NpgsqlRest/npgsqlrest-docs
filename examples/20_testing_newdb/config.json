@@ -1,0 +1,31 @@
+{
+  "ApplicationName": "20_testing_newdb",
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": true,
+
+    // Fill server-side parameters from the authenticated user's claims (e.g. _user_id <- the "user_id"
+    // claim). Endpoints opt in with `@user_parameters`; the value is never taken from the client. In tests
+    // the principal comes from `# @claim user_id=…`.
+    "AuthenticationOptions": {
+      "UseUserParameters": true,
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id"
+      }
+    },
+
+    "RoutineOptions": { "Enabled": false },
+
+    // Endpoints come from ./sql only; tests live in ./tests (see test-config.json), so the endpoint glob
+    // never sees a test file — no SkipPattern needed.
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./20_testing_newdb/sql/**/*.sql"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./20_testing_newdb/http/{1}",
+      "OmitAutomaticParameters": true
+    }
+  }
+}

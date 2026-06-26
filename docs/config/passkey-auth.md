@@ -41,7 +41,46 @@ Minimal configuration to enable passkey authentication:
 {
   "Auth": {
     "PasskeyAuth": {
-      "Enabled": true
+      "Enabled": false,
+      "EnableRegister": false,
+      "RateLimiterPolicy": null,
+      "ConnectionName": null,
+      "CommandRetryStrategy": "default",
+      "RelyingPartyId": null,
+      "RelyingPartyName": null,
+      "RelyingPartyOrigins": [],
+      "AddPasskeyOptionsPath": "/api/passkey/add/options",
+      "AddPasskeyPath": "/api/passkey/add",
+      "RegistrationOptionsPath": "/api/passkey/register/options",
+      "RegistrationPath": "/api/passkey/register",
+      "LoginOptionsPath": "/api/passkey/login/options",
+      "LoginPath": "/api/passkey/login",
+      "ChallengeTimeoutMinutes": 5,
+      "UserVerificationRequirement": "required",
+      "ResidentKeyRequirement": "required",
+      "AttestationConveyance": "none",
+      "ValidateSignCount": true,
+      "ChallengeAddExistingUserCommand": "select * from passkey_challenge_add_existing($1,$2)",
+      "ChallengeRegistrationCommand": "select * from passkey_challenge_registration($1)",
+      "ChallengeAuthenticationCommand": "select * from passkey_challenge_authentication($1,$2)",
+      "VerifyChallengeCommand": "select * from passkey_verify_challenge($1,$2)",
+      "AuthenticateDataCommand": "select * from passkey_authenticate_data($1)",
+      "CompleteAddExistingUserCommand": "select * from passkey_complete_add_existing($1,$2,$3,$4,$5,$6,$7,$8)",
+      "CompleteRegistrationCommand": "select * from passkey_complete_registration($1,$2,$3,$4,$5,$6,$7,$8)",
+      "CompleteAuthenticateCommand": "select * from passkey_complete_authenticate($1,$2,$3,$4)",
+      "ClientAnalyticsIpKey": "ip",
+      "StatusColumnName": "status",
+      "MessageColumnName": "message",
+      "ChallengeColumnName": "challenge",
+      "ChallengeIdColumnName": "challenge_id",
+      "UserNameColumnName": "user_name",
+      "UserDisplayNameColumnName": "user_display_name",
+      "UserHandleColumnName": "user_handle",
+      "ExcludeCredentialsColumnName": "exclude_credentials",
+      "AllowCredentialsColumnName": "allow_credentials",
+      "PublicKeyColumnName": "public_key",
+      "PublicKeyAlgorithmColumnName": "public_key_algorithm",
+      "SignCountColumnName": "sign_count"
     }
   }
 }
@@ -390,10 +429,12 @@ Set to `null` or empty string to disable IP collection.
       "CompleteAuthenticateCommand": "select * from passkey_complete_authenticate($1,$2,$3,$4)"
     }
   },
-  "RateLimiting": {
+  "RateLimiterOptions": {
+    "Enabled": true,
     "Policies": {
       "passkey-limit": {
         "Type": "SlidingWindow",
+        "Enabled": true,
         "PermitLimit": 10,
         "WindowSeconds": 60
       }
@@ -404,6 +445,7 @@ Set to `null` or empty string to disable IP collection.
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — the full walkthrough
 - [Authentication](./auth) - Cookie, Bearer Token, and JWT authentication
 - [External OAuth](./external-auth) - Google, LinkedIn, GitHub, Microsoft, Facebook OAuth
 - [Rate Limiter](./rate-limiter) - Rate limiting configuration

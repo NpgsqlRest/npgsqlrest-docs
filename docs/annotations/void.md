@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# VOID
+# VOID (`void_result`)
 
 ::: info Also known as
 `void_result` (with or without `@` prefix)

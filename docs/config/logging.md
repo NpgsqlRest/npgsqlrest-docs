@@ -22,6 +22,8 @@ head:
 
 Logging configuration using Serilog for console, file, PostgreSQL database, and OpenTelemetry outputs.
 
+For the task-oriented walkthrough — log channels, seeing executed SQL, PostgreSQL `raise` messages in logs, production recipes — see the [Logging Guide](../guide/logging).
+
 ## Overview
 
 ```json
@@ -29,6 +31,8 @@ Logging configuration using Serilog for console, file, PostgreSQL database, and 
   "Log": {
     "MinimalLevels": {
       "NpgsqlRest": "Information",
+      "NpgsqlRestClient": "Information",
+      "NpgsqlRestTest": "Information",
       "System": "Warning",
       "Microsoft": "Warning"
     },
@@ -46,7 +50,7 @@ Logging configuration using Serilog for console, file, PostgreSQL database, and 
     "ToOpenTelemetry": false,
     "OTLPEndpoint": "http://localhost:4317",
     "OTLPProtocol": "Grpc",
-    "OTLPResourceAttributes": {
+    "OTLResourceAttributes": {
       "service.name": "{application}",
       "service.version": "1.0",
       "service.environment": "{environment}"
@@ -70,6 +74,7 @@ Available log levels (from most to least verbose):
 | `Warning` | Warnings that don't stop execution |
 | `Error` | Errors that affect specific operations |
 | `Fatal` | Critical errors that stop the application |
+| `Off` | Fully silences a channel (aliases: `None`, `Silent`; `MinimalLevels` entries only, since 3.19.0) |
 
 See [Serilog Configuration Basics](https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level) for more details.
 
@@ -82,6 +87,8 @@ Configure minimum log levels per source context:
   "Log": {
     "MinimalLevels": {
       "NpgsqlRest": "Information",
+      "NpgsqlRestClient": "Information",
+      "NpgsqlRestTest": "Information",
       "System": "Warning",
       "Microsoft": "Warning"
     }
@@ -91,9 +98,13 @@ Configure minimum log levels per source context:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `NpgsqlRest` | string | `"Information"` | Log level for NpgsqlRest operations. Uses the application logger named after `ApplicationName`. |
-| `System` | string | `"Warning"` | Log level for .NET System namespace. |
-| `Microsoft` | string | `"Warning"` | Log level for Microsoft namespace (ASP.NET Core, etc.). |
+| `NpgsqlRest` | string | `"Information"` | The endpoint engine: endpoint creation and annotations at `Debug`; discovery queries, describe phase, and (with `LogCommands`) executed SQL at `Verbose`. |
+| `NpgsqlRestClient` | string | `"Information"` | The client host: configuration processing, auth setup, startup detail. When `ApplicationName` is set, log lines display that name as the source context instead of `NpgsqlRestClient` — but **this configuration key keeps working unchanged** (it is mapped to the actual channel name automatically). |
+| `NpgsqlRestTest` | string | `"Information"` | The [SQL test runner](../guide/testing) (`--test`): discovery at `Debug`, every test statement and HTTP invocation at `Verbose`. Name configurable via `TestRunner.LoggerName`. |
+| `System` | string | `"Warning"` | Log level for the .NET System namespace. |
+| `Microsoft` | string | `"Warning"` | Log level for the Microsoft namespace (ASP.NET Core, etc.). |
+
+Any entry accepts **`"Off"`** (since 3.19.0) to silence that channel completely — see the [Logging Guide](../guide/logging#silence-a-channel-completely).
 
 ## Console Output
 
@@ -173,7 +184,7 @@ The `PostgresCommand` receives five parameters:
     "ToOpenTelemetry": false,
     "OTLPEndpoint": "http://localhost:4317",
     "OTLPProtocol": "Grpc",
-    "OTLPResourceAttributes": {
+    "OTLResourceAttributes": {
       "service.name": "{application}",
       "service.version": "1.0",
       "service.environment": "{environment}"
@@ -189,7 +200,7 @@ The `PostgresCommand` receives five parameters:
 | `ToOpenTelemetry` | bool | `false` | Enable OpenTelemetry protocol (OTLP) logging output. |
 | `OTLPEndpoint` | string | `"http://localhost:4317"` | OTLP collector endpoint URL. |
 | `OTLPProtocol` | string | `"Grpc"` | Protocol for OTLP: `"Grpc"` or `"HttpProtobuf"`. |
-| `OTLPResourceAttributes` | object | *(see below)* | Resource attributes sent with logs. |
+| `OTLResourceAttributes` | object | *(see below)* | Resource attributes sent with logs. |
 | `OTLPHeaders` | object | `{}` | Custom headers for OTLP requests. |
 | `OTLPMinimumLevel` | string | `"Verbose"` | Minimum log level for OTLP output. |
 
@@ -250,6 +261,7 @@ Production configuration with file and PostgreSQL logging:
 
 ## Related
 
+- [Logging Guide](../guide/logging) - Task-oriented walkthrough: channels, recipes, PostgreSQL notices, production setups
 - [security_sensitive annotation](../annotations/security-sensitive) - Obfuscate sensitive data in logs
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works

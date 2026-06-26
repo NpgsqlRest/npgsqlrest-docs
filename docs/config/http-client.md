@@ -454,6 +454,7 @@ comment on function helper_data() is 'HTTP GET
 
 ## Related
 
+- [HTTP Custom Types Guide](../guide/http-types) — the full walkthrough
 - [HTTP Type annotation](../annotations/http-type) - HTTP Type comment format reference
 - [INTERNAL annotation](../annotations/internal) - Mark endpoints as internal-only
 - [Comment Annotations Guide](../guide/annotations) - How annotations work

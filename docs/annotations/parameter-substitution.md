@@ -72,12 +72,14 @@ A `{name}` can also resolve to an **environment variable** — useful for outbou
 This is **opt-in via an allowlist**: only environment variables you name in `NpgsqlRest:AvailableEnvVars` can be referenced. Any other `{NAME}` is never read from the environment (it stays literal, like an unknown parameter). The allowlist is the security boundary — there is no way to substitute an arbitrary env var.
 
 ```jsonc
-"NpgsqlRest": {
-  // array form — a missing variable resolves to an empty string
-  "AvailableEnvVars": [ "WEATHER_API_KEY", "SERVER_NAME" ]
+{
+  "NpgsqlRest": {
+    // array form — a missing variable resolves to an empty string
+    "AvailableEnvVars": [ "WEATHER_API_KEY", "SERVER_NAME" ]
 
-  // …or object form — name → default used when the variable is absent
-  // "AvailableEnvVars": { "SERVER_NAME": "local" }
+    // …or object form — name → default used when the variable is absent
+    // "AvailableEnvVars": { "SERVER_NAME": "local" }
+  }
 }
 ```
 
@@ -96,6 +98,12 @@ Rules specific to env vars:
 - **Case-insensitive**, same as parameters (`{server_name}` resolves `SERVER_NAME`).
 - **A routine parameter of the same name wins.** If a request parameter and an allowlisted env var share a name, the parameter value is used.
 - **Allowlisted names don't trigger the typo warning** — they're recognized placeholders.
+
+Since 3.21.0, the strict forms from [configuration placeholders](/config/config-section#placeholder-forms-optional-required-and-fallback-3-17-0-fallback-3-21-0) work here too, with the same grammar:
+
+- `{!NAME}` — resolves like `{NAME}` for allowlisted names (and parameters).
+- `{!NAME:fallback}` — resolves to the value; when the allowlisted variable is unset and has no configured default, the literal `fallback` text is used instead. Also applies to parameters: a **null parameter value yields the fallback** (`X-Plan: {!_plan:free}` sends `free` when `_plan` is null).
+- Unlisted names stay literal in every form — the strict forms never widen the allowlist.
 
 ::: warning Response headers are client-visible
 A value substituted into a **response header** is sent to the caller. That's exactly what you want for a per-pod `Server: {SERVER_NAME}` header, but it means you must **not** put a secret env var in a response header. Reserve secrets (API keys, tokens) for outbound [HTTP custom type](./http-type) calls and [custom parameters](./custom-parameters), which stay server-side.
@@ -142,7 +150,7 @@ NpgsqlRest uses `{...}` syntax in a few unrelated places. They are different fea
 | Feature | Looks like | When/where | Rules |
 | --- | --- | --- | --- |
 | **Parameter value substitution** (this page) | `{name}` in an annotation value | request time, into headers / custom params / HTTP-type calls | case-**insensitive**; unknown → literal (+ build-time warning); NULL → empty |
-| [Environment-variable config placeholders](../config/config-section) | `{NAME}` / `{!NAME}` in `appsettings.json` | startup, into config values | resolved from env vars; `{!NAME}` errors if unset |
+| [Environment-variable config placeholders](../config/config-section) | `{NAME}` / `{!NAME}` in `appsettings.json` | startup, into config values | resolved from env vars; `{!NAME}` errors if unset, `{!NAME:fallback}` uses the fallback |
 | [URL path segments](./path) | `{segment}` in a `PATH` route | routing | maps a URL path segment to a parameter |
 | [Resolved parameter expressions](./resolved-parameters) | `param = <sql>` (may itself contain `{name}`) | request time, **server-side in SQL** | the parameter is computed by running SQL; its result then substitutes here. `{name}` inside that SQL is matched case-**insensitively** (same as this page) |
 

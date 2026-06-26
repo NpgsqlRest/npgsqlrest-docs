@@ -24,8 +24,9 @@ NpgsqlRest is a **production-ready**, standalone **web server** that automatical
 
 - **Automatic HTTP REST endpoints** from SQL files, functions, and procedures
 - **SQL files as endpoints** — write plain `.sql` files containing PostgreSQL commands and get REST endpoints automatically
-- **Code generation** for JavaScript/TypeScript client libraries
-- **Code generation** for [HTTP files](/config/http-files) for a simple way to quickly invoke and TEST your API.
+- **Code generation** for [JavaScript/TypeScript client libraries](/config/codegen) — including [TanStack Query (React Query) hooks](/config/react-query) — and [Dart client libraries](/config/dart-codegen) for Flutter
+- **Code generation** for [HTTP files](/config/http-files) for a simple way to quickly invoke and test your API
+- **AI-agent interfaces** — [MCP tools](/config/mcp), OpenAI/Anthropic function-calling schemas, and llms.txt, all from the same SQL comments
 - **Declarative configuration** using SQL comments and annotations
 
 To get started, you need:
@@ -46,24 +47,22 @@ The primary way to create endpoints. Place `.sql` files containing PostgreSQL co
 -- sql/get_users.sql
 -- HTTP GET
 -- @authorize admin
--- @cached
--- @param $1 department_id
-select id, name, email from users where department_id = $1;
+-- @cached department_id
+select id, name, email from users where department_id = :department_id;
 ```
 
-This creates a `GET /api/get-users?department_id=1` endpoint with authorization and caching.
+This creates a `GET /api/get-users?departmentId=1` endpoint with authorization and caching.
 
 Multi-command SQL files execute multiple statements in a single database round-trip:
 
 ```sql
 -- sql/process_order.sql
 -- HTTP POST
--- @param $1 order_id
 -- @result validate
-select count(*) from orders where id = $1;
-update orders set status = 'processing' where id = $1;
+select count(*) from orders where id = :order_id;
+update orders set status = 'processing' where id = :order_id;
 -- @result confirm
-select id, status from orders where id = $1;
+select id, status from orders where id = :order_id;
 ```
 
 See the [SQL File Source configuration](/config/sql-file-source) for details and the [complete SQL File Source tutorial](/blog/sql-file-source-rest-api-from-plain-sql) for a hands-on guide.
@@ -88,7 +87,7 @@ Cache-Control: public, max-age=31536000';
 
 This creates a GET endpoint at `/admin/get-user-data` that requires admin authorization and sets cache control headers.
 
-All endpoint sources generate **HTTP test files** for testing your API and **JavaScript/TypeScript client libraries** with type definitions ready for your frontend.
+All endpoint sources generate **HTTP test files** for testing your API and typed client libraries — **TypeScript/JavaScript** (optionally with TanStack Query hooks) and **Dart** for Flutter — with type definitions ready for your frontend.
 
 ## Technology & Distribution
 

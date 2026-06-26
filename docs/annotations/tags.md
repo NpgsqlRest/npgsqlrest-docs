@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# TAGS
+# TAGS (`for`, `tag`)
 
 ::: info Also known as
 `for`, `tags`, `tag` (no `@` prefix needed; `@for` and `@tags` also work)

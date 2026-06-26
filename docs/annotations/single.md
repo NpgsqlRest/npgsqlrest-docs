@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# SINGLE
+# SINGLE (`single_record`, `single_result`)
 
 ::: info Also known as
 `single_record`, `single_result` (with or without `@` prefix)

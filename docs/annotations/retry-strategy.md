@@ -18,10 +18,10 @@ head:
       content: article
 ---
 
-# RETRY_STRATEGY
+# RETRY_STRATEGY (`retry_strategy_name`, `retry`)
 
 ::: info Also known as
-`retry_strategy`, `retry` (with or without `@` prefix)
+`retry_strategy_name`, `retry_strategy`, `retry` (with or without `@` prefix)
 :::
 
 Assign a named retry strategy for handling transient database failures.

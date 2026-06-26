@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# COMMAND_TIMEOUT
+# COMMAND_TIMEOUT (`timeout`)
 
 ::: info Also known as
 `timeout` (with or without `@` prefix)

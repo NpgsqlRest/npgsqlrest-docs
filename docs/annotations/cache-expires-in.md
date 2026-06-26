@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# CACHE_EXPIRES_IN
+# CACHE_EXPIRES_IN (`cache_expires`)
 
 ::: info Also known as
 `cache_expires` (with or without `@` prefix)

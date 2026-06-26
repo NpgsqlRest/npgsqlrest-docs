@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Call External APIs from PostgreSQL: HTTP Types in NpgsqlRest"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Call external REST APIs directly from PostgreSQL functions using .http file syntax in type comments. No HTTP extensions, no middleware, just SQL."
 head:
@@ -46,48 +47,11 @@ This tutorial builds a **Financial Dashboard** that aggregates data from two pub
 
 ## The Problem: Backend-for-Frontend API Aggregation
 
-A financial dashboard typically combines several external feeds before anything reaches the user:
-
-- Currency exchange rates from one service
-- Cryptocurrency prices from another
-- Stock market data from a third
-
-The traditional approach requires:
-
-1. **HTTP Client Library** - Axios, fetch, HttpClient, etc.
-2. **API Service Layer** - Classes to manage each external API
-3. **Error Handling** - Retry logic, timeout handling, circuit breakers
-4. **Response Transformation** - Map external responses to internal DTOs
-5. **Caching Layer** - Reduce API calls and improve performance
-6. **API Gateway** - Route and aggregate external calls
-
-This creates a substantial codebase just to proxy external data.
+A financial dashboard combines several external feeds - exchange rates from one service, crypto prices from another - before anything reaches the user. The traditional approach means an HTTP client library, a service class per API, retry and timeout handling, response-to-DTO mapping, and route wiring: a substantial codebase just to proxy external data.
 
 ## Why Not Use PostgreSQL HTTP Extensions?
 
-PostgreSQL has extensions like `http` and `pgsql-http` that allow making HTTP requests directly from SQL. They work, but the drawbacks add up:
-
-### Installation and Distribution Overhead
-
-HTTP extensions must be:
-- **Compiled and installed** on every PostgreSQL instance
-- **Distributed with your deployment** - adding complexity to Docker images, managed databases, CI/CD pipelines
-- **Maintained across versions** - extension compatibility with PostgreSQL upgrades
-- **Approved by DBAs** - many organizations restrict which extensions can be installed
-
-With managed database services (AWS RDS, Azure Database, Google Cloud SQL), you're often limited to a predefined list of extensions - and HTTP extensions may not be available.
-
-### Network and Performance Issues
-
-Making HTTP calls directly from the database has architectural problems:
-
-- **Database servers are often network-isolated** - firewalls and proxies may block outbound HTTP traffic from the database tier
-- **Connection pooling conflicts** - long-running HTTP requests tie up database connections
-- **Database waits for responses** - while waiting for an external API, the PostgreSQL process is blocked, consuming a connection slot
-- **No horizontal scaling** - all HTTP calls go through the database, creating a bottleneck
-- **Difficult to debug** - network issues from the database server are harder to diagnose
-
-### The NpgsqlRest Advantage
+Extensions like `http` and `pgsql-http` can make HTTP requests directly from SQL, but they must be compiled, installed, and maintained on every PostgreSQL instance - and managed services (AWS RDS, Azure Database, Google Cloud SQL) usually don't offer them. The architecture works against you too: database servers are often network-isolated, and every HTTP call blocks a PostgreSQL connection slot while it waits for an external server to respond.
 
 With NpgsqlRest HTTP Types, the HTTP calls are made **from the NpgsqlRest server**, not from PostgreSQL:
 
@@ -129,7 +93,7 @@ Header-Name: Header-Value
 [request body]
 ```
 
-With one addition that does the heavy lifting: **placeholders**. Any `{parameter_name}` in the URL, headers, or body is replaced with the corresponding function parameter value.
+With one addition that does the heavy lifting: **placeholders**. Any `{name}` in the URL, headers, or body is replaced with the corresponding function parameter value - or, since v3.17.0, with an [allowlisted environment variable](#environment-variables-for-api-keys), covered below.
 
 ```sql
 comment on type my_api is 'GET https://api.example.com/users/{_user_id}
@@ -385,197 +349,13 @@ const response = await getFinancialDashboard({
 });
 
 if (response.response.fiatSuccess) {
-    // Display exchange rates
-    for (const [currency, rate] of Object.entries(response.response.fiatRates)) {
-        console.log(`1 USD = ${rate} ${currency}`);
-    }
-}
-
-if (response.response.cryptoSuccess) {
-    // Display crypto prices
-    for (const [crypto, prices] of Object.entries(response.response.cryptoPrices)) {
-        console.log(`${crypto}: $${prices.usd}`);
-    }
+    console.log(response.response.fiatRates); // { EUR: 0.854542, GBP: 0.740946, ... }
 }
 ```
-
-## Traditional Approach: What It Would Take
-
-The equivalent Node.js/Express implementation:
-
-### Traditional Backend (Node.js)
-
-```javascript
-// services/exchangeRateService.js
-const axios = require('axios');
-
-class ExchangeRateService {
-    constructor() {
-        this.baseUrl = 'https://open.er-api.com/v6/latest';
-        this.timeout = 10000;
-    }
-
-    async getRates(baseCurrency) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/${baseCurrency}`, {
-                timeout: this.timeout,
-                headers: { 'Accept': 'application/json' }
-            });
-            return {
-                success: true,
-                data: response.data,
-                statusCode: response.status
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                statusCode: error.response?.status || 500
-            };
-        }
-    }
-}
-
-// services/cryptoPriceService.js
-class CryptoPriceService {
-    constructor() {
-        this.baseUrl = 'https://api.coingecko.com/api/v3/simple/price';
-        this.timeout = 10000;
-    }
-
-    async getPrices(cryptoIds, vsCurrencies) {
-        try {
-            const response = await axios.get(this.baseUrl, {
-                params: {
-                    ids: cryptoIds.join(','),
-                    vs_currencies: vsCurrencies.join(',')
-                },
-                timeout: this.timeout,
-                headers: { 'Accept': 'application/json' }
-            });
-            return {
-                success: true,
-                data: response.data,
-                statusCode: response.status
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                statusCode: error.response?.status || 500
-            };
-        }
-    }
-}
-
-// controllers/dashboardController.js
-const { body, query, validationResult } = require('express-validator');
-
-const validateDashboardRequest = [
-    query('baseCurrency')
-        .isLength({ min: 3, max: 3 })
-        .withMessage('baseCurrency must be a 3-letter code'),
-    query('targetCurrencies')
-        .notEmpty()
-        .withMessage('targetCurrencies is required'),
-    query('cryptoIds')
-        .notEmpty()
-        .withMessage('cryptoIds is required'),
-    query('vsCurrencies')
-        .notEmpty()
-        .withMessage('vsCurrencies is required')
-];
-
-async function getFinancialDashboard(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { baseCurrency, targetCurrencies, cryptoIds, vsCurrencies } = req.query;
-
-    const exchangeService = new ExchangeRateService();
-    const cryptoService = new CryptoPriceService();
-
-    // Fetch both APIs in parallel
-    const [exchangeResult, cryptoResult] = await Promise.all([
-        exchangeService.getRates(baseCurrency),
-        cryptoService.getPrices(
-            cryptoIds.split(','),
-            vsCurrencies.split(',')
-        )
-    ]);
-
-    // Filter exchange rates to requested currencies
-    let filteredRates = {};
-    if (exchangeResult.success) {
-        const targetArray = targetCurrencies.split(',').map(c => c.trim().toUpperCase());
-        for (const currency of targetArray) {
-            if (exchangeResult.data.rates[currency]) {
-                filteredRates[currency] = exchangeResult.data.rates[currency];
-            }
-        }
-    }
-
-    // Build response
-    const response = {
-        fiatBaseCurrency: baseCurrency.toUpperCase(),
-        fiatRates: exchangeResult.success ? filteredRates : null,
-        fiatLastUpdated: exchangeResult.success ? exchangeResult.data.time_last_update_utc : null,
-        fiatSuccess: exchangeResult.success,
-        fiatError: exchangeResult.success ? null : exchangeResult.error,
-        cryptoPrices: cryptoResult.success ? cryptoResult.data : null,
-        cryptoSuccess: cryptoResult.success,
-        cryptoError: cryptoResult.success ? null : cryptoResult.error
-    };
-
-    res.json(response);
-}
-
-// routes/dashboard.js
-const express = require('express');
-const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-
-router.get(
-    '/financial-dashboard',
-    authenticateToken,
-    validateDashboardRequest,
-    getFinancialDashboard
-);
-
-module.exports = router;
-
-// types/dashboard.ts (if using TypeScript)
-interface FinancialDashboardRequest {
-    baseCurrency: string;
-    targetCurrencies: string;
-    cryptoIds: string;
-    vsCurrencies: string;
-}
-
-interface FinancialDashboardResponse {
-    fiatBaseCurrency: string;
-    fiatRates: Record<string, number> | null;
-    fiatLastUpdated: string | null;
-    fiatSuccess: boolean;
-    fiatError: string | null;
-    cryptoPrices: Record<string, Record<string, number>> | null;
-    cryptoSuccess: boolean;
-    cryptoError: string | null;
-}
-```
-
-**Plus you need:**
-- Express app setup
-- Middleware configuration
-- Error handling middleware
-- Authentication middleware
-- Environment configuration
-- Dependency management (package.json)
-- TypeScript compilation (if using TS)
 
 ## The Numbers
+
+The equivalent Node.js/Express implementation needs a service class per API (axios call, timeout, error handling), a controller with request validation, route wiring with auth middleware, and hand-written TypeScript interfaces - plus axios, express-validator, and friends in `package.json`:
 
 | Component | Traditional (Node.js) | NpgsqlRest |
 |-----------|----------------------|------------|
@@ -591,30 +371,6 @@ interface FinancialDashboardResponse {
 **Estimated savings: 70% less code, zero additional dependencies, auto-generated client.**
 
 ## Advanced Features
-
-### Multiple API Calls
-
-A single function can use multiple HTTP Types for sequential or parallel API calls:
-
-```sql
-create function fetch_with_enrichment(
-    _user_id text,
-    _user_api user_api_type,        -- First API call
-    _preferences_api prefs_api_type  -- Second API call
-)
-returns json
-language plpgsql
-as $$
-begin
-    -- Both APIs are called before this function executes
-    -- Results are available in _user_api and _preferences_api
-    return json_build_object(
-        'user', (_user_api).body::json,
-        'preferences', (_preferences_api).body::json
-    );
-end;
-$$;
-```
 
 ### POST Requests with Bodies
 
@@ -658,9 +414,40 @@ Accept: application/json
 
 The delay list defines both the number of retries and the delay before each. Without the `on` filter, retries happen on any failure. See [HTTP Client Options](/config/http-client#retry-logic) for full details.
 
+`@timeout` accepts plain seconds (`30`), a suffix (`30s`, `5m`), or the TimeSpan format (`00:00:30`).
+
+### Environment Variables for API Keys
+
+Both APIs in this tutorial are free and keyless, but most real APIs want a key - and the key shouldn't come from the client. Since **v3.17.0**, `{name}` placeholders can also resolve **allowlisted environment variables**, so a static API key never has to be routed through a request parameter. For example, on CoinGecko's keyed demo tier:
+
+```json
+{
+  "NpgsqlRest": {
+    "AvailableEnvVars": ["COINGECKO_API_KEY"]
+  }
+}
+```
+
+```sql
+comment on type example_9.crypto_price_api is 'GET https://api.coingecko.com/api/v3/simple/price?ids={_crypto_ids_csv}&vs_currencies={_vs_currencies_csv}
+x-cg-demo-api-key: {COINGECKO_API_KEY}
+Accept: application/json
+@timeout 10s';
+```
+
+`{_crypto_ids_csv}` and `{_vs_currencies_csv}` still come from function parameters, while `{COINGECKO_API_KEY}` is read from the environment - the key never appears in SQL, client code, or version control.
+
+Rules to know:
+
+- **Opt-in allowlist.** Only variables named in `NpgsqlRest:AvailableEnvVars` are ever read - any other `{NAME}` stays literal. The allowlist is the security boundary.
+- **Resolved once at startup**, matched case-insensitively. Changing a variable requires a restart.
+- **Function parameters win** - a parameter with the same name takes precedence over the environment variable.
+
+See [Parameter Substitution](/annotations/parameter-substitution#environment-variables) for full details.
+
 ### Resolved Parameter Expressions
 
-Sensitive values like API tokens can be resolved server-side via SQL, keeping secrets out of client requests entirely:
+Environment variables cover static, per-deployment secrets. For values that are per-user or computed - like a token looked up from a table - resolve them server-side via SQL instead:
 
 ```sql
 comment on type paid_api is 'GET https://api.example.com/premium/{_query}
@@ -680,24 +467,6 @@ _token = select api_token from user_tokens where user_id = {_user_id}
 ```
 
 The client calls `GET /api/search-premium/?query=test&user_id=42`. The server resolves `_token` from the database and substitutes it into the `Authorization` header â€” the token never leaves the server. See [HTTP Client Options](/config/http-client#resolved-parameter-expressions) for full details.
-
-### Timeout Configuration
-
-Multiple timeout formats are supported:
-
-```sql
--- Seconds (integer)
-comment on type api is '@timeout 30
-GET https://api.example.com/data';
-
--- With suffix
-comment on type api is 'GET https://api.example.com/data
-@timeout 30s';
-
--- TimeSpan format
-comment on type api is 'GET https://api.example.com/data
-@timeout 00:00:30';
-```
 
 ## When to Use HTTP Types
 
@@ -725,7 +494,8 @@ Everything in this post also works with [SQL file endpoints](/guide/sql-files) â
   source-code="https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/9_http_calls"
   :documentation="[
     { text: 'HTTP Type Annotation', href: '/annotations/http-type' },
-    { text: 'HTTP Client Options', href: '/config/http-client' }
+    { text: 'HTTP Client Options', href: '/config/http-client' },
+    { text: 'Parameter Substitution', href: '/annotations/parameter-substitution' }
   ]"
   :get-started="[
     { text: 'Quick Start Guide', href: '/guide/quick-start' },

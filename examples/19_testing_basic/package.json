@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "dev": "cd .. && bun npgsqlrest ./config.json ./19_testing_basic/config.json",
+    "watch": "cd .. && bun npgsqlrest ./config.json ./19_testing_basic/config.json --watch",
+    "test": "cd .. && bun npgsqlrest ./config.json ./19_testing_basic/config.json ./19_testing_basic/test-config.json --test",
+    "test-watch": "cd .. && bun npgsqlrest ./config.json ./19_testing_basic/config.json ./19_testing_basic/test-config.json --test --watch",
+
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./19_testing_basic/migrations_19",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./19_testing_basic/migrations_19"
+  }
+}

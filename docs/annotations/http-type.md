@@ -372,6 +372,7 @@ See **[Resolved Parameters](./resolved-parameters)** for the full reference (beh
 
 ## Related
 
+- [HTTP Custom Types Guide](../guide/http-types) — the full walkthrough
 - [Interval Format](./interval-format) - Time/duration format reference
 - [HTTP Client Options](../config/http-client) - Configure HTTP client settings
 - [Comment Annotations Guide](../guide/annotations) - How annotations work

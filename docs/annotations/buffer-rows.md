@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# BUFFER_ROWS
+# BUFFER_ROWS (`buffer`)
 
 ::: info Also known as
 `buffer` (with or without `@` prefix)

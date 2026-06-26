@@ -18,10 +18,10 @@ head:
       content: article
 ---
 
-# ERROR_CODE_POLICY
+# ERROR_CODE_POLICY (`error_code_policy_name`, `error_code`)
 
 ::: info Also known as
-`error_code_policy`, `error_code` (with or without `@` prefix)
+`error_code_policy_name`, `error_code` (with or without `@` prefix)
 :::
 
 Associate an error handling policy with the endpoint.

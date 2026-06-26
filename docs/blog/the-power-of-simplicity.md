@@ -2,9 +2,9 @@
 layout: doc
 outline: [2, 3]
 title: "The Power of Simplicity"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "How collapsing the standard data access pattern down to UI → RDBMS could save enough energy to power a small country."
-badge: human
 head:
   - - meta
     - name: keywords

@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# COLUMN_NAMES
+# COLUMN_NAMES (`columns`, `names`)
 
 ::: info Also known as
 `columns`, `names` (with or without `@` prefix)

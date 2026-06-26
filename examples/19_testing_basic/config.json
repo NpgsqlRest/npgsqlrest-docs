@@ -1,0 +1,31 @@
+{
+  "ApplicationName": "19_testing_basic",
+
+  "NpgsqlRest": {
+    // Endpoints are anonymous by default; create_user opts INTO auth with `@authorize admin`. The test
+    // request path must equal the endpoint path, which includes the default UrlPathPrefix "/api"
+    // (so the tests call "/api/get-users", "/api/create-user").
+    "RequiresAuthorization": false,
+
+    // Endpoints come from .sql files. `SkipPattern` keeps the co-located *.test.sql files OUT of the API
+    // (without it, a test file's `/* GET /x */` block would be read as an HTTP annotation and exposed).
+    "RoutineOptions": { "Enabled": false },
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./19_testing_basic/sql/**/*.sql",
+      "SkipPattern": "*.test.sql"
+    },
+
+    // Role authorization for the `@authorize admin` endpoint (sql/create_user.sql). The test runner
+    // injects claims via `# @claim`; a `roles` claim is matched because it is the DefaultRoleClaimType.
+    // https://npgsqlrest.github.io/config/authentication-options.html
+    "AuthenticationOptions": {
+      "DefaultRoleClaimType": "roles"
+    },
+
+    "HttpFileOptions": {
+      "NamePattern": "./19_testing_basic/http/{1}",
+      "OmitAutomaticParameters": true
+    }
+  }
+}

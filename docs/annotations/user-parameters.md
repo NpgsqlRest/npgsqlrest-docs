@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# USER_PARAMETERS
+# USER_PARAMETERS (`user_params`)
 
 ::: info Also known as
 `user_params` (with or without `@` prefix)

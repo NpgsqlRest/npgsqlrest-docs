@@ -22,9 +22,57 @@ head:
 
 This page covers all database connection configuration in NpgsqlRest, including connection strings, connection behavior settings, and NpgsqlRest-specific connection options.
 
+::: tip Scenario-driven walkthrough
+For a task-oriented tour — replicas, sharding, OLTP + OLAP setups, multi-host failover, and which mechanism to use when — see the [Connection Management guide](/guide/connections).
+:::
+
+## Overview
+
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host={!PGHOST:localhost};Port={!PGPORT:5432};Database={!PGDATABASE};Username={!PGUSER:postgres};Password={!PGPASSWORD:postgres}"
+  },
+  "ConnectionSettings": {
+    "SetApplicationNameInConnection": true,
+    "UseJsonApplicationName": false,
+    "TestConnectionStrings": true,
+    "RetryOptions": {
+      "Enabled": true,
+      "RetrySequenceSeconds": [
+        1,
+        3,
+        6,
+        12
+      ],
+      "ErrorCodes": [
+        "08000",
+        "08003",
+        "08006",
+        "08001",
+        "08004",
+        "55P03",
+        "55006",
+        "53300",
+        "57P03",
+        "40001"
+      ]
+    },
+    "MetadataQueryConnectionName": null,
+    "MetadataQuerySchema": null,
+    "MultiHostConnectionTargets": {
+      "Default": "Any",
+      "ByConnectionName": {}
+    }
+  }
+}
+```
+
+NpgsqlRest-specific connection options (`ConnectionName`, `UseMultipleConnections`, `CommandTimeout`) live in the [NpgsqlRest section](./npgsqlrest#connection-settings); `ConnectionName` and `UseMultipleConnections` are also covered [below](#npgsqlrest-connection-options).
+
 ## Connection Strings
 
-The `ConnectionStrings` section defines named database connections. The first available connection is used automatically when no specific connection is specified.
+The `ConnectionStrings` section defines named database connections. When `NpgsqlRest.ConnectionName` is not set, the first connection in key order (configuration keys are sorted alphabetically, not by position in the file) is used — set `ConnectionName` explicitly when you define more than one.
 
 ```json
 {
@@ -52,15 +100,21 @@ You can define multiple named connections for different purposes (e.g., read rep
 
 Connection strings support environment variable placeholders when `ParseEnvironmentVariables` is enabled (default):
 
+- `{NAME}` — optional: replaced with the variable's value when set; left as a literal placeholder when not set.
+- `{!NAME}` — **required** (3.17.0+; in connection strings since 3.20.0): replaced with the variable's value, or the startup fails with an error naming the missing variable — `Required environment variable 'PGDATABASE' (referenced as '{!PGDATABASE}' in configuration) is not set.`
+- `{!NAME:fallback}` — **fallback** (version 3.21.0+): replaced with the variable's value when set, otherwise with the literal `fallback` text — never fails. The fallback starts after the first `:` and runs to the closing brace, so it may itself contain `:`.
+
+The default configuration uses fallbacks matching the standard PostgreSQL defaults for everything except the database name, which stays required — so running with no environment configured produces exactly one actionable error, and setting only `PGDATABASE` connects to `localhost:5432` as `postgres`/`postgres`:
+
 ```json
 {
   "ConnectionStrings": {
-    "Default": "Host={PGHOST};Port={PGPORT};Database={PGDATABASE};Username={PGUSER};Password={PGPASSWORD}"
+    "Default": "Host={!PGHOST:localhost};Port={!PGPORT:5432};Database={!PGDATABASE};Username={!PGUSER:postgres};Password={!PGPASSWORD:postgres}"
   }
 }
 ```
 
-This is the recommended approach for production deployments to keep credentials out of configuration files.
+This is the recommended approach for production deployments to keep credentials out of configuration files. Note that `npgsqlrest --config` and configuration validation never fail on unset required variables — the `{!NAME}` placeholder is kept verbatim in rendered output so the configuration can always be inspected first, while `{!NAME:fallback}` renders as the fallback value (it *is* the value the running application will use).
 
 ### Connection String Parameters
 
@@ -112,11 +166,11 @@ The `ConnectionSettings` section controls connection behavior, testing, and retr
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `SetApplicationNameInConnection` | bool | `true` | Sets the `ApplicationName` connection property to the configured application name. |
+| `SetApplicationNameInConnection` | bool | `true` | Sets the `ApplicationName` connection property to the configured application name. Ignored when `UseJsonApplicationName` is enabled. |
 | `UseJsonApplicationName` | bool | `false` | Dynamically sets a JSON-formatted application name per request (see below). Note: Limited to 64 characters. |
 | `TestConnectionStrings` | bool | `true` | Validates each connection by opening and closing it during startup. |
 | `MetadataQueryConnectionName` | string | `null` | Connection name used for metadata queries. Uses default connection if null. |
-| `MetadataQuerySchema` | string | `null` | Set the search path to this schema before executing the metadata query function. When `null` (default), no search path is set and the server's default search path is used. Useful when using non-superuser roles with limited schema access. |
+| `MetadataQuerySchema` | string | `null` | Set the search path to this schema before executing the metadata query function. When `null` (default), no search path is set and the server's default search path is used. Useful when using non-superuser roles with limited schema access. Skipped when the connection string already contains `Search Path=`. |
 | `MultiHostConnectionTargets` | object | *(see below)* | Configuration for multi-host connection failover and load balancing. |
 
 ### Application Name in Connection
@@ -137,7 +191,7 @@ When `UseJsonApplicationName` is `true`, the `ApplicationName` connection proper
 | `uid` | User ID for authenticated users, or `null` for anonymous requests |
 | `id` | Value of the execution request header, or `null` if not provided |
 
-The execution request header name can be configured in the `NpgsqlRest` section under`ExecutionIdHeaderName` (default is `X-NpgsqlRest-ID`). See [NpgsqlRest Request Headers](./npgsqlrest.html#request-headers) for details.
+The execution request header name can be configured in the `NpgsqlRest` section under `ExecutionIdHeaderName` (default is `X-NpgsqlRest-ID`). See [NpgsqlRest Request Headers](./npgsqlrest#request-headers) for details.
 
 This provides detailed per-request tracking in PostgreSQL's `pg_stat_activity`.
 
@@ -176,7 +230,7 @@ The `RetryOptions` section configures automatic retry behavior for transient con
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `Enabled` | bool | `true` | Enable automatic retry for connection failures. |
-| `RetrySequenceSeconds` | number[] | `[1, 3, 6, 12]` | Wait intervals (in seconds) between retry attempts. Supports decimals like `0.25`. |
+| `RetrySequenceSeconds` | number[] | `[1, 3, 6, 12]` | Wait intervals (in seconds) between retry attempts. Supports decimals like `0.25`. The array length is the maximum number of retries. |
 | `ErrorCodes` | string[] | *(see below)* | PostgreSQL error codes that trigger automatic retries. |
 
 ### Default Error Codes
@@ -297,7 +351,7 @@ The `NpgsqlRest` section contains additional connection-related settings that co
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `ConnectionName` | string | `null` | Connection name from `ConnectionStrings` to use. Uses first available if `null`. |
-| `UseMultipleConnections` | bool | `false` | Allow individual routines to specify alternative connections. |
+| `UseMultipleConnections` | bool | `false` | Allow individual routines to specify alternative connections via the `@connection` annotation. |
 
 ### Using Multiple Connections
 
@@ -306,6 +360,10 @@ When `UseMultipleConnections` is `true`, individual PostgreSQL routines can spec
 - **Read replicas**: Route read-only queries to replicas
 - **Sharding**: Route queries to different database shards
 - **Resource isolation**: Separate heavy analytics queries from transactional workloads
+
+::: warning Identical metadata assumed
+Routine metadata is still discovered on a **single** connection (`ConnectionName`, or `MetadataQueryConnectionName` when set). The `@connection` annotation only changes where a request *executes* — the routine must exist on the discovery connection to become an endpoint at all, and the target database is assumed to have the same routine. That is exactly right for replicas and shards. For databases that host **different** routines, use [`ReadMetadataFromConnections`](#per-connection-routine-discovery-3-21-0) instead.
+:::
 
 Example PostgreSQL function using a specific connection:
 
@@ -332,6 +390,57 @@ HTTP GET /reports/data
 */
 select * from large_table;
 ```
+
+Since 3.21.0 the main connection is routable **by its own name** too (previously that failed the request), and it resolves to the same connection pool as unrouted requests.
+
+### Per-Connection Routine Discovery (3.21.0+)
+
+When different databases host **different** routines (for example OLTP + OLAP/DW), list them in `NpgsqlRest:RoutineOptions:ReadMetadataFromConnections` — routine metadata is then read from **each listed connection**, and every discovered endpoint **executes on the connection it was discovered from**:
+
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=oltp;Username=postgres;Password=postgres",
+    "olap": "Host=warehouse;Port=5432;Database=olap;Username=postgres;Password=postgres"
+  },
+  "NpgsqlRest": {
+    "RoutineOptions": {
+      "ReadMetadataFromConnections": [ "Default", "olap" ]
+    }
+  }
+}
+```
+
+A routine that lives only on the `olap` database is discovered there — annotations included — and runs there, with nothing else to configure. The rules:
+
+- The list **replaces** the default: include the main connection's name to keep serving its routines.
+- An explicit `@connection` annotation still overrides the execution connection.
+- Setting the key **implicitly enables multiple connections** — no `UseMultipleConnections` flag needed.
+- Every listed name must exist in `ConnectionStrings` (unknown names stop startup with an error).
+- All other `RoutineOptions` settings and the global schema/name filters are shared by every source.
+- Composite types resolve per database — same-named types with different fields are handled correctly.
+- Watch mode (`--watch`) polls each discovery connection for routine changes.
+- When the same path is discovered from two connections, the later listed connection wins and a startup warning names both — disambiguate with schema/name filters or a `@path` annotation.
+
+### Routed Endpoint Verification (3.21.0+)
+
+Endpoints routed by `@connection` to a different connection than they were discovered on assume the target database has the same routines. `NpgsqlRest:RoutineOptions:VerifyRoutedEndpoints` checks that assumption at startup with one batched existence query per distinct target connection (`to_regprocedure`; `to_regclass` for library `CrudSource` users):
+
+```json
+{
+  "NpgsqlRest": {
+    "RoutineOptions": {
+      "VerifyRoutedEndpoints": "Warn"
+    }
+  }
+}
+```
+
+- `"None"` (default) — no verification.
+- `"Warn"` — every missing routine is logged as a warning naming the routine, the connection, and the endpoints that need it.
+- `"Fail"` — any missing routine stops startup with an aggregated error.
+
+The check verifies existence/signature only (result shapes are not compared); SQL-file endpoints are skipped.
 
 ## Complete Example
 
@@ -362,7 +471,7 @@ Here's a complete connection configuration for a production environment:
 
 ## Related
 
-- [connection annotation](../annotations/connection) - Use named database connection per endpoint
+- [`@connection` annotation](../annotations/connection) - Use named database connection per endpoint
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 
@@ -370,7 +479,3 @@ Here's a complete connection configuration for a production environment:
 
 - [Server & SSL](./server) - Configure HTTPS and Kestrel web server
 - [Authentication](./auth) - Set up authentication methods
-
-## See Also
-
-- [CONNECTION](/annotations/connection) - Use named connection per endpoint

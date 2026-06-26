@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# SEPARATOR
+# SEPARATOR (`raw_separator`)
 
 ::: info Also known as
 `raw_separator` (with or without `@` prefix)

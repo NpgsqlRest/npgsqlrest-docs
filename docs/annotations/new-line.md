@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# NEW_LINE
+# NEW_LINE (`raw_new_line`)
 
 ::: info Also known as
 `raw_new_line` (with or without `@` prefix)

@@ -111,7 +111,7 @@ This comment contains:
 
 ## The HTTP Annotation
 
-The `HTTP` annotation is the primary way to expose a function or table as an endpoint. Without it (when using the client's default `CommentsMode: OnlyAnnotated`, or the library's `OnlyWithHttpTag`), the object won't be exposed — unless a loaded plugin annotation requests an endpoint (e.g. [`@mcp`](../annotations/mcp), which can create an MCP-only routine with no HTTP route).
+The `HTTP` annotation is the primary way to expose a function or table as an endpoint. Without it (under the client's default `CommentsMode: OnlyAnnotated` — or its identical-behavior alias `OnlyWithHttpTag`, the library default), the object won't be exposed — unless a loaded plugin annotation requests an endpoint (e.g. [`@mcp`](../annotations/mcp), which can create an MCP-only routine with no HTTP route).
 
 ### Syntax Variations
 
@@ -236,7 +236,7 @@ comment on function create_user(_name text, _email text) is
 
 ## Caching
 
-Enable response caching for scalar results:
+Enable server-side response caching (scalar, record, and set results):
 
 ```sql
 -- Simple caching
@@ -326,7 +326,7 @@ The `CommentsMode` configuration setting controls how annotations affect endpoin
 
 | Mode | Behavior |
 |------|----------|
-| `OnlyWithHttpTag` | Only create endpoints for objects with `HTTP` annotation (default) |
+| `OnlyAnnotated` | Only create endpoints for objects with an `HTTP` annotation or a plugin annotation that requests an endpoint, such as `@mcp` (default; `OnlyWithHttpTag` is an identical-behavior alias) |
 | `ParseAll` | Create all endpoints, parse annotations to modify them |
 | `Ignore` | Create all endpoints, ignore all annotations |
 
@@ -338,6 +338,7 @@ Several annotations accept time or duration values (e.g., `@timeout`, `@cache_ex
 
 | Unit | Short | Long Forms |
 |------|-------|------------|
+| Milliseconds | `ms` | `msec`, `millisecond`, `milliseconds` |
 | Seconds | `s` | `sec`, `second`, `seconds` |
 | Minutes | `m` | `min`, `minute`, `minutes` |
 | Hours | `h` | `hour`, `hours` |

@@ -33,7 +33,9 @@ Options for handling PostgreSQL routines (functions and procedures).
       "IncludeLanguages": null,
       "ExcludeLanguages": null,
       "NestedJsonForCompositeTypes": false,
-      "ResolveNestedCompositeTypes": true
+      "ResolveNestedCompositeTypes": true,
+      "ReadMetadataFromConnections": null,
+      "VerifyRoutedEndpoints": "None"
     }
   }
 }
@@ -47,8 +49,10 @@ Options for handling PostgreSQL routines (functions and procedures).
 | `CustomTypeParameterSeparator` | string | `null` | Separator for custom type parameter names. Uses underscore (`_`) if `null`. |
 | `IncludeLanguages` | array | `null` | List of routine language names to include. Includes all if `null`. Case-insensitive. |
 | `ExcludeLanguages` | array | `null` | List of routine language names to exclude. Excludes `C` and `INTERNAL` if `null`. Case-insensitive. |
-| `NestedJsonForCompositeTypes` | boolean | `false` | When `true`, composite type columns in return tables are serialized as nested JSON objects instead of flat structure. |
-| `ResolveNestedCompositeTypes` | boolean | `true` | When `true`, nested composite types are resolved to any depth, serializing inner composites as proper JSON objects/arrays instead of PostgreSQL tuple strings. |
+| `NestedJsonForCompositeTypes` | bool | `false` | When `true`, composite type columns in return tables are serialized as nested JSON objects instead of flat structure. |
+| `ResolveNestedCompositeTypes` | bool | `true` | When `true`, nested composite types are resolved to any depth, serializing inner composites as proper JSON objects/arrays instead of PostgreSQL tuple strings. |
+| `ReadMetadataFromConnections` | array | `null` | Per-connection routine discovery (3.21.0+): list of `ConnectionStrings` names to read routine metadata from — one source per name, and endpoints execute on the connection they were discovered from (`@connection` annotation wins). The list replaces the default (include the main connection's name to keep it); setting it implicitly enables multiple connections. `null` = single discovery connection (previous behavior). See [Connection Settings](./connection#per-connection-routine-discovery-3-21-0). |
+| `VerifyRoutedEndpoints` | string | `"None"` | Startup verification for routines routed by `@connection` to a different connection than they were discovered on (3.21.0+): `None`, `Warn` (log each missing routine), or `Fail` (stop startup). Checks content (routine existence), unlike `ConnectionSettings.TestConnectionStrings` which checks connectivity. See [Connection Settings](./connection#routed-endpoint-verification-3-21-0). |
 
 ## Custom Type Parameter Separator
 

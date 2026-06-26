@@ -1,0 +1,44 @@
+{
+
+  // A dedicated TEST DATABASE, created fresh for the test session and dropped afterwards. The runner does
+  // no system operations itself — create/drop are ordinary `Sql` steps in TestRunner.Setup/Teardown, run on
+  // an "Admin" maintenance connection (pointed at the `postgres` database). In test mode the app routes its
+  // connection (endpoint type-checking + execution) to TestRunner.ConnectionName ("Test"); that database
+  // need not exist at startup because the first Setup step creates it before anything opens it.
+  "ConnectionStrings": {
+    // Maintenance connection (postgres db) for create/drop database. The login role needs CREATEDB.
+    "Admin": "Host={PGHOST};Port={PGPORT};Database=postgres;Username={PGUSER};Password={PGPASSWORD}",
+    // The test database — a unique name per run: {rnd5} is one stable random token for the whole run, so the
+    // SAME name lands here and in the Setup create / Teardown drop below. It must match in all three places.
+    "Test": "Host={PGHOST};Port={PGPORT};Database=example_20_test_{rnd5};Username={PGUSER};Password={PGPASSWORD}"
+  },
+
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRest": "Error",
+      "NpgsqlRestClient": "Off",
+      "NpgsqlRestTest": "Information"
+    }
+  },
+  
+  "TestRunner": {
+    // Run the tests against the "Test" connection instead of the app's main connection.
+    "ConnectionName": "Test",
+    // Tests live in their own tree (separate from the endpoint .sql files in ./sql), named by scenario.
+    "FilePattern": "./20_testing_newdb/tests/**/*.test.sql",
+
+    // Named, reusable steps — referenced by name from Setup/Teardown below (and available to individual
+    // test files via `-- @setup Name` / `-- @teardown Name` header annotations).
+    "Steps": {
+      "CreateDatabase":  { "Sql": "create database example_20_test_{rnd5}", "ConnectionName": "Admin" },
+      "ApplyMigrations": { "SqlFile": "./20_testing_newdb/migrations_20/R__example_20_schema.sql" },
+      "DropDatabase":    { "Sql": "drop database if exists example_20_test_{rnd5} with (force)", "ConnectionName": "Admin" }
+    },
+
+    // Steps run in the exact order written. The {rnd5} name is unique per run, so no drop-if-exists is
+    // needed on create — but a crash that skips Teardown orphans that run's database (a static name with a
+    // leading "drop database if exists ... with (force);" is the self-healing alternative).
+    "Setup":    ["CreateDatabase", "ApplyMigrations"],
+    "Teardown": ["DropDatabase"]
+  }
+}

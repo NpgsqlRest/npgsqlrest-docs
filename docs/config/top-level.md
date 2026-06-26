@@ -22,7 +22,7 @@ head:
 
 These settings configure the application identity, server binding, and configuration behavior.
 
-## Application Settings
+## Overview
 
 ```json
 {
@@ -33,14 +33,14 @@ These settings configure the application identity, server binding, and configura
 }
 ```
 
-### Settings Reference
+## Application Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `ApplicationName` | string | `null` | Application identifier. Defaults to the top-level directory name if not set. |
+| `ApplicationName` | string | `null` | Application identifier. Defaults to the name of the current working directory if not set. Also used as the connection `ApplicationName` (see [Connection Settings](./connection#application-name-in-connection)). |
 | `EnvironmentName` | string | `"Production"` | Environment designation (`Development`, `Staging`, `Production`). |
 | `Urls` | string | `"http://localhost:8080"` | Server listening URLs. Separate multiple URLs with semicolons. |
-| `StartupMessage` | string | *(see below)* | Message displayed on startup. Supports placeholders. |
+| `StartupMessage` | string | *(see below)* | Message logged at Information level on startup. Supports placeholders; set to an empty string to disable. |
 
 Default `StartupMessage`: `"Started in {time}, listening on {urls}, version {version}"`
 

@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Implementing WebAuthn Passkeys with Pure SQL and NpgsqlRest"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Learn how to implement passwordless WebAuthn passkey authentication entirely in PostgreSQL using NpgsqlRest. Full SQL-based passkey registration, login, and credential management."
 head:

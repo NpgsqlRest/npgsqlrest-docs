@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# RESULT_NAME
+# RESULT_NAME (`result`)
 
 Rename the default result keys (`result1`, `result2`, ...) in multi-command SQL file endpoints. This makes the response JSON more descriptive and easier to consume.
 
@@ -94,15 +94,14 @@ Commands without a `@result` annotation keep their default auto-generated key:
 ```sql
 -- sql/process_order.sql
 -- HTTP POST
--- @param $1 order_id
 -- @result validate
-select count(*) from orders where id = $1;
-update orders set status = 'processing' where id = $1;
+select count(*) from orders where id = :order_id;
+update orders set status = 'processing' where id = :order_id;
 -- @result confirm
-select id, status from orders where id = $1;
+select id, status from orders where id = :order_id;
 ```
 
-`POST /api/process-order` with `{"order_id": 42}` returns:
+`POST /api/process-order` with `{"orderId": 42}` returns:
 
 ```json
 {

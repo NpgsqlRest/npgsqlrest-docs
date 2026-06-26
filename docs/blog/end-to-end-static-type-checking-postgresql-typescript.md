@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "End-to-End Static Type Checking: PostgreSQL to TypeScript"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Automatically generate TypeScript types from PostgreSQL functions. Catch database schema changes at compile time, not runtime. Full type safety from database to frontend."
 head:
@@ -307,6 +308,10 @@ The `A__` prefix ensures these SQL files run on every database migration. This i
 Without the function recreation on each build, the old TypeScript types would persist, and the error would only surface at runtime.
 
 ## Built-in Testing with SQL Assertions
+
+::: info Update — since NpgsqlRest 3.19
+The pattern described here — SQL assertions with deferrable constraints and rollback isolation — is now a **first-class feature**: the [SQL test runner](/guide/testing) (`npgsqlrest --test`) runs `.sql` test files against the **real HTTP endpoints in-process**, on each test's own transaction, with parallel isolated connections, watch mode, and endpoint-coverage reporting. Everything below still applies; the runner gives it a harness, a report, and CI integration.
+:::
 
 Each function file includes an `assert` block that validates the function returns expected data. These assertions run during migration, providing immediate feedback:
 
@@ -897,7 +902,7 @@ Schema changes propagate through the entire stack, with the database and the com
 
 And unit testing in PostgreSQL isn't slow or difficult. Anonymous blocks, transaction rollback, and deferrable constraints support the same TDD workflows you'd use in any other language - against your actual database logic, not a mock of it.
 
-## Why This Stack is Superior
+## What This Stack Removes
 
 Compare this approach to traditional stacks:
 
@@ -916,7 +921,7 @@ Compare this approach to traditional stacks:
 
 The code you don't write has no bugs.
 
-### Performance That Scales
+### It's Also Fast
 
 The architecture also pays off at runtime, because NpgsqlRest skips the overhead that traditional frameworks accumulate:
 
@@ -925,9 +930,9 @@ The architecture also pays off at runtime, because NpgsqlRest skips the overhead
 - **No serialization layer**: PostgreSQL's native JSON functions handle serialization
 - **Minimal memory allocation**: Optimized hot paths using buffer pooling
 
-In [benchmarks](/blog/postgresql-rest-api-benchmark-2026), it achieves 4,588 requests per second at 100 concurrent users - alongside Swoole PHP and ahead of Bun, Go, Fastify, and Spring Boot.
+In the [July 2026 benchmarks](/blog/benchmarks-2026-07/npgsqlrest), its SQL file source reaches 3,524 requests per second at 100 concurrent users on four dedicated cores — #2 of 20 services, ahead of Go, Bun, Deno, and Spring Boot, and more than 50% ahead of hand-written .NET endpoints on the same driver.
 
-### Maximum Type Safety, Minimum Code
+### Fewer Arrows
 
 Traditional approaches require you to define types in multiple places and hope they stay synchronized:
 
@@ -947,13 +952,7 @@ One source of truth. Zero manual synchronization. Types flow automatically from 
 
 ### The Bottom Line
 
-This stack delivers:
-
-- **Full end-to-end type safety** from PostgreSQL to TypeScript
-- **The least amount of code** - no boilerplate layers to maintain
-- **A direct database-to-HTTP pipeline** with no intermediate layers
-- **Built-in testing** that runs on every deployment
-- **Automatic documentation** through generated code
+Add it up: end-to-end type safety from PostgreSQL to TypeScript, a direct database-to-HTTP pipeline with no layers in between, tests that live next to the functions they test, and client code and documentation that are generated instead of maintained.
 
 When you combine database-enforced types, automated type generation, compile-time checking, and co-located SQL tests, you get a development experience where "it works on my machine" actually means "it will work in production."
 

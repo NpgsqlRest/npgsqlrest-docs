@@ -1,8 +1,10 @@
 -- Versioned migration: V1__example_18_schema.sql
--- Example 18: Web Scraping Demo 2 - average book price
+-- Example 18: Web Scraping Proxy Demo - average book price
 --
--- Fetches an HTML book listing with an HTTP Custom Type, parses it with
--- PostgreSQL XML functions, and returns the average price across all books.
+-- Fetches an HTML book listing with an HTTP Custom Type, then proxies the
+-- scraped HTML to an upstream service (its body forwarded via
+-- @body_parameter_name) which parses it and returns the average book price.
+-- The PostgreSQL function itself is an empty proxy passthrough.
 
 -- Recreate schema
 drop schema if exists example_18 cascade;

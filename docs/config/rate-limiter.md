@@ -31,7 +31,82 @@ Rate limiting configuration to control the number of requests from clients. Appl
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
-    "Policies": {}
+    "Policies": {
+      "fixed": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "QueueLimit": 10,
+        "AutoReplenishment": true
+      },
+      "sliding": {
+        "Type": "SlidingWindow",
+        "Enabled": false,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "SegmentsPerWindow": 6,
+        "QueueLimit": 10,
+        "AutoReplenishment": true
+      },
+      "bucket": {
+        "Type": "TokenBucket",
+        "Enabled": false,
+        "TokenLimit": 100,
+        "TokensPerPeriod": 10,
+        "ReplenishmentPeriodSeconds": 10,
+        "QueueLimit": 10,
+        "AutoReplenishment": true
+      },
+      "concurrency": {
+        "Type": "Concurrency",
+        "Enabled": false,
+        "PermitLimit": 10,
+        "QueueLimit": 5,
+        "OldestFirst": true
+      },
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "QueueLimit": 10,
+        "AutoReplenishment": true,
+        "Partition": {
+          "Sources": [
+            {
+              "Type": "Claim",
+              "Name": "name_identifier"
+            },
+            {
+              "Type": "IpAddress"
+            },
+            {
+              "Type": "Static",
+              "Value": "anonymous"
+            }
+          ],
+          "BypassAuthenticated": false
+        }
+      },
+      "login_throttle": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "QueueLimit": 0,
+        "AutoReplenishment": true,
+        "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+        "Partition": {
+          "Sources": [
+            {
+              "Type": "IpAddress"
+            }
+          ],
+          "BypassAuthenticated": false
+        }
+      }
+    }
   }
 }
 ```
@@ -204,30 +279,32 @@ Rate-limiter policies can now be partitioned at request time, so each request ge
 The classic use case is **per-user throttling**: each authenticated user gets their own quota instead of all users sharing one global bucket. Without `Partition`, all requests under a policy share a single global bucket.
 
 ```jsonc
-"RateLimiterOptions": {
-  "Enabled": true,
-  "Policies": {
-    "per_user": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 100,
-      "WindowSeconds": 60,
-      "Partition": {
-        "Sources": [
-          { "Type": "Claim", "Name": "name_identifier" },
-          { "Type": "IpAddress" },
-          { "Type": "Static", "Value": "anonymous" }
-        ]
-      }
-    },
-    "throttle_anon_only": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 10,
-      "WindowSeconds": 60,
-      "Partition": {
-        "BypassAuthenticated": true,
-        "Sources": [{ "Type": "IpAddress" }]
+{
+  "RateLimiterOptions": {
+    "Enabled": true,
+    "Policies": {
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "Partition": {
+          "Sources": [
+            { "Type": "Claim", "Name": "name_identifier" },
+            { "Type": "IpAddress" },
+            { "Type": "Static", "Value": "anonymous" }
+          ]
+        }
+      },
+      "throttle_anon_only": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "Partition": {
+          "BypassAuthenticated": true,
+          "Sources": [{ "Type": "IpAddress" }]
+        }
       }
     }
   }
@@ -263,24 +340,26 @@ Each named policy can set its own `StatusCode` and/or `StatusMessage`, overridin
 Previously the global `StatusCode` / `StatusMessage` were the only values returned for any rejected request, so a login-specific message (e.g. *"Too many login attempts…"*) would be returned for **every** rate-limited endpoint. Now the override is resolved at rejection time from the endpoint's policy, so each policy can speak for itself:
 
 ```jsonc
-"RateLimiterOptions": {
-  "Enabled": true,
-  "StatusCode": 429,                                  // global default
-  "StatusMessage": "Too many requests. Please slow down.",
-  "Policies": {
-    "login_throttle": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 10,
-      "WindowSeconds": 60,
-      "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
-      "Partition": { "Sources": [ { "Type": "IpAddress" } ] }
-    },
-    "api": {
-      "Type": "TokenBucket",
-      "Enabled": true,
-      "StatusCode": 503,
-      "StatusMessage": "API capacity reached. Retry shortly."
+{
+  "RateLimiterOptions": {
+    "Enabled": true,
+    "StatusCode": 429,                                  // global default
+    "StatusMessage": "Too many requests. Please slow down.",
+    "Policies": {
+      "login_throttle": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+        "Partition": { "Sources": [ { "Type": "IpAddress" } ] }
+      },
+      "api": {
+        "Type": "TokenBucket",
+        "Enabled": true,
+        "StatusCode": 503,
+        "StatusMessage": "API capacity reached. Retry shortly."
+      }
     }
   }
 }
@@ -293,15 +372,21 @@ A request rejected by `login_throttle` returns `429` (inherited) with the login 
 The shipped `appsettings.json` includes a disabled `login_throttle` policy — 10 attempts per minute partitioned per client IP, with its own rejection message — so the common case is one flag away:
 
 ```jsonc
-"login_throttle": {
-  "Type": "FixedWindow",
-  "Enabled": false,
-  "PermitLimit": 10,
-  "WindowSeconds": 60,
-  "QueueLimit": 0,
-  "AutoReplenishment": true,
-  "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
-  "Partition": { "Sources": [ { "Type": "IpAddress" } ], "BypassAuthenticated": false }
+{
+  "RateLimiterOptions": {
+    "Policies": {
+      "login_throttle": {
+        "Type": "FixedWindow",
+        "Enabled": false,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "QueueLimit": 0,
+        "AutoReplenishment": true,
+        "StatusMessage": "Too many login attempts. Please wait a minute and try again.",
+        "Partition": { "Sources": [ { "Type": "IpAddress" } ], "BypassAuthenticated": false }
+      }
+    }
+  }
 }
 ```
 

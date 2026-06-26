@@ -1,0 +1,56 @@
+@host=http://127.0.0.1:8080
+
+// function example_22.create_order(
+//     _product_id integer,
+//     _quantity integer,
+//     _note text DEFAULT NULL::text
+// )
+// returns integer
+//
+// comment on function example_22.create_order is 'HTTP POST
+POST {{host}}/api/example-22/create-order
+content-type: application/json
+
+{
+    "productId": 1,
+    "quantity": 2,
+    "note": "IJK"
+}
+
+###
+
+// function example_22.get_product(
+//     _id integer
+// )
+// returns table(
+//     id integer,
+//     name text,
+//     price numeric
+// )
+//
+// comment on function example_22.get_product is 'HTTP GET
+// path /api/products/{_id}
+// single';
+GET {{host}}/api/products/{_id}
+
+###
+
+// function example_22.search_products(
+//     _search text,
+//     _page integer,
+//     _limit integer DEFAULT 10
+// )
+// returns table(
+//     id integer,
+//     name text,
+//     price numeric,
+//     created_at timestamp without time zone
+// )
+//
+// comment on function example_22.search_products is 'HTTP GET
+// request_param_type query_string
+// dartclient_status_code=true';
+GET {{host}}/api/example-22/search-products?search=ABC&page=2&limit=3
+
+###
+

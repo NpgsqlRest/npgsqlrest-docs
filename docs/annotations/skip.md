@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# SKIP
+# SKIP (`skip_result`, `no_result`)
 
 ::: info Also known as
 `skip_result`, `no_result` (with or without `@` prefix)

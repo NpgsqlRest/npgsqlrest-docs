@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "What Have PostgreSQL Functions Ever Done for Us?"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Apart from security, performance, maintainability, testability, and zero boilerplate code, what have PostgreSQL stored procedures and functions ever really done for us?"
 head:
@@ -160,7 +161,7 @@ And if you'd rather just start: your SQL is already the API, you just haven't po
 <BlogNav
   :get-started="[
     { text: 'Quick Start Guide', href: '/guide/quick-start' },
-    { text: 'Benchmark Results', href: '/blog/postgresql-rest-api-benchmark-2026' },
+    { text: 'Benchmark Results (July 2026)', href: '/blog/benchmarks-2026-07/' },
     { text: 'Security Guide', href: '/guide/security' },
     { text: 'Function Annotations', href: '/annotations/' }
   ]"

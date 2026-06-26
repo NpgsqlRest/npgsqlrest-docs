@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "dev": "cd .. && bun npgsqlrest ./config.json ./22_dart_client/config.json",
+    "watch": "cd .. && bun npgsqlrest ./config.json ./22_dart_client/config.json --watch",
+
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./22_dart_client/sql_22",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./22_dart_client/sql_22",
+
+    "dart:analyze": "cd dart && dart pub get && dart analyze",
+    "dart:run": "cd dart && dart pub get && dart run lib/main.dart"
+  }
+}

@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "The Backend That Writes Itself — NpgsqlRest in 19 Slides"
+date: "2026-06-03"
 titleTemplate: NpgsqlRest
 description: "An interactive slide deck: how NpgsqlRest turns a PostgreSQL database into a complete, production-grade backend — REST API, typed TypeScript client, and AI-agent tools — with real, reproducible numbers from a product in production."
 head:

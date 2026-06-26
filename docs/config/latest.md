@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.18.2.
+This is the latest default configuration reference for NpgsqlRest version 3.21.0.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.18.2):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.18.2/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.18.2/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.18.2/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.18.2/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 3.21.0):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.21.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.21.0/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.21.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.21.0/NpgsqlRestClient/appsettings.json)
 
-Replace `3.18.2` with your desired version number.
+Replace `3.21.0` with your desired version number.
 :::
 
 ```json
@@ -72,17 +72,23 @@ Replace `3.18.2` with your desired version number.
     //
     "AddEnvironmentVariables": false,
     //
-    // When set, configuration values will be parsed for environment variables in the format {ENV_VAR_NAME}
-    // and replaced with the value of the environment variable when available.
+    // When set, configuration values will be parsed for environment variable placeholders:
+    // {ENV_VAR_NAME} - optional: replaced when the variable is set, left untouched otherwise.
+    // {!ENV_VAR_NAME} - required: replaced when the variable is set, startup fails otherwise.
+    // {!ENV_VAR_NAME:fallback} - replaced when the variable is set, otherwise the fallback value is used.
     //
     "ParseEnvironmentVariables": true,
     //
     // Path to a .env file containing environment variables.
     // When AddEnvironmentVariables or ParseEnvironmentVariables is true and this file exists,
     // variables from this file will be loaded and made available for configuration parsing.
+    // Variables already present in the process environment always win - the file only fills in missing ones.
+    // The default "./.env" (relative to the working directory) is optional: when the file does not exist it is
+    // skipped with an information message. A custom path that does not exist logs a warning.
+    // Set to null to disable env file loading entirely.
     // Format: KEY=VALUE (one per line)
     //
-    "EnvFile": null,
+    "EnvFile": "./.env",
     //
     // Validate configuration keys against known defaults at startup.
     // "Ignore" - no validation
@@ -98,7 +104,7 @@ Replace `3.18.2` with your desired version number.
   // For connection string definition see https://www.npgsql.org/doc/connection-string-parameters.html
   //
   "ConnectionStrings": {
-    "Default": "Host={PGHOST};Port=5432;Database={PGDATABASE};Username={PGUSER};Password={PGPASSWORD}"
+    "Default": "Host={!PGHOST:localhost};Port={!PGPORT:5432};Database={!PGDATABASE};Username={!PGUSER:postgres};Password={!PGPASSWORD:postgres}"
   },
 
   //
@@ -914,11 +920,14 @@ Replace `3.18.2` with your desired version number.
     //
     // See https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level
     // Verbose, Debug, Information, Warning, Error, Fatal.
+    // Set a level to "Off" (aliases "None"/"Silent") to mute that logger entirely; use null (or omit it) to fall back to its built-in default.
     // Note: NpgsqlRest logger applies to main application logger, which will, by default have the name defined in the ApplicationName setting.
+    // NpgsqlRestTest is the SQL test runner (--test) channel (see TestRunner:LoggerName): discovery/parsing at Debug, each query and HTTP call at Verbose, notices by severity.
     //
     "MinimalLevels": {
       "NpgsqlRest": "Information",
       "NpgsqlRestClient": "Information",
+      "NpgsqlRestTest": "Information",
       "System": "Warning",
       "Microsoft": "Warning"
     },
@@ -1456,6 +1465,173 @@ Replace `3.18.2` with your desired version number.
   },
 
   //
+  // SQL test runner. Invoked with the `--test` command-line flag (this section is otherwise inert).
+  // Discovers *.test.sql files, runs each in an isolated non-pooled connection, can invoke endpoints
+  // in-process from an embedded `/* GET /path */` block (response captured into a temp table), and
+  // asserts via boolean-returning SELECTs or `do $$ ... assert ... $$;` blocks. Exit codes:
+  // 0 pass, 1 failures, 2 errors, 3 config/runner error, 4 no tests found.
+  //
+  "TestRunner": {
+    //
+    // Glob (same engine as SqlFileSource) selecting test files. Empty disables discovery. Two layouts:
+    // co-located (app.sql next to app.test.sql — SqlFileSource SkipPattern keeps tests out of the endpoints)
+    // or a separate tests tree (e.g. "./tests/**/*.test.sql").
+    //
+    "FilePattern": "",
+    //
+    // Optional filter narrowing the discovered set — the fast path for iterating on one test:
+    //   npgsqlrest ... --test --testrunner:filter=login
+    // Matched against each file's cwd-relative path: a value without wildcards is a substring match;
+    // with wildcards it is the same glob engine as FilePattern. Empty = run everything discovered.
+    //
+    "Filter": "",
+    //
+    // Tag filtering (comma- or whitespace-separated lists; case-insensitive). A test file declares tags
+    // with a `-- @tag name [name ...]` header annotation. "Tag" runs only files carrying at least one of
+    // the listed tags; "ExcludeTag" skips files carrying any of them (exclude wins). Composes with Filter.
+    //   npgsqlrest ... --test --testrunner:tag=smoke --testrunner:excludetag=slow
+    //
+    "Tag": "",
+    "ExcludeTag": "",
+    //
+    // Optional: a ConnectionStrings entry to run the tests against instead of the app's main connection. In
+    // test mode it becomes the connection used for endpoint type-checking (Describe) and execution, so it can
+    // point at a dedicated test database that a Setup step creates first (it need not exist at startup).
+    // Empty = use the main connection. Tip: {rnd1}..{rnd10} are random lowercase tokens (length = the digit),
+    // stable for the whole run, usable in any connection string or Setup/Teardown SQL (e.g. Database=app_test_{rnd6}).
+    // Need several distinct tokens of the same length? Indexed instances {rndN_1}..{rndN_9} are each independent.
+    //
+    "ConnectionName": "",
+    //
+    // Max test files run concurrently. 0 => processor count. Each test uses its own non-pooled connection.
+    //
+    "MaxParallelism": 0,
+    //
+    // Stop scheduling new tests after the first failure/error (in-flight tests still finish).
+    //
+    "FailFast": false,
+    //
+    // Per-test timeout. Accepts "30s", "5m", "1h", a plain number of seconds, or "hh:mm:ss". 0 disables.
+    //
+    "PerTestTimeout": "30s",
+    //
+    // Optional path to also write a JUnit XML report (console output is always printed).
+    //
+    "JUnitOutput": null,
+    //
+    // Skip Teardown so a failed run's state can be inspected.
+    //
+    "Keep": false,
+    //
+    // Detailed console REPORT: list passed assertions, print the full failing SQL statement, and show
+    // captured `raise notice` output for passing tests too. This shapes the report only — for diagnostic
+    // logging of every executed query/HTTP call, raise the log channel instead (Log:MinimalLevels + LoggerName).
+    //
+    "DetailedReport": false,
+    //
+    // Treat "no tests discovered" as success (exit 0) instead of exit 4.
+    //
+    "AllowEmpty": false,
+    //
+    // Endpoint-coverage summary after the run: exercised N of M testable endpoints + the list of untested
+    // ones (endpoint kinds the runner rejects — SSE, upload, login/logout, outbound proxy — are excluded
+    // from the ratio and counted separately). Tri-state: null (default) reports after FULL runs but stays
+    // quiet when the run is narrowed by Filter/Tag (a deliberately partial run would just nag); true always
+    // reports; false never. CoverageThreshold (0-100) always reports and fails an otherwise-passing run
+    // with exit 2 when coverage is below it — CI gating for "every endpoint has a test".
+    //
+    "Coverage": null,
+    "CoverageThreshold": null,
+    //
+    // SourceContext name for the runner's own log channel; set its level independently under Log:MinimalLevels.
+    // Discovery/parsing log at Debug, each query and HTTP invocation at Verbose, `raise notice` by severity.
+    //
+    "LoggerName": "NpgsqlRestTest",
+    //
+    // Per-HTTP-block temp table that captures the response. Each block gets its own fresh temp table
+    // (created without IF NOT EXISTS, so a duplicate name fails the test); writes are pg_temp-qualified.
+    // A file with ONE HTTP block uses "Name"; a file with 2+ blocks uses "MultiNamePattern" where {n} is
+    // the 1-based block ordinal (_response_1, _response_2, ...). Per-block override: `# @response <name>`.
+    // A null/empty column name omits that column. "DebugTable" (e.g. "_responses_debug"): ALSO mirror every
+    // response into a PERMANENT table for post-run inspection — survives rollbacks, holds the last run, one
+    // row per HTTP block with test_file/block/method/path metadata (debugging aid; do not enable in CI).
+    //
+    "ResponseTempTable": {
+      "Name": "_response",
+      "MultiNamePattern": "_response_{n}",
+      "DebugTable": null,
+      "Columns": {
+        "Status": "status",
+        "Body": "body",
+        "ContentType": "content_type",
+        "Headers": "headers",
+        "IsSuccess": "is_success"
+      }
+    },
+    //
+    // Named, reusable steps (name → step; same shape as Setup/Teardown entries). Reference them by name in
+    // Setup/Teardown below, or from an individual test file's leading header comments:
+    //   -- @setup StepName [StepName ...]      runs before that file
+    //   -- @teardown StepName [StepName ...]   runs after that file (always, best-effort)
+    //   -- @connection Name                    runs that file on a named ConnectionStrings entry
+    // Annotations are repeatable; names may be whitespace- or comma-separated and run in the order written.
+    // Test files can also reuse SQL scripts in place with psql-style includes: `\i file` (cwd-relative) or
+    // `\ir file` (relative to the including file) — executed on the test's connection, inside its transaction.
+    //
+    // The entries below are disabled EXAMPLES showing every step property ("Sql", "SqlFile", "Command",
+    // "WorkingDirectory", "ConnectionName") across the typical scenarios — flip "Enabled" to true (and adjust
+    // names, paths, and connections) instead of typing them from scratch. A step with "Enabled": false is
+    // simply IGNORED wherever it is referenced.
+    //
+    "Steps": {
+      "CreateTestDatabase":  { "Enabled": false, "ConnectionName": "Admin", "Sql": "create database app_test_{rnd5}" },
+      "DropTestDatabase":    { "Enabled": false, "ConnectionName": "Admin", "Sql": "drop database if exists app_test_{rnd5} with (force)" },
+      "ApplySchema":         { "Enabled": false, "SqlFile": "./migrations/schema.sql" },
+      "RunMigrationTool":    { "Enabled": false, "Command": "echo replace with your migration tool command", "WorkingDirectory": "." },
+      "StartDockerPostgres": { "Enabled": false, "Command": "docker run -d --name npgsqlrest-test-pg -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres" },
+      "StopDockerPostgres":  { "Enabled": false, "Command": "docker rm -f npgsqlrest-test-pg" }
+    },
+    //
+    // Run-once setup, BEFORE endpoint discovery. Steps run in the EXACT order written. Each entry is a step
+    // NAME from "Steps" above, or an inline step object:
+    //   { "Command": "...", "WorkingDirectory": "..." }    — runs via the OS shell
+    //   { "Sql": "..." } | { "SqlFile": "..." }            — runs on the test connection; set "ConnectionName"
+    //                                                         to run on another ConnectionStrings entry (e.g.
+    //                                                         an admin connection that runs `create database`).
+    //
+    "Setup": [],
+    //
+    // Run-once teardown, ALWAYS (best-effort), in the EXACT order written. `Keep` skips it. Same entries as Setup.
+    //
+    "Teardown": []
+  },
+
+  //
+  // Watch mode (interactive/dev-only) — one feature, two flavors: with --test it re-runs tests on
+  // changes (a changed test file re-runs alone; a changed endpoint file or database routine rebuilds
+  // endpoints in-process and re-runs everything; teardown runs once, on exit); without --test it
+  // supervises the SERVER and restarts it on SQL file source, configuration, and database routine
+  // changes. In both flavors a broken SQL file cannot kill the session (SqlFileSource ErrorMode is
+  // forced from Exit to Skip while watching).
+  //
+  "Watch": {
+    //
+    // Turn watch mode on. The --watch command line flag is the shorthand for this setting.
+    //
+    "Enabled": false,
+    //
+    // Poll the database for routine changes and restart the server (server watch) or rebuild endpoints and
+    // re-run the tests (test watch). The poll runs the SAME routine discovery query the endpoint source
+    // uses (same configured filters), hashed server-side into one value — so it detects exactly what
+    // changes discovered endpoints: functions/procedures (create/replace/drop/alter, grants), their
+    // COMMENT ON annotations, and the composite types and tables their signatures use; anything the
+    // discovery does not read can never trigger. Accepts "2s", "500ms", "1m", a plain number of seconds,
+    // or "hh:mm:ss"; 0 disables. One query per interval on a dedicated non-pooled connection.
+    //
+    "DatabasePollingInterval": "2s"
+  },
+
+  //
   // Command retry strategies and options for client and middleware commands.
   //
   "CommandRetryOptions": {
@@ -1868,8 +2044,11 @@ Replace `3.18.2` with your desired version number.
     //
     "ConnectionName": null,
     //
-    // Allow using multiple connections from the ConnectionStrings section. When set to true, the connection name can be set for individual Routines.
+    // Allow using multiple connections from the ConnectionStrings section. When set to true, the connection name can be set for individual Routines with the "connection" comment annotation.
     // Some routines might use the primary database connection string, while others might want to use a read-only connection string from the replica servers.
+    // This assumes the target databases have identical routine metadata (replicas, shards) - metadata is still read from a single connection.
+    // For genuinely different databases use RoutineOptions.ReadMetadataFromConnections instead, which enables multiple connections implicitly.
+    // The main connection is routable by its own name too.
     //
     "UseMultipleConnections": false,
     //
@@ -1922,7 +2101,7 @@ Replace `3.18.2` with your desired version number.
     //
     "KebabCaseUrls": true,
     //
-    // Convert all parameter names to camel case from the original PostgreSQL paramater names.
+    // Convert all parameter names to camel case from the original PostgreSQL parameter names.
     //
     "CamelCaseNames": true,
     //
@@ -2103,7 +2282,27 @@ Replace `3.18.2` with your desired version number.
       // an array of composites ["(1,a)","(2,b)"] becomes [{"id":1,"name":"a"},{"id":2,"name":"b"}].
       // Default is true.
       //
-      "ResolveNestedCompositeTypes": true
+      "ResolveNestedCompositeTypes": true,
+      //
+      // Per-connection routine discovery: list of connection names from the ConnectionStrings section to read functions/procedures metadata from.
+      // NULL or empty (default): metadata is read from a single connection (ConnectionName or MetadataQueryConnectionName) - the current behavior.
+      // Non-empty: routine metadata is read from EACH listed connection, and every discovered endpoint EXECUTES on the connection
+      // it was discovered from (an explicit "connection" comment annotation still wins). The list replaces the default -
+      // include the main connection's name to also serve its routines. All other RoutineOptions settings and global filters are shared.
+      // Setting this implicitly enables multiple connections (no UseMultipleConnections flag required).
+      // Use this when different databases host different routines (for example OLTP + OLAP); for identical databases (replicas, shards)
+      // use UseMultipleConnections with the "connection" annotation instead.
+      //
+      "ReadMetadataFromConnections": null,
+      //
+      // Startup verification for routines routed by the "connection" annotation to a different connection than they were discovered on:
+      // "None" - no verification (default).
+      // "Warn" - one batched existence check per target connection at startup; every missing routine is logged as a warning.
+      // "Fail" - same check, but any missing routine stops the startup.
+      // This checks CONTENT (does the routine exist over there?) - connectivity of every connection string is a separate
+      // check, ConnectionSettings.TestConnectionStrings (opens and closes the connection).
+      //
+      "VerifyRoutedEndpoints": "None"
     },
 
     //
@@ -2141,9 +2340,9 @@ Replace `3.18.2` with your desired version number.
         // General settings for all upload handlers
         //
         "StopAfterFirstSuccess": false,
-        // csv string containing mime type patters, set to null to ignore
+        // csv string containing mime type patterns, set to null to ignore
         "IncludedMimeTypePatterns": null,
-        // csv string containing mime type patters, set to null to ignore
+        // csv string containing mime type patterns, set to null to ignore
         "ExcludedMimeTypePatterns": null,
         "BufferSize": 8192, // Buffer size for the upload handlers file_system and large_object, in bytes. Default is 8192 bytes (8 KB).
         "TextTestBufferSize": 4096, // Buffer sample size for testing textual content, in bytes. Default is 4096 bytes (4 KB).
@@ -2529,6 +2728,13 @@ Replace `3.18.2` with your desired version number.
       //
       "DocumentDescription": null,
       //
+      // OpenAPI specification version of the generated document: "3.0" or "3.1".
+      // "3.0" emits openapi: 3.0.3 (default, backward compatible),
+      // "3.1" emits openapi: 3.1.1 (JSON Schema 2020-12 alignment).
+      // This is the spec version, not your API version (that is DocumentVersion).
+      //
+      "SpecVersion": "3.0",
+      //
       // Include current server information in the "servers" section of the OpenAPI document.
       //
       "AddCurrentServer": true,
@@ -2663,6 +2869,31 @@ Replace `3.18.2` with your desired version number.
         // When true, tools/list hides tools the calling principal could not run (their routine's authorize/role check would deny it). When false (default), every opted-in tool is listed (discoverable) and authorization is enforced on tools/call.
         //
         "FilterToolsByRole": false
+      },
+      //
+      // Generation of plain function-calling schema documents (OpenAI and Anthropic tools arrays) and llms.txt from the MCP tool set. Requires at least one routine with the `mcp` annotation; produces empty documents otherwise. Independent of Enabled above: tools are collected from `mcp` annotations and the documents are generated and served even when the /mcp endpoint is disabled. Set any FileName to null to skip writing that file; set any UrlPath to null to skip serving that document.
+      //
+      "ToolSchemas": {
+        "Enabled": false,
+        //
+        // Set to true to overwrite existing files.
+        //
+        "FileOverwrite": true,
+        //
+        // OpenAI Chat Completions `tools` array document.
+        //
+        "OpenAiFileName": "npgsqlrest_tools_openai.json",
+        "OpenAiUrlPath": "/tools/openai.json",
+        //
+        // Anthropic Messages API `tools` array document.
+        //
+        "AnthropicFileName": "npgsqlrest_tools_anthropic.json",
+        "AnthropicUrlPath": "/tools/anthropic.json",
+        //
+        // llms.txt markdown document (H1, summary from Instructions, endpoint list, machine-readable links).
+        //
+        "LlmsTxtFileName": "llms.txt",
+        "LlmsTxtUrlPath": "/llms.txt"
       }
     },
 
@@ -2804,7 +3035,181 @@ Replace `3.18.2` with your desired version number.
       //
       // When true, parameters filled by the server and not settable by the client are omitted from the generated request interface, query string, and body. Covers optional automatic parameters: HTTP Custom Type fields, resolved-parameter expressions, upload metadata, and (on endpoints using user parameters) IP-address and user-claim parameters. Default is false.
       //
-      "OmitAutomaticParameters": false
+      "OmitAutomaticParameters": false,
+      //
+      // TanStack Query (React Query) hooks generation. When enabled, a hooks module is generated for each client module: useQuery hooks for GET endpoints and useMutation hooks for other methods, importing the client functions and @tanstack/react-query (v5 object syntax). TypeScript only - skipped with a warning when SkipTypes is true. Use the tsclient_hooks=off routine annotation to exclude an endpoint from the hooks file only.
+      //
+      "ReactQuery": {
+        "Enabled": false,
+        //
+        // Output file path for the hooks module. In multi-file mode (BySchema or tsclient_module usage) must contain {0}, mirroring FilePath rules. Required when Enabled is true.
+        //
+        "FilePath": null,
+        //
+        // Force file overwrite.
+        //
+        "FileOverwrite": true,
+        //
+        // Optional first segment prepended to every query key (for apps consuming multiple NpgsqlRest APIs). Null to omit.
+        //
+        "QueryKeyPrefix": null,
+        //
+        // Export query key factory objects alongside hooks.
+        //
+        "ExposeQueryKeys": true,
+        //
+        // Module specifier the generated hooks import TanStack Query from. Point this at an internal wrapper module when direct imports of @tanstack/react-query are not allowed; the module must re-export useQuery, useMutation, UseQueryOptions and UseMutationOptions with TanStack Query v5 semantics.
+        //
+        "ImportFrom": "@tanstack/react-query",
+        //
+        // Header lines on the generated hooks file. {0} is the current timestamp.
+        //
+        "HeaderLines": [
+          "// autogenerated at {0}",
+          ""
+        ]
+      }
+    },
+
+    //
+    // Enable or disable the generation of Dart client source code files for NpgsqlRest endpoints (package:http, for Flutter projects).
+    //
+    "DartClientCodeGen": {
+      "Enabled": false,
+      //
+      // File path for the generated code. Set to null to skip the code generation. Use {0} to set schema (or module) name when BySchema is true
+      //
+      "FilePath": null,
+      //
+      //  Force file overwrite.
+      //
+      "FileOverwrite": true,
+      //
+      // Include current host information in the baseUrl variable.
+      //
+      "IncludeHost": true,
+      //
+      // Set the custom host prefix information.
+      //
+      "CustomHost": null,
+      //
+      // Adds comment header above each request based on PostgreSQL routine
+      // Set None to skip.
+      // Set Simple (default) to add name, parameters and return values to comment header.
+      // Set Full to add the entire routine code as comment header.
+      //
+      "CommentHeader": "Simple",
+      //
+      // When CommentHeader is set to Simple or Full, set to true to include routine comments in comment header.
+      //
+      "CommentHeaderIncludeComments": true,
+      //
+      // Create files by PostgreSQL schema. File name will use formatted FilePath where {0} is the schema name in snake case.
+      //
+      "BySchema": true,
+      //
+      // Set to true to wrap responses as ApiResult<T> carrying status code, response and error.
+      //
+      "IncludeStatusCode": true,
+      //
+      // Emit request/response (and composite) model classes into a separate {name}_models.dart file. The client file imports and re-exports the models file so consumers keep a single import.
+      //
+      "SeparateModelsFile": false,
+      //
+      // Dart import URI that provides a top-level `baseUrl` String variable, instead of defining it in the module. Example: "package:my_app/base_url.dart".
+      //
+      "ImportBaseUrlFrom": null,
+      //
+      // Header lines on each auto-generated source file. Default is ["// autogenerated at {0}", "", ""] where {0} is the current timestamp.
+      //
+      "HeaderLines": [
+        "// autogenerated at {0}",
+        ""
+      ],
+      //
+      // Array of routine names to skip (without schema)
+      //
+      "SkipRoutineNames": [],
+      //
+      // Array of generated function names to skip (without schema)
+      //
+      "SkipFunctionNames": [],
+      //
+      // Array of url paths to skip
+      //
+      "SkipPaths": [],
+      //
+      // Array of schema names to skip
+      //
+      "SkipSchemas": [],
+      //
+      // Default Dart type for JSON values (columns and parameters of json/jsonb type)
+      //
+      "DefaultJsonType": "dynamic",
+      //
+      // Use routine name instead of endpoint name when generating function names.
+      //
+      "UseRoutineNameInsteadOfEndpoint": false,
+      //
+      // Emit top-level {name}Url functions that build the request URL.
+      //
+      "ExportUrls": false,
+      //
+      // Keep Dart models unique, meaning models with the same fields and types will be merged into one model with the name of the first model. This significantly reduces the number of generated models.
+      //
+      "UniqueModels": false,
+      //
+      // Name of the XSRF Token Header (Anti-forgery Token). This is used in multipart upload requests when Anti-forgery is enabled.
+      //
+      "XsrfTokenHeaderName": null,
+      //
+      // Emit public create{Name}EventSource factory functions for streaming (SSE) endpoints. When false, the factories are emitted with a private (underscore) name and only used internally.
+      //
+      "ExportEventSources": true,
+      //
+      // Include optional named parameter `Uri Function(Uri uri)? parseUrl` that can rewrite the constructed URI before the request is made.
+      //
+      "IncludeParseUrlParam": false,
+      //
+      // Include optional named parameter `http.Request Function(http.Request request)? parseRequest` (or the MultipartRequest variant for uploads) that can rewrite the constructed request before it is sent.
+      //
+      "IncludeParseRequestParam": false,
+      //
+      // List of custom imports to add to the generated code. It adds a line to a file. Use full expression like `import 'package:my_app/my_type.dart';`
+      //
+      "CustomImports": [],
+      //
+      // Dictionary of custom headers to add to each request in generated code. Header value is inserted verbatim (include quotes for literals).
+      //
+      "CustomHeaders": {},
+      //
+      // When true, include PostgreSQL schema name in the generated names to avoid name collisions. Set to false to simplify names when no name collisions are expected.
+      //
+      "IncludeSchemaInNames": true,
+      //
+      // Name for the generated error class carrying problem-details responses. Only used when IncludeStatusCode is true.
+      //
+      "ErrorTypeName": "ApiError",
+      //
+      // Name for the generated generic result class with status, response and error fields. Only used when IncludeStatusCode is true.
+      //
+      "ResultTypeName": "ApiResult",
+      //
+      // When true, parameters filled by the server and not settable by the client are omitted from the generated request class, query string, and body. Covers optional automatic parameters: HTTP Custom Type fields, resolved-parameter expressions, upload metadata, and (on endpoints using user parameters) IP-address and user-claim parameters. Default is false.
+      //
+      "OmitAutomaticParameters": false,
+      //
+      // Prefix for generated model class names.
+      //
+      "ModelPrefix": null,
+      //
+      // Suffix for generated model class names.
+      //
+      "ModelSuffix": null,
+      //
+      // When true (default), date, timestamp and timestamptz values map to Dart DateTime (parsed with DateTime.parse, serialized with toIso8601String). When false, they map to String.
+      //
+      "UseDateTimeType": true
     },
 
     //
@@ -2941,6 +3346,12 @@ Replace `3.18.2` with your desired version number.
       //
       "FilePattern": "",
       //
+      // Glob (same semantics as FilePattern) for files to EXCLUDE from endpoint discovery.
+      // Default "*.test.sql" so co-located SQL test files (run by the test runner, see "TestRunner")
+      // are never exposed as endpoints. Empty string disables the exclusion.
+      //
+      "SkipPattern": "*.test.sql",
+      //
       // How comment annotations are processed for SQL file endpoints.
       // Possible values: Ignore, ParseAll, OnlyAnnotated, OnlyWithHttpTag.
       // OnlyAnnotated (default; OnlyWithHttpTag is a back-compat alias) requires an explicit
@@ -3007,19 +3418,32 @@ Replace `3.18.2` with your desired version number.
 
 ### Security
 
-- [Authentication](./auth) - Authentication providers (JWT, Cookie, Basic, etc.)
+- [Authentication](./auth) - Cookie, Bearer Token, and JWT authentication
+- [External OAuth](./external-auth) - Google, LinkedIn, GitHub, Microsoft, Facebook OAuth
+- [Passkey Authentication](./passkey-auth) - WebAuthn passwordless authentication
 - [Authentication Options](./authentication-options) - Per-endpoint authentication configuration
+- [Claims Mapping](./claims-mapping) - User context and parameters mapping
+- [Basic Auth Config](./basic-auth-config) - HTTP Basic Authentication configuration
 - [Validation](./validation) - Parameter validation rules (NotNull, Required, Regex, etc.)
 - [Antiforgery](./antiforgery) - CSRF protection settings
 - [Data Protection](./data-protection) - Key storage and encryption settings
 - [CORS](./cors) - Cross-Origin Resource Sharing configuration
+- [Security Headers](./security-headers) - HTTP security headers (CSP, X-Frame-Options, etc.)
+- [Forwarded Headers](./forwarded-headers) - Proxy header processing (X-Forwarded-For, etc.)
 
 ### Features
 
+- [SQL File Source](./sql-file-source) - REST API endpoints from SQL files
+- [Test Runner](./test-runner) - SQL test runner (`--test`): discovery, test databases, setup/teardown, coverage
+- [Watch Mode](./watch) - `--watch`: restart the server or re-run tests on SQL file, configuration, and database routine changes
+- [Proxy](./proxy) - Reverse proxy support for forwarding requests to upstream services
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation
+- [MCP](./mcp) - Model Context Protocol server — expose routines as MCP tools for AI agents
 - [HTTP Files](./http-files) - HTTP test file generation
-- [Code Generation](./codegen) - Client code generation (TypeScript, etc.)
+- [Code Generation](./codegen) - Client code generation (TypeScript, TanStack Query hooks)
+- [Dart Code Generation](./dart-codegen) - Dart client code generation for Flutter projects
 - [Uploads](./uploads) - File upload handling
+- [Table Format](./table-format) - HTML table and Excel spreadsheet rendering for function results
 - [HTTP Client](./http-client) - HTTP Types for external API calls from PostgreSQL functions
 
 ### Performance
@@ -3035,3 +3459,5 @@ Replace `3.18.2` with your desired version number.
 - [Logging](./logging) - Log levels and output configuration
 - [Static Files](./static-files) - Static file serving configuration
 - [Error Handling](./error-handling) - Error response configuration
+- [Health Checks](./health-checks) - Kubernetes probes and health check endpoints
+- [Stats](./stats) - PostgreSQL statistics endpoints for monitoring

@@ -20,8 +20,8 @@ head:
 
 # PARAMETER_HASH
 
-::: info Also known as
-`param` (with or without `@` prefix)
+::: info Keyword
+There is no separate `parameter_hash` keyword. This is the `is hash of` form of [`@param`](./param) (or `@parameter`).
 :::
 
 Hash one parameter value using another parameter as the hash input. This annotation is commonly used to create user registration endpoints that securely store hashed passwords in the database.
@@ -49,6 +49,7 @@ insert into users (email, password_hash) values (_email, _hash) returning id;
 end;
 
 comment on function register(text, text, text) is '
+HTTP POST
 @param _hash is hash of _password
 ';
 ```
@@ -59,8 +60,9 @@ comment on function register(text, text, text) is '
 /*
 HTTP POST
 @param $1 email
-@param $2 password
-@param $3 hash is hash of password
+@param $2 password text
+@param $3 hash
+@param hash is hash of password
 */
 insert into users (email, password_hash) values ($1, $3) returning id;
 ```

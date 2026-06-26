@@ -18,7 +18,7 @@ head:
       content: article
 ---
 
-# ALLOW_ANONYMOUS
+# ALLOW_ANONYMOUS (`anonymous`, `allow_anon`, `anon`)
 
 ::: info Also known as
 `anonymous`, `allow_anon`, `anon` (with or without `@` prefix)
@@ -87,6 +87,7 @@ comment on function create_product(text, numeric) is
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — auth methods, claims, and login flows
 - [Authentication configuration](../config/auth) - Configure authentication providers
 - [NpgsqlRest Options configuration](../config/npgsqlrest) - Configure RequiresAuthorization setting
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
