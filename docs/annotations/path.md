@@ -159,7 +159,7 @@ end;
 
 comment on function get_item(int) is '
 HTTP GET /items/{p_id}
-query_string_null_handling null_literal
+@query_string_null_handling null_literal
 ';
 ```
 

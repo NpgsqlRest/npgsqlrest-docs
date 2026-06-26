@@ -32,6 +32,8 @@ Release page downloads include builds for:
 - [Linux ARM64 Systems](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest/download/npgsqlrest-linux-arm64) - For Raspberry Pi, AWS Graviton, Apple Silicon Linux VMs, etc.
 - [MacOS ARM64 Systems](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest/download/npgsqlrest-osx-arm64)
 
+All executables are self-contained, around 35–40 MB depending on the platform, so the download can take up to 30 seconds depending on your connection speed.
+
 The optional [default configuration](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest/download/appsettings.json) file is also included, but this is just for convenience; it works with the same default values without this configuration file.
 
 Additional builds (e.g., MacOS x64) may be added in the future.
@@ -124,6 +126,15 @@ npgsqlrest --validate
 npgsqlrest --annotations
 ```
 
+- Install the [Claude Code skill](./claude-code-skill) matching your version:
+
+```bash
+# Into the project (./.claude/skills/npgsqlrest — commit it for the whole team)
+npgsqlrest --install-skill
+# Or per user (~/.claude/skills/npgsqlrest)
+npgsqlrest --install-skill global
+```
+
 ## NPM Installation
 
 ```bash
@@ -132,6 +143,9 @@ npm install -g npgsqlrest
 
 # Or install locally in the project
 npm install npgsqlrest
+
+# Or install locally as a dev dependency
+npm install --save-dev npgsqlrest
 ```
 
 To check versions or see help information, use the NPX runner:
@@ -146,7 +160,80 @@ npx npgsqlrest --help
 npx npgsqlrest -h
 ```
 
-**Note**: The NPM package automatically downloads the appropriate executable for your operating system during installation.
+**Note**: The NPM package doesn't bundle the executable — a postinstall script downloads the appropriate binary for your operating system from the [GitHub releases page](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest) during installation. The binary is around 35–40 MB, so the install can take up to 30 seconds depending on your connection speed.
+
+## Bun Installation
+
+Bun blocks postinstall scripts by default, and the npgsqlrest package uses one to download the binary for your OS from the [GitHub releases page](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest). After installing, you need one additional step to mark the package as trusted:
+
+```bash
+# Install locally in the project
+bun add npgsqlrest
+
+# Mark the package as trusted to run the postinstall script that downloads the binary
+bun pm trust npgsqlrest
+```
+
+Or do both in a single step with the `--trust` flag:
+
+```bash
+# Install locally in a single step
+bun add --trust npgsqlrest
+
+# Install locally as a dev dependency
+bun add --dev --trust npgsqlrest
+
+# Install globally — the --trust flag is required here,
+# because bun pm trust only works inside a project
+bun add --global --trust npgsqlrest
+```
+
+To check versions or see help information, use the bunx runner:
+
+```bash
+# Show versions
+bunx npgsqlrest --version
+bunx npgsqlrest -v
+
+# Show help
+bunx npgsqlrest --help
+bunx npgsqlrest -h
+```
+
+**Note**: Without the trust step, the package installs but the executable is never downloaded, and running it will fail. The trust step itself triggers the 35–40 MB binary download and can take up to 30 seconds.
+
+## Deno Installation
+
+Deno also blocks npm lifecycle scripts by default, and it only runs them when the project uses a `node_modules` directory. In a Deno-first project, enable it in `deno.json` (projects that have a `package.json` already use one):
+
+```json
+{
+  "nodeModulesDir": "auto"
+}
+```
+
+Then install with the `--allow-scripts` flag so the postinstall script can download the binary for your OS from the [GitHub releases page](https://github.com/NpgsqlRest/NpgsqlRest/releases/latest) — around 35–40 MB, up to 30 seconds:
+
+```bash
+# Install locally in the project
+deno install --allow-scripts=npm:npgsqlrest npm:npgsqlrest
+
+# Install locally as a dev dependency
+deno install --dev --allow-scripts=npm:npgsqlrest npm:npgsqlrest
+
+# Install globally
+deno install -g -A --allow-scripts npm:npgsqlrest
+```
+
+To check versions or see help information, use the Deno runner — `-A` grants the wrapper permission to execute the downloaded binary:
+
+```bash
+# Show versions
+deno run -A npm:npgsqlrest --version
+
+# Show help
+deno run -A npm:npgsqlrest --help
+```
 
 ## Docker Installation
 
@@ -162,8 +249,10 @@ docker run --name npgsqlrest -it vbilopav/npgsqlrest:latest --version
 # See help
 docker run --name npgsqlrest -it vbilopav/npgsqlrest:latest --help
 
-# Run with configuration file and with default port exposed
-docker run --name npgsqlrest -it -p 8080:8080 -v ./appsettings.json:/app/appsettings.json vbilopav/npgsqlrest:latest
+# Run with configuration file and with default port exposed.
+# The default Urls value (http://localhost:8080) binds only inside the container,
+# so set Urls to http://*:8080 here or in the mounted appsettings.json.
+docker run --name npgsqlrest -it -p 8080:8080 -e Urls="http://*:8080" -v ./appsettings.json:/app/appsettings.json vbilopav/npgsqlrest:latest
 ```
 
 ### JIT Image
@@ -175,14 +264,14 @@ A Docker image variant using .NET runtime with JIT (Just-In-Time) compilation in
 docker pull vbilopav/npgsqlrest:latest-jit
 
 # Run with JIT runtime
-docker run --name npgsqlrest-jit -it -p 8080:8080 -v ./appsettings.json:/app/appsettings.json vbilopav/npgsqlrest:latest-jit
+docker run --name npgsqlrest-jit -it -p 8080:8080 -e Urls="http://*:8080" -v ./appsettings.json:/app/appsettings.json vbilopav/npgsqlrest:latest-jit
 ```
 
-The JIT version offers significantly better performance in high-concurrency scenarios (50-100% faster than AOT), but has slower cold-start times and a larger image size (~200-250 MB vs ~30 MB for AOT). For sustained high-throughput workloads, JIT is recommended.
+In the [July 2026 benchmark](/blog/benchmarks-2026-07/npgsqlrest), JIT and AOT throughput were within a few percent of each other, so the AOT image is the default choice: it starts faster and the image is smaller (~60 MB vs ~110 MB compressed on Docker Hub). Use the JIT image when you need the full .NET runtime (for example, for diagnostics tooling) or to compare the two under your own workload.
 
 **Available JIT image tags:**
 - `vbilopav/npgsqlrest:latest-jit` - Latest version with JIT
-- `vbilopav/npgsqlrest:3.6.3-jit` - Specific version with JIT
+- `vbilopav/npgsqlrest:3.21.0-jit` - Specific version with JIT
 
 ### ARM64 Image
 
@@ -200,7 +289,7 @@ The ARM64 build is compiled natively on GitHub's ARM64 runners for optimal perfo
 
 **Available ARM64 image tags:**
 - `vbilopav/npgsqlrest:latest-arm` - Latest version for ARM64
-- `vbilopav/npgsqlrest:3.6.3-arm` - Specific version for ARM64
+- `vbilopav/npgsqlrest:3.21.0-arm` - Specific version for ARM64
 
 ### Bun Runtime Image
 
@@ -218,7 +307,7 @@ This image includes the Bun JavaScript runtime alongside NpgsqlRest, enabling [p
 
 **Available Bun image tags:**
 - `vbilopav/npgsqlrest:latest-bun` - Latest version with Bun
-- `vbilopav/npgsqlrest:3.6.3-bun` - Specific version with Bun
+- `vbilopav/npgsqlrest:3.21.0-bun` - Specific version with Bun
 
 ## Building From Source
 
@@ -228,10 +317,10 @@ Before building NpgsqlRest from source, ensure you have the following installed:
 - **Git** (to clone the repository)
 - **PostgreSQL 13+** (for testing the build)
 
-Clone the Repository
+- Clone the repository
 
 ```bash
-git clone https://github.com/vb-consulting/NpgsqlRest.git
+git clone https://github.com/NpgsqlRest/NpgsqlRest.git
 cd NpgsqlRest
 ```
 
@@ -258,7 +347,13 @@ dotnet publish -r osx-arm64 -c Release --output ./dist
 
 For more information on build targets for specific OS, see the [.NET RID Catalog](https://learn.microsoft.com/en-us/dotnet/core/rid-catalog)
 
-The AOT-compiled executable will be approximately 30MB and is self-contained with no runtime dependencies. The built executable will have the same functionality as the pre-compiled releases available on the GitHub releases page.
+The AOT-compiled executable will be approximately 35–40 MB depending on the target platform and is self-contained with no runtime dependencies. The built executable will have the same functionality as the pre-compiled releases available on the GitHub releases page.
+
+## Claude Code Skill
+
+If you use [Claude Code](https://claude.com/claude-code), install the official NpgsqlRest skill as part of your setup — it teaches the agent the exact annotations and configuration options for the current release, instead of guessing them from training data. It can be installed per project (committed to the repository, so the whole team gets it) or per user.
+
+See the [Claude Code Skill guide](./claude-code-skill#installation) for what's in it and how to install it.
 
 ## Next Steps
 

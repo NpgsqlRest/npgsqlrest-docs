@@ -49,6 +49,16 @@ The MCP server is **disabled by default**, and no routine is ever exposed automa
         "Audience": null,
         "ProtectedResourceMetadataPath": null,
         "FilterToolsByRole": false
+      },
+      "ToolSchemas": {
+        "Enabled": false,
+        "FileOverwrite": true,
+        "OpenAiFileName": "npgsqlrest_tools_openai.json",
+        "OpenAiUrlPath": "/tools/openai.json",
+        "AnthropicFileName": "npgsqlrest_tools_anthropic.json",
+        "AnthropicUrlPath": "/tools/anthropic.json",
+        "LlmsTxtFileName": "llms.txt",
+        "LlmsTxtUrlPath": "/llms.txt"
       }
     }
   }
@@ -62,7 +72,7 @@ The MCP server is **disabled by default**, and no routine is ever exposed automa
 - Type: `boolean`
 - Default: `false`
 
-Enables or disables the MCP server endpoint. When `false`, no MCP endpoint is registered and `@mcp` annotations are ignored.
+Enables or disables the MCP server endpoint. When `false`, no MCP endpoint is registered. Note: `@mcp` annotations are still collected when [`ToolSchemas`](#function-calling-schemas-and-llms-txt-toolschemas) generation is enabled, which works independently of this setting.
 
 ### UrlPath
 
@@ -134,6 +144,40 @@ A tool whose own description is *"Get the current weather for a city."* is then 
 ```
 Get the current weather for a city. Read-only Acme CRM.
 ```
+
+## Function-calling schemas and llms.txt (`ToolSchemas`)
+
+Available since version 3.20.0. The MCP tool catalog (the routines annotated with `mcp`) can additionally be projected into three plain capability documents — no schema logic is rebuilt, so parameter exclusion (claim-sourced/IP/virtual/resolved), description precedence, and type mapping are inherited from the MCP tools exactly:
+
+- **OpenAI Chat Completions `tools` array** — `{"type":"function","function":{name, description, parameters}}` per tool, `parameters` being the MCP `inputSchema` verbatim.
+- **Anthropic Messages API `tools` array** — `{name, description, input_schema}` per tool.
+- **llms.txt** — a markdown capability document: H1 from `ServerName` (or the database name), a blockquote summary from `Instructions`, one section per endpoint (method, URL, description, parameters), and a Machine-readable section linking the OpenAPI document, the /mcp endpoint, and the two tools documents.
+
+```json
+{
+  "NpgsqlRest": {
+    "McpOptions": {
+      "ToolSchemas": {
+        "Enabled": false,
+        "FileOverwrite": true,
+        "OpenAiFileName": "npgsqlrest_tools_openai.json",
+        "OpenAiUrlPath": "/tools/openai.json",
+        "AnthropicFileName": "npgsqlrest_tools_anthropic.json",
+        "AnthropicUrlPath": "/tools/anthropic.json",
+        "LlmsTxtFileName": "llms.txt",
+        "LlmsTxtUrlPath": "/llms.txt"
+      }
+    }
+  }
+}
+```
+
+Behavior:
+
+- **Independent of `Enabled`**: the documents are generated and served from `mcp` annotations even when the /mcp endpoint itself is disabled.
+- Each `FileName` writes a file (relative to the working directory) and each `UrlPath` serves the document from memory (GET only, anonymous, built once at startup). Set a value to `null` to skip that file or endpoint — e.g. null all `UrlPath` keys and point the `FileName`s into your static files root to serve them as plain static files instead.
+- Tool names are sanitized to the OpenAI function-name form (`[a-zA-Z0-9_-]`, max 64 characters) in the JSON documents, with a logged warning; llms.txt keeps the original names. Two tools colliding after sanitization fail at startup.
+- Output is deterministic (tools ordered by name, no timestamps).
 
 ## How it works
 

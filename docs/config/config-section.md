@@ -22,6 +22,8 @@ head:
 
 The `Config` section controls how the configuration file itself is processed.
 
+## Overview
+
 ```json
 {
   "Config": {
@@ -38,25 +40,29 @@ The `Config` section controls how the configuration file itself is processed.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `AddEnvironmentVariables` | bool | `false` | Allow environment variables to override configuration settings. |
-| `ParseEnvironmentVariables` | bool | `true` | Parse `{ENV_VAR_NAME}` (optional) and `{!ENV_VAR_NAME}` (required) placeholders in config values and replace with environment variable values. See below. |
-| `EnvFile` | string | `null` | Path to a `.env` file for loading environment variables. See below. |
+| `ParseEnvironmentVariables` | bool | `true` | Parse `{ENV_VAR_NAME}` (optional), `{!ENV_VAR_NAME}` (required) and `{!ENV_VAR_NAME:fallback}` (fallback) placeholders in config values and replace with environment variable values. See below. |
+| `EnvFile` | string | `"./.env"` | Path to a `.env` file for loading environment variables. Loaded by default since 3.21.0; when the default file is absent it is skipped with an information message. Set to `null` to disable. See below. |
 | `ValidateConfigKeys` | string | `"Warning"` | Validate configuration keys against known defaults at startup. See below. |
 
-## Placeholder Forms: Optional and Required (3.17.0+)
+## Placeholder Forms: Optional, Required and Fallback (3.17.0+, fallback 3.21.0+)
 
-With `ParseEnvironmentVariables` enabled, config values support two placeholder forms, for **every** value type (bool, int, string, enum, arrays, dictionaries):
+With `ParseEnvironmentVariables` enabled, config values support three placeholder forms, for **every** value type (bool, int, string, enum, arrays, dictionaries):
 
 - **`{NAME}` — optional.** Substituted with the variable's value when set; **left untouched when not set** — typed reads (`bool`, `int`, …) fall back to their defaults instead of crashing, and legitimate non-env brace syntax (e.g. a Serilog `OutputTemplate`) is preserved.
 - **`{!NAME}` — required.** Substituted with the value, or **throws a clear startup error naming the variable** when it is not set.
+- **`{!NAME:fallback}` — fallback.** Substituted with the value when set, otherwise with the literal `fallback` text — never fails. The fallback starts after the first `:` and runs to the closing brace, so it may itself contain `:` (`{!BASE_URL:http://localhost:5000}`), but not `}`.
 
 ```jsonc
 "Enabled": "{GITHUB_AUTH_ENABLED}"   // env unset → feature defaults to off (no crash)
 "Enabled": "{!GITHUB_AUTH_ENABLED}"  // env unset → startup error naming the variable
+"Port": "{!APP_PORT:5432}"           // env unset → 5432
 ```
+
+Note that only the `{!` form takes a fallback: a plain `{NAME:...}` is never treated as an env placeholder, so brace-colon content like Serilog format specifiers (`{Timestamp:HH:mm:ss}`) or inline CSS stays intact.
 
 ## Environment Variable Override
 
-When `AddEnvironmentVariables` is `true`, environment variables can override any configuration setting. Use double underscores for nested keys:
+When `AddEnvironmentVariables` is `true`, environment variables can override any configuration setting (command-line arguments still take precedence over environment variables). Use double underscores for nested keys:
 
 ```bash
 # Override ConnectionStrings.Default
@@ -89,10 +95,17 @@ When `AddEnvironmentVariables` or `ParseEnvironmentVariables` is `true` and `Env
   "Config": {
     "AddEnvironmentVariables": false,
     "ParseEnvironmentVariables": true,
-    "EnvFile": ".env"
+    "EnvFile": "./.env"
   }
 }
 ```
+
+Since 3.21.0, `"./.env"` (relative to the working directory) is the shipped default, which makes the minimal setup a single file: create `.env` with one line — `PGDATABASE=mydb` — and run `npgsqlrest`. The rules:
+
+- **Variables already present in the process environment always win** — the file only fills in missing ones (the standard dotenv convention; before 3.21.0 the file overwrote the environment). A repeated key within the file keeps its last value.
+- The default `./.env` is **optional**: when the file does not exist, startup logs an information message (`Env file ./.env not found, skipping (set Config:EnvFile to null to disable env file loading)`). A **custom** path that does not exist logs a **warning**.
+- When the file loads, startup logs how many variables it contributed and how many were kept from the real environment.
+- Set `"EnvFile": null` to disable loading entirely. Configurations that omit the `EnvFile` key load nothing — the default comes from the shipped configuration file, not from code.
 
 The `.env` file format supports:
 

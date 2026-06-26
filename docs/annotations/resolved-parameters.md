@@ -73,6 +73,7 @@ The caller supplies only `_city`. `_api_key` is read from `weather_tokens` per r
 
 ```sql
 comment on function my_func(_name text, _req my_type, _token text, _api_key text) is '
+HTTP GET
 _token   = select api_token from tokens where user_name = {_name}
 _api_key = select ''static-key-'' || api_token from tokens where user_name = {_name}
 ';

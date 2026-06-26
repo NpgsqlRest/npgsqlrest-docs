@@ -163,11 +163,13 @@ Uses the host from `ProxyOptions.Host` configuration:
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy';
+comment on function my_func() is 'HTTP GET
+@proxy';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy
 select;
 ```
@@ -178,11 +180,13 @@ Override the default host:
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy https://api.example.com';
+comment on function my_func() is 'HTTP GET
+@proxy https://api.example.com';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy https://api.example.com
 select;
 ```
@@ -193,11 +197,13 @@ Override the upstream HTTP method (uses default host from configuration):
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy POST';
+comment on function my_func() is 'HTTP GET
+@proxy POST';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy POST
 select;
 ```
@@ -208,11 +214,13 @@ Specify both HTTP method and host:
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy POST https://api.example.com';
+comment on function my_func() is 'HTTP GET
+@proxy POST https://api.example.com';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy POST https://api.example.com
 select;
 ```
@@ -223,11 +231,13 @@ Use a relative path starting with `/` to proxy to another endpoint on the same s
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy POST /api/data-source';
+comment on function my_func() is 'HTTP GET
+@proxy POST /api/data-source';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy POST /api/data-source
 select;
 ```
@@ -461,6 +471,7 @@ See [Proxy Options](../config/proxy) for complete configuration reference.
 
 ## Related
 
+- [Proxy Endpoints Guide](../guide/proxy) — the full walkthrough
 - [PROXY_OUT](./proxy-out) - Execute function first, then forward result to upstream (post-execution proxy)
 - [Proxy Options](../config/proxy) - Proxy configuration reference
 - [user_context](./user-context) - Enable user context forwarding

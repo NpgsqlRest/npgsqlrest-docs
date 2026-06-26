@@ -22,6 +22,21 @@ head:
 
 This page covers the web server configuration including SSL/HTTPS settings and Kestrel server options.
 
+## Overview
+
+```json
+{
+  "Ssl": {
+    "Enabled": false,
+    "UseHttpsRedirection": true,
+    "UseHsts": true
+  },
+  "Kestrel": {}
+}
+```
+
+The `Kestrel` section is empty by default — it accepts the standard [ASP.NET Core Kestrel configuration](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/options) (endpoints, limits, certificates), documented [below](#kestrel-configuration).
+
 ## SSL Configuration
 
 The `Ssl` section enables HTTPS support and related security features.
@@ -41,8 +56,8 @@ The `Ssl` section enables HTTPS support and related security features.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `Enabled` | bool | `false` | Enable Kestrel HTTPS configuration. See [UseKestrelHttpsConfiguration](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.webhostbuilderkestrelextensions.usekestrelhttpsconfiguration). |
-| `UseHttpsRedirection` | bool | `true` | Redirect HTTP requests to HTTPS. See [UseUseHttpsRedirection](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.httpspolicybuilderextensions.usehttpsredirection). |
-| `UseHsts` | bool | `true` | Add the `Strict-Transport-Security` header (HSTS). See [UseHsts](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.hstsbuilderextensions.usehsts). |
+| `UseHttpsRedirection` | bool | `true` | Redirect HTTP requests to HTTPS. Only applied when `Enabled` is `true`. See [UseHttpsRedirection](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.httpspolicybuilderextensions.usehttpsredirection). |
+| `UseHsts` | bool | `true` | Add the `Strict-Transport-Security` header (HSTS). Only applied when `Enabled` is `true`. See [UseHsts](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.hstsbuilderextensions.usehsts). |
 
 ### Enabling HTTPS
 
@@ -92,6 +107,8 @@ The `Kestrel` section configures the underlying web server, including endpoints,
   }
 }
 ```
+
+When `Kestrel.Endpoints` are configured, they take precedence over the top-level `Urls` setting (Kestrel logs a warning that the `Urls` addresses are overridden).
 
 For complete Kestrel configuration options, see the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints).
 
@@ -213,7 +230,7 @@ Configure connection and request limits to protect your server:
 | `MaxRequestHeadersTotalSize` | 32,768 (32 KB) | Maximum total size of request headers. |
 | `MaxRequestLineSize` | 8,192 (8 KB) | Maximum size of the request line. |
 | `MaxResponseBufferSize` | 65,536 (64 KB) | Maximum size of the response buffer. |
-| `KeepAliveTimeout` | 2 minutes | Timeout for keep-alive connections. |
+| `KeepAliveTimeout` | 130 seconds | Timeout for keep-alive connections. |
 | `RequestHeadersTimeout` | 30 seconds | Timeout for receiving request headers. |
 
 ### HTTP/2 Settings
@@ -231,6 +248,7 @@ Configure HTTP/2 specific options:
         "MaxRequestHeaderFieldSize": 8192,
         "InitialConnectionWindowSize": 65535,
         "InitialStreamWindowSize": 65535,
+        "MaxReadFrameSize": 16384,
         "KeepAlivePingDelay": "00:00:30",
         "KeepAlivePingTimeout": "00:01:00",
         "KeepAlivePingPolicy": "WithActiveRequests"
@@ -286,7 +304,6 @@ Here's a production-ready configuration with HTTPS enabled:
 
 ```json
 {
-  "Urls": "http://localhost:5000;https://localhost:5001",
   "Ssl": {
     "Enabled": true,
     "UseHttpsRedirection": true,

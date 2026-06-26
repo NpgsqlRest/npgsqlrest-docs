@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Database-Level Security: Building Secure Authentication with PostgreSQL"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Implement Principle of Least Privilege at the database level. Build secure authentication with PostgreSQL SECURITY DEFINER, search path protection, and advanced password hashing."
 head:
@@ -368,7 +369,7 @@ HTTP POST
 @anonymous';  -- Allow unauthenticated access to login
 ```
 
-The [`login` annotation](/annotations/login) marks this as an authentication endpoint. Here's how it works:
+The [`@login` annotation](/annotations/login) marks this as an authentication endpoint. Here's how it works:
 
 1. The function must return a **named record (table)** - returning void, simple values, or an empty result triggers 401 Unauthorized
 2. The `scheme` column specifies which configured authentication scheme to use (in this case `'cookies'`, but it could be any scheme you've configured - Bearer tokens, JWT, etc.)
@@ -397,11 +398,11 @@ comment on function example_3_public.logout() is
 @authorize';  -- Requires authentication
 ```
 
-The `logout` annotation tells NpgsqlRest to clear the authentication cookie.
+The `@logout` annotation tells NpgsqlRest to clear the authentication cookie.
 
 ### Who Am I Function
 
-This function demonstrates [user parameters](/config/authentication-options#user-parameters) - claims from the authentication cookie are automatically injected:
+This function demonstrates [user parameters](/config/authentication-options#user-parameters-settings) - claims from the authentication cookie are automatically injected:
 
 ```sql
 -- R__example_3_public_who_am_i.sql
@@ -606,7 +607,7 @@ The segmented password hashing ensures long passwords remain secure. An attacker
 
 Security should be built into the architecture, not bolted on. A restricted application role, a separate public schema, `SECURITY DEFINER` functions with a pinned `search_path`, and segmented bcrypt hashing inside the database add up to an application that stays **secure by default** - even when the layer above it is compromised.
 
-Combined with NpgsqlRest's [end-to-end type safety](/blog/end-to-end-static-type-checking-postgresql-typescript) and [superior performance](/blog/postgresql-rest-api-benchmark-2026), this approach delivers applications that are not only faster and more maintainable, but fundamentally more secure.
+And it costs nothing on the other fronts — the same setup keeps its [end-to-end type safety](/blog/end-to-end-static-type-checking-postgresql-typescript) and its [benchmark numbers](/blog/benchmarks-2026-07/npgsqlrest).
 
 The database is your most trusted component - treat it that way.
 

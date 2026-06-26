@@ -1,19 +1,35 @@
 ---
 title: Blog
+description: "NpgsqlRest blog: tutorials, feature deep dives, benchmarks, and comparisons for building REST APIs directly from PostgreSQL functions and SQL files."
 ---
 
 # Blog Posts & Tutorials
 
 <div class="blog-links blog-hero">
-  <a href="/blog/case-study-zero-backend-code" class="featured">
+  <a href="/blog/benchmarks-2026-07/" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
-    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, and an estimated 3,500–7,300 LOC of host-language boilerplate eliminated</span>
+    <strong>PostgreSQL REST API Benchmark, July 2026 — 20 Services, 760 Tests</strong>
+    <span>The most controlled benchmark round to date: equalized workers, pools, and CPU budgets across 16 frameworks and 6 NpgsqlRest configurations. A full analysis series — per-framework deep dives, the routine-vs-SQL-files verdict, resource efficiency, and the complete raw dataset</span>
   </a>
 </div>
 
 <div class="blog-links">
+  <a href="/blog/npgsqlrest-3.20-dart-client-react-query-tool-schemas" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>NpgsqlRest 3.20.0: Dart Clients for Flutter, React Query Hooks, and Tool Schemas for AI Agents</strong>
+    <span>A code-generation release: typed Dart clients for every Flutter target, TanStack Query hooks with exported key factories generated alongside the TypeScript client, the @mcp tool catalog projected into OpenAI/Anthropic tools documents and llms.txt, and the new HTTP QUERY method across the stack</span>
+  </a>
+  <a href="/blog/npgsqlrest-3.19-sql-test-runner-watch-mode" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Tests Are SQL Files Too</strong>
+    <span>The story behind NpgsqlRest 3.19.0 — write endpoint tests as plain .sql files that invoke the real endpoint in-process, inside the test's own transaction; watch mode that turns the live database schema into your type checker; and why database testing was never actually impossible — you were just using the wrong database</span>
+  </a>
+  <a href="/blog/case-study-zero-backend-code" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
+    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, and an estimated 3,500–7,300 LOC of host-language boilerplate eliminated</span>
+  </a>
   <a href="/blog/the-backend-that-writes-itself-presentation" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <strong>The Backend That Writes Itself — NpgsqlRest in 19 Slides</strong>
@@ -32,8 +48,7 @@ title: Blog
     <strong>NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits, and pgBouncer Compatibility</strong>
     <span>Conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer — all real-world production patterns</span>
   </a>
-  <a href="/blog/sql-rest-api" class="featured human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+  <a href="/blog/sql-rest-api" class="featured">
     <strong>SQL REST API</strong>
     <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong</span>
   </a>
@@ -49,31 +64,23 @@ title: Blog
     <strong>Implementing WebAuthn Passkeys with Pure SQL</strong>
     <span>Passwordless authentication using device biometrics - complete SQL-based passkey registration, login, and credential management</span>
   </a>
-  <a href="/blog/postgresql-rest-api-benchmark-2026" class="featured">
-    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <strong>PostgreSQL REST API Benchmark 2026</strong>
-    <span>Performance comparison of NpgsqlRest vs PostgREST, Django, FastAPI, Spring Boot, and more</span>
-  </a>
   <a href="/blog/npgsqlrest-vs-postgrest-supabase-comparison" class="featured">
     <strong>NpgsqlRest vs PostgREST vs Supabase: Complete Feature Comparison</strong>
     <span>Side-by-side comparison with performance benchmarks, features, authentication, file handling, and deployment options</span>
+  </a>
+  <a href="/blog/postgresql-rest-api-benchmark-2026" class="featured">
+    <strong>PostgreSQL REST API Benchmark 2026: 14 Frameworks Compared</strong>
+    <span>The January 2026 round: NpgsqlRest, PostgREST, Swoole PHP, Go, Rust, Express, FastAPI, Spring Boot and more serving the same PostgreSQL functions under load</span>
   </a>
   <a href="/blog/performance-scalability-high-availability-npgsqlrest" class="featured">
     <strong>Performance, Scalability, and High Availability</strong>
     <span>Caching strategies, retry logic, rate limiting, and multi-host PostgreSQL connections for production APIs</span>
   </a>
-  <a href="/blog/custom-types-multiset-rest-api" class="human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+  <a href="/blog/custom-types-multiset-rest-api">
     <strong>Custom Types and Multiset for Nested JSON in PostgreSQL REST APIs</strong>
     <span>Use PostgreSQL custom types and table types to build hierarchical REST API responses with automatic TypeScript generation</span>
   </a>
-  <a href="/blog/optimization-labels-101" class="human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
-    <strong>PostgreSQL Optimization Labels 101</strong>
-    <span>VOLATILE, STABLE, IMMUTABLE, PARALLEL options, COST, ROWS, and STRICT - a quick reference for function optimization</span>
-  </a>
-  <a href="/blog/the-power-of-simplicity" class="human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+  <a href="/blog/the-power-of-simplicity">
     <strong>The Power of Simplicity</strong>
     <span>How collapsing the standard data access pattern down to UI → RDBMS could save enough energy to power a small country</span>
   </a>

@@ -22,8 +22,6 @@ head:
 
 ::: info Also known as
 `param_type` (with or without `@` prefix)
-
-The bare value keywords also work as standalone annotations: `query_string` / `query` (same as `@request_param_type query_string`) and `body_json` / `body` (same as `@request_param_type body_json`).
 :::
 
 Control how parameters are transmitted to the endpoint - via query string or request body.
@@ -49,8 +47,8 @@ Control how parameters are transmitted to the endpoint - via query string or req
 ## Default Behavior
 
 When not specified:
-- `GET` and `DELETE` methods use query string
-- All other methods use JSON body
+- `GET` uses the query string
+- All other methods (`POST`, `PUT`, `DELETE`, `QUERY`) use the JSON body
 
 ## Examples
 
@@ -75,13 +73,11 @@ comment on function search_users(text, bool) is
 /*
 HTTP GET
 @request_param_type query_string
-@param $1 name
-@param $2 active boolean
 */
-select * from users where name ilike '%' || $1 || '%' and active = $2;
+select * from users where name ilike '%' || :name || '%' and active = :active;
 ```
 
-Request: `GET /api/search-users?_name=john&_active=true`
+Request: `GET /api/search-users?name=john&active=true`
 
 ### Force JSON Body Parameters
 
@@ -103,7 +99,7 @@ Request:
 GET /api/get-filtered-data
 Content-Type: application/json
 
-{"_filters": "status=active"}
+{"filters": "status=active"}
 ```
 
 ### Short Form Keywords
@@ -137,7 +133,7 @@ comment on function quick_action(int) is
 @param_type query_string';
 ```
 
-Request: `POST /api/quick-action?_id=123`
+Request: `POST /api/quick-action?id=123`
 
 ## Behavior
 

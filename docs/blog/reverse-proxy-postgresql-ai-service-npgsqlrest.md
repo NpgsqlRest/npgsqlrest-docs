@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Reverse Proxy in PostgreSQL: Gateway to External Services with NpgsqlRest"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Proxy external services through PostgreSQL functions. Cache AI responses, aggregate microservices data, avoid connection pool exhaustion. No middleware required."
 head:

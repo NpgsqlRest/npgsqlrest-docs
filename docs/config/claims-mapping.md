@@ -24,6 +24,8 @@ Configure how authenticated user claims are mapped to PostgreSQL context variabl
 
 ## Overview
 
+This overview shows the claims-mapping subset of `NpgsqlRest.AuthenticationOptions` — see [Authentication Options](./authentication-options) for the complete section with all defaults.
+
 ```json
 {
   "NpgsqlRest": {
@@ -57,17 +59,21 @@ Map authenticated user claims to PostgreSQL session context variables. Enable fo
 |---------|------|---------|-------------|
 | `UseUserContext` | bool | `false` | Enable automatic claim-to-context mapping for all endpoints. Override per-endpoint with [user_context](../annotations/user-context) annotation. |
 | `ContextKeyClaimsMapping` | object | *(see below)* | Map of PostgreSQL context keys to claim names. Key is the context variable name, value is the claim type. |
-| `ClaimsJsonContextKey` | string | `null` | Context key for all claims serialized as JSON. Set to `"request.user_claims"` to enable. |
+| `ClaimsJsonContextKey` | string | `null` | Context key for all claims serialized as JSON, e.g. `"request.user_claims"`. Disabled when `null`. |
 | `IpAddressContextKey` | string | `"request.ip_address"` | Context key for client IP address. |
 
 ### Default Context Mapping
 
 ```json
 {
-  "ContextKeyClaimsMapping": {
-    "request.user_id": "user_id",
-    "request.user_name": "user_name",
-    "request.user_roles": "user_roles"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ContextKeyClaimsMapping": {
+        "request.user_id": "user_id",
+        "request.user_name": "user_name",
+        "request.user_roles": "user_roles"
+      }
+    }
   }
 }
 ```
@@ -78,14 +84,18 @@ Map additional claims to custom context keys:
 
 ```json
 {
-  "ContextKeyClaimsMapping": {
-    "request.user_id": "user_id",
-    "request.user_name": "user_name",
-    "request.user_roles": "user_roles",
-    "request.user_email": "email",
-    "request.tenant_id": "tenant_id"
-  },
-  "ClaimsJsonContextKey": "request.user_claims"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ContextKeyClaimsMapping": {
+        "request.user_id": "user_id",
+        "request.user_name": "user_name",
+        "request.user_roles": "user_roles",
+        "request.user_email": "email",
+        "request.tenant_id": "tenant_id"
+      },
+      "ClaimsJsonContextKey": "request.user_claims"
+    }
+  }
 }
 ```
 
@@ -123,10 +133,14 @@ Map authenticated user claims to function parameters. Enable for specific endpoi
 
 ```json
 {
-  "ParameterNameClaimsMapping": {
-    "_user_id": "user_id",
-    "_user_name": "user_name",
-    "_user_roles": "user_roles"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_user_name": "user_name",
+        "_user_roles": "user_roles"
+      }
+    }
   }
 }
 ```
@@ -137,15 +151,19 @@ Map additional claims to custom parameter names:
 
 ```json
 {
-  "ParameterNameClaimsMapping": {
-    "_user_id": "user_id",
-    "_user_name": "user_name",
-    "_user_roles": "user_roles",
-    "_email": "email",
-    "_tenant": "tenant_id"
-  },
-  "ClaimsJsonParameterName": "_user_claims",
-  "IpAddressParameterName": "_ip_address"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_user_name": "user_name",
+        "_user_roles": "user_roles",
+        "_email": "email",
+        "_tenant": "tenant_id"
+      },
+      "ClaimsJsonParameterName": "_user_claims",
+      "IpAddressParameterName": "_ip_address"
+    }
+  }
 }
 ```
 
@@ -184,23 +202,25 @@ comment on function get_user_data(text, text, text[], text, json) is '
 
 **Equivalent as a SQL file endpoint** (`sql/get-user-data.sql`):
 
+Named placeholders bind to the mapping by name — `:_user_id` matches the `_user_id` key of `ParameterNameClaimsMapping`, so no `@param` renames are needed (the `@param :name type` lines are Describe type hints only):
+
 ```sql
 /*
 HTTP GET
 @authorize
 @user_params
-@param $1 user_id text
-@param $2 user_name text
-@param $3 user_roles text[]
-@param $4 ip_address text
-@param $5 user_claims json
+@param :_user_id text
+@param :_user_name text
+@param :_user_roles text[]
+@param :_ip_address text
+@param :_user_claims json
 */
 select
-    $1::int as user_id,
-    $2 as user_name,
-    $3 as roles,
-    $4 as ip,
-    $5 as all_claims;
+    :_user_id::int as user_id,
+    :_user_name as user_name,
+    :_user_roles as roles,
+    :_ip_address as ip,
+    :_user_claims as all_claims;
 ```
 
 ::: tip
@@ -237,7 +257,8 @@ Configuration with user context and parameters enabled:
 
 ## Related
 
-- [Authentication Options](./authentication-options) - Basic authentication configuration
+- [Authentication Guide](../guide/authentication) — the full walkthrough
+- [Authentication Options](./authentication-options) - Core authentication options (login/logout, password handling)
 - [Basic Auth Configuration](./basic-auth-config) - Configure HTTP Basic Authentication
 - [user_context annotation](../annotations/user-context) - Enable user context mapping per endpoint
 - [user_parameters annotation](../annotations/user-parameters) - Enable user parameters mapping per endpoint

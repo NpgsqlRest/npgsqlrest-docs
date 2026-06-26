@@ -36,14 +36,63 @@ NpgsqlRest supports multiple authentication methods that can be used together:
 {
   "Auth": {
     "CookieAuth": false,
+    "CookieAuthScheme": "Cookies",
+    "CookieValid": "14 days",
+    "CookieName": null,
+    "CookiePath": null,
+    "CookieDomain": null,
+    "CookieMultiSessions": true,
+    "CookieHttpOnly": true,
+    "CookieSameSite": null,
+    "CookieSecure": null,
     "BearerTokenAuth": false,
+    "BearerTokenAuthScheme": "BearerToken",
+    "BearerTokenExpire": "1 hour",
+    "BearerTokenRefreshPath": "/api/token/refresh",
     "JwtAuth": false,
-    "External": {
-      "Enabled": false
-    }
+    "JwtAuthScheme": "Bearer",
+    "JwtSecret": null,
+    "JwtIssuer": null,
+    "JwtAudience": null,
+    "JwtExpire": "60 minutes",
+    "JwtRefreshExpire": "7 days",
+    "JwtValidateIssuer": false,
+    "JwtValidateAudience": false,
+    "JwtValidateLifetime": true,
+    "JwtValidateIssuerSigningKey": true,
+    "JwtClockSkew": "5 minutes",
+    "JwtRefreshPath": "/api/jwt/refresh",
+    "Schemes": {
+      "short_session": {
+        "Type": "Cookies",
+        "Enabled": false,
+        "CookieValid": "1 hour",
+        "CookieMultiSessions": false
+      },
+      "api_token": {
+        "Type": "BearerToken",
+        "Enabled": false,
+        "BearerTokenExpire": "30 minutes",
+        "BearerTokenRefreshPath": "/api/api-token/refresh"
+      },
+      "admin_jwt": {
+        "Type": "Jwt",
+        "Enabled": false,
+        "JwtSecret": null,
+        "JwtIssuer": null,
+        "JwtAudience": null,
+        "JwtExpire": "5 minutes",
+        "JwtRefreshExpire": "1 hour",
+        "JwtRefreshPath": "/api/admin-jwt/refresh"
+      }
+    },
+    "External": { ... },
+    "PasskeyAuth": { ... }
   }
 }
 ```
+
+The `External` and `PasskeyAuth` subsections are documented on their own pages: [External OAuth](./external-auth) and [Passkey Authentication](./passkey-auth).
 
 ## Cookie Authentication
 
@@ -53,7 +102,7 @@ Cookie authentication provides session-based authentication using HTTP cookies.
 {
   "Auth": {
     "CookieAuth": true,
-    "CookieAuthScheme": null,
+    "CookieAuthScheme": "Cookies",
     "CookieValid": "14 days",
     "CookieName": null,
     "CookiePath": null,
@@ -71,7 +120,7 @@ Cookie authentication provides session-based authentication using HTTP cookies.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `CookieAuth` | bool | `false` | Enable cookie authentication. |
-| `CookieAuthScheme` | string | `null` | Authentication scheme name. Uses `"Cookies"` if null (from `CookieAuthenticationDefaults.AuthenticationScheme`). |
+| `CookieAuthScheme` | string | `"Cookies"` | Authentication scheme name. `null` also resolves to `"Cookies"` (`CookieAuthenticationDefaults.AuthenticationScheme`). |
 | `CookieValid` | string | `"14 days"` | Cookie validity duration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"14 days"`, `"12 hours"`, `"30 minutes"`). Set to `null` to fall back to the framework default (14 days). |
 | `CookieName` | string | `null` | Custom name for the authentication cookie. Uses default if null. |
 | `CookiePath` | string | `null` | Path scope for the cookie. Uses default if null. |
@@ -120,7 +169,7 @@ Microsoft Bearer Token authentication provides stateless token-based authenticat
 {
   "Auth": {
     "BearerTokenAuth": true,
-    "BearerTokenAuthScheme": null,
+    "BearerTokenAuthScheme": "BearerToken",
     "BearerTokenExpire": "1 hour",
     "BearerTokenRefreshPath": "/api/token/refresh"
   }
@@ -132,7 +181,7 @@ Microsoft Bearer Token authentication provides stateless token-based authenticat
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `BearerTokenAuth` | bool | `false` | Enable Microsoft bearer token authentication. |
-| `BearerTokenAuthScheme` | string | `null` | Authentication scheme name. Uses `"BearerToken"` if null (from `BearerTokenDefaults.AuthenticationScheme`). |
+| `BearerTokenAuthScheme` | string | `"BearerToken"` | Authentication scheme name. `null` also resolves to `"BearerToken"` (`BearerTokenDefaults.AuthenticationScheme`). |
 | `BearerTokenExpire` | string | `"1 hour"` | Bearer token expiration in PostgreSQL [interval format](../annotations/interval-format) (e.g., `"1 hour"`, `"30 minutes"`, `"2 days"`). Set to `null` to fall back to the framework default (1 hour). |
 | `BearerTokenRefreshPath` | string | `"/api/token/refresh"` | Endpoint path for refreshing tokens. |
 
@@ -181,7 +230,7 @@ JWT (JSON Web Token) authentication provides industry-standard token-based authe
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `JwtAuth` | bool | `false` | Enable JWT authentication. |
-| `JwtAuthScheme` | string | `null` | Authentication scheme name. Uses `"Bearer"` if null (from `JwtBearerDefaults.AuthenticationScheme`). |
+| `JwtAuthScheme` | string | `"Bearer"` | Authentication scheme name. `null` also resolves to `"Bearer"` (`JwtBearerDefaults.AuthenticationScheme`). |
 | `JwtSecret` | string | `null` | Secret key for signing tokens. **Must be at least 32 characters for HS256.** |
 | `JwtIssuer` | string | `null` | Token issuer (iss claim). |
 | `JwtAudience` | string | `null` | Token audience (aud claim). |
@@ -259,38 +308,40 @@ Named additional authentication schemes registered alongside the main one.
 - Single-session cookies for areas where parallel logins must be disallowed, alongside a normal long-lived session.
 
 ```jsonc
-"Auth": {
-  "CookieAuth": true,
-  "CookieValid": "14 days",
-  "JwtAuth": true,
-  "JwtSecret": "...root-secret-32+chars...",
-  "Schemes": {
-    "short_session": {
-      "Type": "Cookies",
-      "Enabled": true,
-      "CookieValid": "1 hour",
-      "CookieMultiSessions": false
-    },
-    "api_token": {
-      "Type": "BearerToken",
-      "Enabled": true,
-      "BearerTokenExpire": "30 minutes",
-      "BearerTokenRefreshPath": "/api/api-token/refresh"
-    },
-    "admin_jwt": {
-      "Type": "Jwt",
-      "Enabled": true,
-      "JwtSecret": "...separate-admin-secret-32+chars...",
-      "JwtExpire": "5 minutes",
-      "JwtRefreshPath": "/api/admin-jwt/refresh"
+{
+  "Auth": {
+    "CookieAuth": true,
+    "CookieValid": "14 days",
+    "JwtAuth": true,
+    "JwtSecret": "...root-secret-32+chars...",
+    "Schemes": {
+      "short_session": {
+        "Type": "Cookies",
+        "Enabled": true,
+        "CookieValid": "1 hour",
+        "CookieMultiSessions": false
+      },
+      "api_token": {
+        "Type": "BearerToken",
+        "Enabled": true,
+        "BearerTokenExpire": "30 minutes",
+        "BearerTokenRefreshPath": "/api/api-token/refresh"
+      },
+      "admin_jwt": {
+        "Type": "Jwt",
+        "Enabled": true,
+        "JwtSecret": "...separate-admin-secret-32+chars...",
+        "JwtExpire": "5 minutes",
+        "JwtRefreshPath": "/api/admin-jwt/refresh"
+      }
     }
   }
 }
 ```
 
-A login function selects the scheme by returning its name in the `scheme` column:
+A login endpoint selects the scheme by returning its name in the `scheme` column.
 
-**Equivalent as a SQL file endpoint** (`sql/login.sql`):
+**As a SQL file endpoint** (`sql/login.sql`):
 
 ```sql
 /*
@@ -303,6 +354,8 @@ HTTP POST
 select 'Cookies' as scheme, user_id::text as name_identifier, username as name
 from users where username = $1 and password_hash = crypt($2, password_hash);
 ```
+
+**As database functions:**
 
 ```sql
 -- Standard login: returns 'Cookies' → 14-day persistent cookie
@@ -337,7 +390,7 @@ $$;
 
 Common fields: `Type` (required, case-insensitive), `Enabled` (default `true`).
 
-**Inheritance.** A scheme that overrides only one or two fields reuses everything else from the root `Auth` section, so blocks stay small. Setting `CookieMultiSessions: false` is the typical "single-session" override — the cookie's `Max-Age` becomes null (browser-session-only) while `ExpireTimeSpan` still bounds server-side validity. JWT schemes inherit `JwtSecret` from the root section if not set explicitly, so a per-scheme block can be just a shorter expiration.
+**Inheritance.** A scheme that overrides only one or two fields reuses everything else from the root `Auth` section, so blocks stay small. Setting `CookieMultiSessions: false` is the typical "single-session" override — the cookie's `Max-Age` becomes null (browser-session-only) while `ExpireTimeSpan` still bounds server-side validity. JWT schemes inherit `JwtSecret` from the root section if not set explicitly, so a per-scheme block can be just a shorter expiration. Refresh paths are the exception: `BearerTokenRefreshPath` / `JwtRefreshPath` are never inherited — a scheme gets a refresh endpoint only if it declares its own.
 
 ### Validation at Startup (Fail-Fast)
 
@@ -420,6 +473,7 @@ The new fields accept Postgres-interval syntax (`"14 days"`, `"12 hours"`, `"30 
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — the full walkthrough
 - [External OAuth](./external-auth) - Configure Google, LinkedIn, GitHub, Microsoft, Facebook OAuth
 - [Passkey Authentication](./passkey-auth) - Configure WebAuthn passwordless authentication
 - [authorize annotation](../annotations/authorize) - Require authentication on endpoints

@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "cd .. && bun npgsqlrest ./config.json ./23_react_query_hooks/config.json",
+    "watch": "cd .. && bun npgsqlrest ./config.json ./23_react_query_hooks/config.json --watch",
+
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./23_react_query_hooks/sql_23",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./23_react_query_hooks/sql_23",
+
+    "check": "bun install && bun x tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}

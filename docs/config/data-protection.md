@@ -48,7 +48,7 @@ Data protection settings control encryption and decryption for authentication co
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `Enabled` | bool | `false` | Enable data protection. Required when using Cookie Authentication, Antiforgery tokens, or `@encrypt`/`@decrypt` annotations. |
+| `Enabled` | bool | `false` | Enable data protection. Required for the `@encrypt`/`@decrypt` annotations (the default data protector is created only when enabled). Cookie authentication and antiforgery tokens fall back to ASP.NET Core's built-in data protection when disabled; enable it to control their key storage, lifetime, and encryption. |
 | `CustomApplicationName` | string | `null` | Application name for encryption scope. Uses `ApplicationName` if null. Different names cannot decrypt each other's data. |
 | `DefaultKeyLifetimeDays` | int | `90` | Number of days before keys are rotated. |
 | `Storage` | string | `"Default"` | Key storage location: `"Default"`, `"FileSystem"`, or `"Database"`. |
@@ -222,7 +222,7 @@ Keys are stored without additional encryption at rest.
     "Storage": "Database",
     "KeyEncryption": "Certificate",
     "CertificatePath": "/path/to/cert.pfx",
-    "CertificatePassword": "${CERT_PASSWORD}"
+    "CertificatePassword": "{CERT_PASSWORD}"
   }
 }
 ```
@@ -299,13 +299,13 @@ Data Protection powers the [`encrypt` and `decrypt` annotations](../annotations/
 create function store_secret(_key text, _value text) returns void ...
 comment on function store_secret(text, text) is '
 HTTP POST
-encrypt _value
+@encrypt _value
 ';
 
 -- Retrieve with decryption
 create function get_secret(_key text) returns table(key text, value text) ...
 comment on function get_secret(text) is '
-decrypt value
+@decrypt value
 ';
 ```
 

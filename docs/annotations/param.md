@@ -44,6 +44,8 @@ The `@param` keyword is shared with the [PARAMETER_HASH](./parameter-hash) annot
 @param <old_name> <new_name> <type> default <value>
 @param <old_name> is <new_name> default <value>
 @param <old_name> is <new_name> <type> default <value>
+@param <name> type is <type>
+@param <name> type is <type> default <value>
 
 # `=` can be used instead of `default` in all forms above:
 @param <old_name> = <value>
@@ -53,9 +55,9 @@ The `@param` keyword is shared with the [PARAMETER_HASH](./parameter-hash) annot
 @param <old_name> is <new_name> <type> = <value>
 ```
 
-- `old_name`: The original parameter name (e.g., `$1`, `$2`, or `_old_name`)
+- `old_name`: The original parameter name (e.g., `$1`, `$2`, or `_old_name`). In SQL files with named `:name` placeholders, use the placeholder's own name (a leading `:` is tolerated).
 - `new_name`: The new parameter name for the HTTP API. **Used as-is** — no name conversion is applied. If you write `@param $1 authorId`, the HTTP parameter name is exactly `authorId`, not `author_id` or `author-id`.
-- `type`: Optional PostgreSQL type override (e.g., `integer`, `text`, `boolean`)
+- `type`: Optional PostgreSQL type override (e.g., `integer`, `text`, `boolean`). The `type is` form retypes a parameter without renaming it — useful for `:name` placeholders, where the name is already right.
 
 Both `@param` and `@parameter` (long form) are supported.
 
@@ -63,7 +65,7 @@ Both `@param` and `@parameter` (long form) are supported.
 
 ### Rename Positional Parameters (SQL Files)
 
-SQL files use PostgreSQL positional parameters (`$1`, `$2`, ...) which aren't user-friendly as HTTP parameter names. Use `@param` to give them meaningful names:
+SQL files using PostgreSQL positional parameters (`$1`, `$2`, ...) get those as HTTP parameter names, which aren't user-friendly. Use `@param` to give them meaningful names (with [named parameters](../guide/sql-files) — `:from_date`, 3.19+ — the placeholder already is the API name and no rename is needed):
 
 ```sql
 -- sql/get_reports.sql
@@ -108,7 +110,7 @@ HTTP GET
 ';
 ```
 
-Without rename: `GET /api/get-user-profile?_user_id=1&_include_stats=true`
+Without rename: `GET /api/get-user-profile?userId=1&includeStats=true`
 
 With rename: `GET /api/get-user-profile?user_id=1&include_stats=true`
 
@@ -258,6 +260,7 @@ If the type in `@param` is not a recognized PostgreSQL type or composite type, a
 
 ## Related
 
+- [SQL File Endpoints Guide](../guide/sql-files) — named and positional parameters
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [PARAMETER_HASH](./parameter-hash) - Hash one parameter using another (also uses `@param`)
 - [REQUEST_PARAM_TYPE](./request-param-type) - Control query string vs body parameters

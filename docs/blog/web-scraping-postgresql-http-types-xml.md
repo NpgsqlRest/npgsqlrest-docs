@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Web Scraping with PostgreSQL: HTTP Types + XML Functions"
+date: "2026-06-03"
 titleTemplate: NpgsqlRest
 description: "Scrape a web page entirely in SQL: fetch the HTML with an HTTP Custom Type, parse it with PostgreSQL's built-in XPath functions, and serve the result as JSON. No Python, no scraping service."
 head:
@@ -182,6 +183,63 @@ Accept: text/html
 
 Now a burst of traffic to `/average-book-price` collapses to **one** upstream fetch every 5 minutes (with [stampede protection](/annotations/http-type#response-caching) coalescing concurrent requests into a single call), instead of one fetch per visitor. Caching is opt-in, GET-only, and stores only successful responses — exactly the right default for scraping.
 
+## A different split: fetch in SQL, parse in a service
+
+Parsing in SQL is the point of this post, but it isn't the only shape. Sometimes the parser already exists — a service that turns HTML into the numbers you need — and you only want PostgreSQL to do the **fetch**. NpgsqlRest can do exactly that: let the HTTP Custom Type fetch the page, then [`@proxy`](/annotations/proxy) the scraped HTML straight to that upstream service. The function body stays empty — it's a passthrough.
+
+The catch is *where the HTML goes*. Automatic (server-filled) parameters are forwarded to the proxy, but an entire HTML page is far too large for the **query string** — it produces a request line the upstream rejects (HTTP 414/431). The fix is to route that one field into the proxy **request body** with [`@body_parameter_name`](/annotations/body-parameter-name), and use a body-carrying method (`POST`):
+
+```sql
+create type example_18.books_api as (
+    body text,
+    status_code int,
+    success boolean,
+    error_message text
+);
+
+comment on type example_18.books_api is 'GET https://books.toscrape.com/
+Accept: text/html
+@timeout 30s';
+
+create function example_18.average_book_price(
+    _response example_18.books_api default null
+)
+returns table (
+    avg_price numeric
+)
+language plpgsql
+as
+$$
+begin
+-- empty, proxy passthrough: no DB called at all
+end;
+$$;
+
+comment on function example_18.average_book_price(example_18.books_api) is '
+HTTP POST /average-book-price
+@body_parameter_name _response_body
+@allow_anonymous
+@single
+@proxy
+';
+```
+
+`@body_parameter_name _response_body` targets the expanded `body` field of the HTTP Custom Type — the scraped HTML — and sends it as the raw `POST` body to the upstream. The small fields (`status_code`, `success`, …) ride along on the query string. The upstream then does the parsing it already knows how to do and answers with the average:
+
+```ts
+// upstream/server.ts — receives the scraped HTML in the POST body
+const html = await req.text();
+const prices = [...html.matchAll(/class="price_color">\s*£([\d.]+)/g)]
+    .map(m => Number(m[1]))
+    .filter(n => !Number.isNaN(n));
+const avgPrice = prices.length
+    ? prices.reduce((a, b) => a + b, 0) / prices.length
+    : null;
+return Response.json({ avgPrice });
+```
+
+Two [NpgsqlRest 3.18.2](/guide/changelog/v3.18.2) options make this clean: [`ProxyOptions.MaxForwardedQueryParamLength`](/config/proxy#query-string-length-guard) is the guard that would have skipped the oversized body from the query string in the first place, and [`OmitAutomaticParameters`](/config/codegen#omitautomaticparameters-true) drops the server-filled fields from the generated client so the call is a bare `averageBookPrice()` with no arguments.
+
 ## When this works (and when it doesn't)
 
 This approach shines on **server-rendered, reasonably structured** HTML — product listings, catalogs, tables, RSS-like pages. It's a few lines of SQL and it deploys with the rest of your database.
@@ -192,12 +250,22 @@ It is **not** a headless browser. Pages that build their content with client-sid
 
 Both examples are runnable end to end:
 
-> **Source**: [examples/16_scrap_demo](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/16_scrap_demo) · [examples/17_scrap_demo_2](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/17_scrap_demo_2)
+> **Source**: [examples/16_scrap_demo](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/16_scrap_demo) · [examples/17_scrap_demo_2](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/17_scrap_demo_2) · [examples/18_scrap_proxy_demo](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/18_scrap_proxy_demo)
 
 ```bash
 cd examples/17_scrap_demo_2
 bun run db:up
 bun run dev
+# open http://127.0.0.1:8080
+```
+
+The proxy variant (example 18) runs the same way, plus its upstream service in a second terminal:
+
+```bash
+cd examples/18_scrap_proxy_demo
+bun run db:up
+bun run upstream   # starts the parsing service on :3001
+bun run dev        # in another terminal
 # open http://127.0.0.1:8080
 ```
 

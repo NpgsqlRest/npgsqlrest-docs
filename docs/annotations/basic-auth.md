@@ -77,6 +77,7 @@ select _user_name;
 end;
 
 comment on function get_basic_auth_no_creds(text) is '
+HTTP GET
 @basic_auth
 @user_params
 ';
@@ -100,6 +101,7 @@ end;
 -- Output: Myb55+6lW6iiUOI3opLkysOaS8J0NNIuQ+qE2SGaKs3r62ngDJROrhX75+zmLC7t
 
 comment on function get_basic_auth_user(text) is '
+HTTP GET
 @basic_auth my_name Myb55+6lW6iiUOI3opLkysOaS8J0NNIuQ+qE2SGaKs3r62ngDJROrhX75+zmLC7t
 @user_params
 ';
@@ -112,9 +114,8 @@ comment on function get_basic_auth_user(text) is '
 HTTP GET
 @basic_auth my_name Myb55+6lW6iiUOI3opLkysOaS8J0NNIuQ+qE2SGaKs3r62ngDJROrhX75+zmLC7t
 @user_params
-@param $1 user_name
 */
-select $1;
+select :_user_name;
 ```
 
 Test with:
@@ -144,6 +145,7 @@ end;
 -- ./npgsqlrest --hash pass2  =>  TIDVxenk9gSqApyI82XDuqUaigQ5OdBIecfRtq7wFWtHT3Ffx2s+noIjvFCAw90z
 
 comment on function get_basic_auth_multiple_users(text) is '
+HTTP GET
 @basic_auth user1 um4K594nL6pBQx2el0lcbKKLADof1k9atRYKy+G14f6BQPtSCkwO6qz1wJ1d9Tx/
 @basic_auth user2 TIDVxenk9gSqApyI82XDuqUaigQ5OdBIecfRtq7wFWtHT3Ffx2s+noIjvFCAw90z
 @user_params
@@ -186,6 +188,7 @@ Basic Authentication transmits credentials encoded (not encrypted). The behavior
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — auth methods, claims, and login flows
 - [Authentication Options configuration](../config/authentication-options) - Configure Basic Auth globally
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works

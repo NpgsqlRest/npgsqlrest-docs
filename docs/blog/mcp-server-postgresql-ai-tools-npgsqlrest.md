@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Turn PostgreSQL into MCP Tools an AI Agent Can Call"
+date: "2026-06-03"
 titleTemplate: NpgsqlRest
 description: "NpgsqlRest 3.17.0 adds Model Context Protocol support. Annotate a PostgreSQL function or .sql file with @mcp and it becomes a tool an AI agent can discover and call — one source, two interfaces (REST + MCP), no glue code."
 head:

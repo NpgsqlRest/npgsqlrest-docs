@@ -30,12 +30,15 @@ Configuration for generating REST API endpoints from `.sql` files.
     "SqlFileSource": {
       "Enabled": false,
       "FilePattern": "",
-      "CommentsMode": "OnlyWithHttpTag",
+      "SkipPattern": "*.test.sql",
+      "CommentsMode": "OnlyAnnotated",
       "CommentScope": "All",
       "ErrorMode": "Exit",
       "ResultPrefix": "result",
       "UnnamedSingleColumnSet": true,
-      "NestedJsonForCompositeTypes": false
+      "NestedJsonForCompositeTypes": false,
+      "SkipNonQueryCommands": true,
+      "LogCommandText": false
     }
   }
 }
@@ -47,20 +50,27 @@ Configuration for generating REST API endpoints from `.sql` files.
 |---------|------|---------|-------------|
 | `Enabled` | bool | `false` | Enable or disable SQL file source endpoints. |
 | `FilePattern` | string | `""` | Glob pattern for SQL files. Empty string disables the feature. |
-| `CommentsMode` | string | `"OnlyWithHttpTag"` | How comment annotations affect endpoint creation. |
+| `SkipPattern` | string | `"*.test.sql"` | Glob (same semantics as `FilePattern`) for files to **exclude** from endpoint discovery. The default keeps co-located SQL test files (run by the [test runner](./test-runner)) from being exposed as endpoints. Empty string disables the exclusion. |
+| `CommentsMode` | string | `"OnlyAnnotated"` | How comment annotations affect endpoint creation. |
 | `CommentScope` | string | `"All"` | Which comments in the SQL file to parse as annotations. |
 | `ErrorMode` | string | `"Exit"` | Behavior when a SQL file fails to parse or describe. |
 | `ResultPrefix` | string | `"result"` | Prefix for result keys in multi-command JSON responses. |
 | `UnnamedSingleColumnSet` | bool | `true` | Single-column queries return flat arrays instead of object arrays. |
 | `NestedJsonForCompositeTypes` | bool | `false` | When `true`, composite type columns are serialized as nested JSON objects. When `false` (default), composite fields are flattened inline. Can also be enabled per-endpoint with the [`@nested`](../annotations/nested) annotation. |
+| `SkipNonQueryCommands` | bool | `true` | Non-query commands (`BEGIN`, `COMMIT`, `SET`, `DO` blocks, etc.) in multi-command SQL files are still executed but excluded from the JSON response result keys. |
+| `LogCommandText` | bool | `false` | Include the full SQL text of multi-command SQL file endpoints in command logs (see [LogCommandText](#logcommandtext)). |
 
 ## Enabled
 
 Enable or disable SQL file source endpoints. Default is `false` — you must explicitly enable this feature.
 
 ```json
-"SqlFileSource": {
-  "Enabled": true
+{
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "Enabled": true
+    }
+  }
 }
 ```
 
@@ -98,11 +108,12 @@ Controls how comment annotations affect SQL file endpoint creation.
 | Mode | Description |
 |------|-------------|
 | `ParseAll` | Every SQL file becomes an endpoint. Comments are parsed as annotations to modify endpoint behavior. |
-| `OnlyWithHttpTag` | Only files containing an `HTTP` annotation become endpoints. **(default)** |
+| `OnlyAnnotated` | Only files containing an `HTTP` annotation **or** a plugin annotation that requests an endpoint (e.g. [`@mcp`](../annotations/mcp)) become endpoints. **(default since 3.17.0)** |
+| `OnlyWithHttpTag` | Identical-behavior alias of `OnlyAnnotated`, kept for existing configs. |
 | `Ignore` | Every SQL file becomes an endpoint. All comments are ignored. |
 
 ::: tip
-The default `OnlyWithHttpTag` means only SQL files with an explicit `HTTP` annotation (e.g., `-- HTTP GET`) become endpoints. Use `ParseAll` if you want every SQL file in the matched pattern to become an endpoint automatically.
+The default `OnlyAnnotated` means only SQL files with an explicit `HTTP` annotation (e.g., `-- HTTP GET`) or an endpoint-requesting plugin annotation become endpoints. Use `ParseAll` if you want every SQL file in the matched pattern to become an endpoint automatically.
 :::
 
 ## CommentScope
@@ -218,10 +229,14 @@ select id, address from users where id = $1;
 Enable globally for all SQL file endpoints:
 
 ```json
-"SqlFileSource": {
-  "Enabled": true,
-  "FilePattern": "sql/**/*.sql",
-  "NestedJsonForCompositeTypes": true
+{
+  "NpgsqlRest": {
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "sql/**/*.sql",
+      "NestedJsonForCompositeTypes": true
+    }
+  }
 }
 ```
 
@@ -265,7 +280,7 @@ SQL file: sql/send-message.sql (5 statements)
 }
 ```
 
-Single-command SQL file endpoints always log the SQL text regardless of this setting. This only applies when [`LogCommands`](./npgsqlrest#logcommands) is `true`.
+Single-command SQL file endpoints always log the SQL text regardless of this setting. This only applies when [`LogCommands`](./npgsqlrest#logging) is `true`.
 
 ## Quick Start Example
 
@@ -296,6 +311,7 @@ select id, name, email from users where active = $1;
 
 ## Related
 
+- [SQL File Endpoints Guide](../guide/sql-files) — the full task-oriented walkthrough
 - [Changelog v3.12.0](../guide/changelog/v3.12.0) - Release notes for the SQL file source feature
 - [PARAM](../annotations/param) - Rename, retype, and configure parameters
 - [RESULT_NAME](../annotations/result-name) - Rename multi-command result keys

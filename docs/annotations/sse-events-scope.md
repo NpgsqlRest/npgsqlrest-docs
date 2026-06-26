@@ -170,6 +170,7 @@ When a hint is provided, it overrides the annotation scope for that specific eve
 
 ## Related
 
+- [Server-Sent Events Guide](../guide/sse) — the full walkthrough
 - [NpgsqlRest Options configuration](../config/npgsqlrest) - Configure SSE options
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works

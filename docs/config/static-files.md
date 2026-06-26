@@ -202,6 +202,13 @@ Guarantees:
   untrusted input.)
 - **Claims win on collision.** If a name is both a user claim and an env
   var, the per-request claim value takes precedence.
+- **Strict forms** (3.21.0+). Templates can also use `{!NAME}` (same as
+  `{NAME}` for listed names) and `{!NAME:fallback}`, where the inline
+  fallback is raw literal text (quote it yourself if needed) used when
+  the listed variable is unset and has no configured default — the same
+  works for listed claims that are absent on the request. Unlisted names
+  stay literal in every form, so the strict forms never widen the
+  allowlist (and never consume CSS/JS brace content).
 
 :::danger Public allowlist
 Anything you list in `AvailableEnvVars` is templated into static content

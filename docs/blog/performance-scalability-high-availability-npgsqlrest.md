@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Performance, Scalability, and High Availability with NpgsqlRest"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Production-ready API configuration: response caching, retry logic, rate limiting, PostgreSQL multi-host failover, and load balancing. Complete guide with examples."
 head:
@@ -750,30 +751,32 @@ Out of the box, every request under a given policy shares a single global bucket
 A `Partition` block makes each request resolve its own bucket based on something from `HttpContext`: a claim, the client IP, a header, or a static fallback. The first source that resolves to a non-empty value wins.
 
 ```jsonc
-"RateLimiterOptions": {
-  "Enabled": true,
-  "Policies": {
-    "per_user": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 100,
-      "WindowSeconds": 60,
-      "Partition": {
-        "Sources": [
-          { "Type": "Claim", "Name": "name_identifier" },
-          { "Type": "IpAddress" },
-          { "Type": "Static", "Value": "anonymous" }
-        ]
-      }
-    },
-    "throttle_anon_only": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 10,
-      "WindowSeconds": 60,
-      "Partition": {
-        "BypassAuthenticated": true,
-        "Sources": [{ "Type": "IpAddress" }]
+{
+  "RateLimiterOptions": {
+    "Enabled": true,
+    "Policies": {
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "Partition": {
+          "Sources": [
+            { "Type": "Claim", "Name": "name_identifier" },
+            { "Type": "IpAddress" },
+            { "Type": "Static", "Value": "anonymous" }
+          ]
+        }
+      },
+      "throttle_anon_only": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 10,
+        "WindowSeconds": 60,
+        "Partition": {
+          "BypassAuthenticated": true,
+          "Sources": [{ "Type": "IpAddress" }]
+        }
       }
     }
   }
@@ -1205,7 +1208,7 @@ For comparison, here is what each feature costs to build by hand in a traditiona
 | Feature | Manual Implementation | NpgsqlRest |
 |---------|----------------------|------------|
 | **HTTP Cache Headers** | Middleware + per-endpoint logic (~50-100 LOC) | 1 line annotation |
-| **Server-Side Caching** | Cache service + key generation + invalidation logic (~200-400 LOC) | `cached` annotation + JSON config |
+| **Server-Side Caching** | Cache service + key generation + invalidation logic (~200-400 LOC) | `@cached` annotation + JSON config |
 | **Redis/Hybrid Cache** | Redis client setup + serialization + stampede protection (~300-500 LOC) | JSON config only |
 | **Cache Invalidation Endpoints** | Additional controller actions + cache key matching (~100-200 LOC) | `InvalidateCacheSuffix` config |
 | **Connection Retries** | Polly policies + error handling + backoff logic (~150-300 LOC) | JSON config only |

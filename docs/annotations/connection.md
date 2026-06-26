@@ -33,6 +33,13 @@ Specify a named database connection for the endpoint.
 @connection_name <connection-name>
 ```
 
+The `key = value` form works too:
+
+```
+@connection = <connection-name>
+@connection_name = <connection-name>
+```
+
 ## Examples
 
 ### Use Named Connection
@@ -61,9 +68,11 @@ comment on function read_heavy_query() is
 
 ## Behavior
 
-- References a connection string defined in `ConnectionStrings` configuration
+- References a connection string defined in `ConnectionStrings` configuration (matched case-insensitively). The main connection's own name is valid too (3.21.0+).
 - Allows different endpoints to use different databases
-- Requires `UseMultipleConnections: true` in NpgsqlRest options
+- Requires `UseMultipleConnections: true` in NpgsqlRest options — or `RoutineOptions.ReadMetadataFromConnections`, which enables multiple connections implicitly (3.21.0+)
+- The annotation changes where the endpoint **executes**, not where it is discovered: the routine must exist (with this comment) on the metadata connection, and the target database is assumed to have the same routine — right for replicas and shards. When different databases host **different** routines, use [per-connection routine discovery](../config/connection#per-connection-routine-discovery-3-21-0) instead; the annotation then overrides the source's connection.
+- An unknown connection name logs a startup warning and fails the request with a 500 at run time. Opt into startup verification of routed endpoints with [`RoutineOptions.VerifyRoutedEndpoints`](../config/connection#routed-endpoint-verification-3-21-0) (3.21.0+).
 - See [Connection Settings](../config/connection) configuration
 
 ## Related

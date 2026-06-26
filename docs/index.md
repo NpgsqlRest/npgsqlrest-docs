@@ -6,10 +6,10 @@ description: "Your SQL is the API. Annotate PostgreSQL functions and SQL files t
 head:
   - - meta
     - name: keywords
-      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, typescript code generation, database first development, postgresql mcp server, mcp tools, ai agent api, model context protocol, declarative backend
+      content: npgsqlrest, postgresql rest api, postgres api generator, database rest api, automatic api, postgresql web server, typescript code generation, dart code generation, flutter api client, react query hooks, tanstack query, database first development, postgresql mcp server, mcp tools, ai agent api, model context protocol, llms.txt, declarative backend, sql testing, api test runner, watch mode, dev server reload
   - - meta
     - property: og:image
-      content: https://npgsqlrest.github.io/terminal.png
+      content: https://npgsqlrest.github.io/og-image.png
   - - meta
     - property: og:title
       content: NpgsqlRest - Automatic PostgreSQL Web Server
@@ -18,15 +18,15 @@ head:
       content: "Your SQL is the API. PostgreSQL is the architecture, not a detail to abstract away."
   - - meta
     - name: twitter:card
-      content: summary
+      content: summary_large_image
   - - meta
     - name: twitter:image
-      content: https://npgsqlrest.github.io/terminal.png
+      content: https://npgsqlrest.github.io/og-image.png
 
 hero:
   name: NpgsqlRest
   text: Your SQL is the API
-  tagline: "Annotate PostgreSQL functions and SQL files with comments to declare HTTP routes, auth, caching, retries, and rate limits. Get a fast, typed REST API — no controllers, no models, no boilerplate."
+  tagline: "Annotate PostgreSQL functions and SQL files with comments to declare HTTP routes, auth, caching, retries, and rate limits. Get a fast, typed REST API — no controllers, no models, no boilerplate. Then test it with SQL files too."
   actions:
     - theme: brand
       text: Get Started
@@ -34,11 +34,14 @@ hero:
     - theme: alt
       text: View on GitHub
       link: https://github.com/NpgsqlRest/NpgsqlRest
+    - theme: alt
+      text: ❤️ Sponsor
+      link: /support
 
 features:
   - icon: ⚡
     title: Fast & native
-    details: AOT executables. 4,500+ req/s on a single host in independent benchmarks.
+    details: AOT executables. 3,500+ req/s on 4 dedicated cores in reproducible benchmarks.
   - icon: 📝
     title: Declare in SQL
     details: Caching, auth, retries, rate limits — declared as SQL comments next to the query.
@@ -47,13 +50,16 @@ features:
     details: PostgreSQL is the architecture — not a detail to abstract away.
   - icon: 🔄
     title: Typed clients
-    details: PostgreSQL types generate typed TypeScript clients automatically. No drift.
+    details: "PostgreSQL types generate typed TypeScript and Dart (Flutter) clients — plus TanStack Query hooks (v3.20). No drift."
   - icon: 🔒
     title: Secure by default
     details: Cookies, JWT, OAuth2, conditional caching, per-user limits — built in.
   - icon: 🤖
     title: AI-agent ready
-    details: "@mcp exposes any endpoint as an MCP tool for AI agents — same auth, same rate limits (v3.17)."
+    details: "@mcp exposes any endpoint as an MCP tool for AI agents — same auth, same rate limits — plus OpenAI/Anthropic tool schemas and llms.txt (v3.20)."
+  - icon: ✅
+    title: Tests in SQL
+    details: "npgsqlrest --test runs plain .sql tests against real endpoints, in-process and transactional — with watch mode and endpoint coverage (v3.19)."
   - icon: 💚
     title: Open source
     details: MIT-licensed. No paid tier, no telemetry, no vendor lock-in.
@@ -66,8 +72,8 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
 
 <div class="hero-stats">
   <div class="stat">
-    <div class="stat-num">#1 of 14</div>
-    <div class="stat-label">frameworks benchmarked,<br/>4,500+ req/s<sup><a href="/blog/postgresql-rest-api-benchmark-2026" title="2026 benchmark, high-concurrency scenario">¹</a></sup></div>
+    <div class="stat-num">#2 of 20</div>
+    <div class="stat-label">services benchmarked,<br/>3,500+ req/s<sup><a href="/blog/benchmarks-2026-07/npgsqlrest" title="July 2026 benchmark, comprehensive serialization at 100 concurrent users">¹</a></sup></div>
   </div>
   <div class="stat">
     <div class="stat-num">0</div>
@@ -87,12 +93,13 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
   <ul>
     <li><strong>Declare, don't code</strong> — caching, auth, retries, rate limiting — all declared as SQL annotations.</li>
     <li><strong>PostgreSQL at the center</strong> — the opposite of Clean Architecture: the database drives everything.</li>
-    <li><strong>Types flow outward</strong> — PostgreSQL types generate TypeScript clients automatically.</li>
+    <li><strong>Types flow outward</strong> — PostgreSQL types generate TypeScript and Dart clients automatically.</li>
     <li><strong>No middle tier</strong> — no controllers, no models, no mapping layers, no boilerplate.</li>
     <li><strong>Iterate 5× faster</strong> — schema is the single source of truth; signature changes propagate to typed clients automatically, and an entire class of type-drift bugs simply cannot happen.</li>
     <li><strong>Production-grade by default</strong> — response caching, rate limiting, retries, PostgreSQL multi-host failover, load balancing, and Excel/HTML response rendering — configured in JSON, not custom middleware.</li>
     <li><strong>You write SQL, not a URL query language</strong> — unlike client-composed query APIs, the API surface is exactly the SQL you wrote: joins, CTEs, window functions — auditable with grep.</li>
-    <li><strong>Built for the AI era</strong> — one type system to reason about, machine-verified output (schema check at startup, generated TypeScript checked by <code>tsc</code>), and MCP tools for AI agents arriving in v3.17.</li>
+    <li><strong>The whole dev loop in SQL</strong> — tests are plain <code>.sql</code> files run against real endpoints in-process (<code>--test</code>), and watch mode (<code>--watch</code>) restarts on SQL, config, and even database routine changes.</li>
+    <li><strong>Built for the AI era</strong> — one type system to reason about, machine-verified output (schema check at startup, generated TypeScript checked by <code>tsc</code>), and <code>@mcp</code> tools for AI agents — with OpenAI/Anthropic tool schemas and <code>llms.txt</code> generated from the same catalog.</li>
   </ul>
 </div>
 
@@ -118,7 +125,7 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
 </h2>
 
 <p class="section-sub">
-  SQL declares <em>what data</em>. Annotations declare <em>what behavior</em>. Configuration declares <em>what infrastructure</em>.
+  SQL declares <em>what data</em>. Annotations declare <em>what behavior</em>. Configuration declares <em>what infrastructure</em>. Tests declare <em>what correctness</em> — also in SQL.
   There is no imperative glue anywhere — no controllers, no services, no mappers to keep in sync.
   And it is built on the declarative language that has been running the world's data for 50 years —
   the one every developer, and every LLM, already knows: <strong>SQL</strong>.
@@ -157,21 +164,86 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
   <a href="/annotations/" class="annotation-link">View all annotations →</a>
 </div>
 
+<h2 id="devloop" tabindex="-1" class="section-heading">
+  Tests Are SQL Files Too
+  <a class="header-anchor" href="#devloop" aria-label="Permalink to &quot;Tests Are SQL Files Too&quot;">​</a>
+</h2>
+
+<p class="section-sub">
+  No test framework, no running server, no mocks. <code>npgsqlrest --test</code> invokes the <strong>real endpoint pipeline in-process, on the test's own transaction</strong> —
+  insert fixtures, call the endpoint (it sees your uncommitted rows), assert with SQL, roll back.
+</p>
+
+```sql
+-- tests/get_users.test.sql
+begin;
+
+insert into users (email) values ('fixture@example.com');
+
+/*
+GET /api/get-users
+# @claim user_id=1
+*/
+select status = 200, 'authenticated caller gets 200' from _response;
+select body::jsonb @> '[{"email": "fixture@example.com"}]', 'fixture is listed' from _response;
+
+rollback;
+```
+
+```console
+$ npgsqlrest ./config.json --test
+
+PASS  tests/get_users.test.sql  (2 assertions, 52ms)
+19 passed, 0 failed, 0 error(s)  —  19 assertions in 9 files
+endpoint coverage: 2/2 (100%)
+```
+
+<p class="section-sub">
+  Parallel isolated connections, throwaway test databases, per-test clones, tags, JUnit XML, and <strong>endpoint coverage</strong> with a CI threshold gate.
+  And with <code>--watch</code>, the running server restarts on SQL file, configuration, and <strong>database routine</strong> changes —
+  <code>create or replace</code> a function in psql and the endpoint is live seconds later, TypeScript client regenerated.
+</p>
+
+<div style="text-align: center; margin: 1.5rem 0;">
+  <a href="/guide/testing" class="annotation-link">Testing Guide →</a>
+  &nbsp;·&nbsp;
+  <a href="/config/watch" class="annotation-link">Watch Mode →</a>
+</div>
+
 <h2 id="blog" tabindex="-1" class="section-heading">
   From the Blog
   <a class="header-anchor" href="#blog" aria-label="Permalink to &quot;From the Blog&quot;">​</a>
 </h2>
 
 <div class="blog-links blog-hero">
-  <a href="/blog/case-study-zero-backend-code" class="featured">
+  <a href="/blog/benchmarks-2026-07/" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
-    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
-    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, an estimated 3,500–7,300 LOC of host-language boilerplate eliminated, a 5× faster iteration loop on signature changes, and roughly 55–100 hours of typing avoided across the project's evolution.</span>
+    <strong>PostgreSQL REST API Benchmark, July 2026 — 20 Services, 760 Tests</strong>
+    <span>The most controlled round to date: NpgsqlRest vs PostgREST, Go, Rust, FastAPI, Spring Boot, Bun, Deno, and more under equalized conditions — per-framework analysis, the routine-vs-SQL-files verdict, and the full raw dataset.</span>
+  </a>
+</div>
+
+<div class="blog-links blog-hero">
+  <a href="/blog/npgsqlrest-3.20-dart-client-react-query-tool-schemas" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <img class="badge" src="https://img.shields.io/badge/Featured-gold" alt="Featured">
+    <strong>NpgsqlRest 3.20.0: Dart Clients for Flutter, React Query Hooks, and Tool Schemas for AI Agents</strong>
+    <span>A code-generation release: typed Dart clients for every Flutter target, TanStack Query hooks with exported key factories generated alongside the TypeScript client, the @mcp tool catalog projected into OpenAI/Anthropic tools documents and llms.txt, and the new HTTP QUERY method across the stack.</span>
   </a>
 </div>
 
 <div class="blog-links">
+  <a href="/blog/npgsqlrest-3.19-sql-test-runner-watch-mode" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Tests Are SQL Files Too</strong>
+    <span>The story behind NpgsqlRest 3.19.0 — write endpoint tests as plain .sql files that invoke the real endpoint in-process, inside the test's own transaction; watch mode that turns the live database schema into your type checker; and why database testing was never actually impossible — you were just using the wrong database.</span>
+  </a>
+  <a href="/blog/case-study-zero-backend-code" class="featured">
+    <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
+    <strong>Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest</strong>
+    <span>What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, an estimated 3,500–7,300 LOC of host-language boilerplate eliminated, a 5× faster iteration loop on signature changes, and roughly 55–100 hours of typing avoided across the project's evolution.</span>
+  </a>
   <a href="/blog/the-backend-that-writes-itself-presentation" class="featured">
     <img class="badge" src="https://img.shields.io/badge/New-brightgreen" alt="New">
     <strong>The Backend That Writes Itself — NpgsqlRest in 19 Slides</strong>
@@ -190,14 +262,13 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
     <strong>NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits</strong>
     <span>Conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer.</span>
   </a>
-  <a href="/blog/postgresql-rest-api-benchmark-2026" class="featured">
-    <strong>PostgreSQL REST API Benchmark 2026</strong>
-    <span>Performance comparison of NpgsqlRest vs PostgREST, Django, FastAPI, Spring Boot, Go, Rust, and more — 14 frameworks, identical PostgreSQL functions.</span>
-  </a>
-  <a href="/blog/sql-rest-api" class="featured human-written">
-    <img class="badge" src="https://img.shields.io/badge/Human-Written-blue" alt="Human Written">
+  <a href="/blog/sql-rest-api" class="featured">
     <strong>SQL REST API</strong>
     <span>The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, and why I think Clean Architecture got it wrong.</span>
+  </a>
+  <a href="/blog/sql-file-source-rest-api-from-plain-sql" class="featured">
+    <strong>REST APIs from Plain SQL Files</strong>
+    <span>Build REST APIs directly from .sql files — no functions, no procedures, no boilerplate. Multi-command endpoints, automatic parameter inference, and TypeScript generation.</span>
   </a>
   <a href="/blog/npgsqlrest-vs-postgrest-supabase-comparison" class="featured">
     <strong>NpgsqlRest vs PostgREST vs Supabase</strong>
@@ -216,19 +287,22 @@ import { presentationSlides } from './.vitepress/theme/data/presentationSlides'
 <hr />
 
 <div class="bottom">
-  <a style="background-image: url(./logo.gif?v2);" href="https://github.com/NpgsqlRest/NpgsqlRest" target="_blank"></a>
+  <a style="background-image: url(./og-image.png?v1);" href="https://github.com/NpgsqlRest/NpgsqlRest" target="_blank"></a>
   <div class="badges">
     <a href="https://github.com/NpgsqlRest/NpgsqlRest/actions/workflows/build-test-publish.yml" target="_blank"><img src="https://github.com/NpgsqlRest/NpgsqlRest/actions/workflows/build-test-publish.yml/badge.svg" alt="Build, Test, Publish and Release"></a>
     <a href="https://github.com/NpgsqlRest/NpgsqlRest/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/NpgsqlRest/NpgsqlRest/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/NpgsqlRest/NpgsqlRest?style=social" alt="GitHub Stars"></a>
     <a href="https://github.com/NpgsqlRest/NpgsqlRest/fork" target="_blank"><img src="https://img.shields.io/github/forks/NpgsqlRest/NpgsqlRest?style=social" alt="GitHub Forks"></a>
-    <a href="https://claude.ai" target="_blank" class="ai-badge" title="Documentation crafted with Claude"><img src="https://img.shields.io/badge/crafted_with-Claude-cc785c?logo=anthropic" alt="Crafted with Claude"></a>
   </div>
 </div>
 
 <div style="text-align: center; margin-top: 2rem; padding: 1.5rem 0; border-top: 1px solid var(--vp-c-divider);">
   <div style="font-size: 1rem; font-weight: 800; margin-bottom: 0.5rem;">
-    ❤️ Support this project:
+    ❤️ <a href="/support">Support this project</a>:
+    <a href="https://github.com/sponsors/NpgsqlRest" target="_blank" style="display: inline-flex; align-items: center; gap: 4px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.655 14.916v-.001h-.002l-.006-.003-.018-.01a22.066 22.066 0 0 1-3.744-2.584C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002a.75.75 0 0 1-.69 0Z"/></svg>
+      GitHub Sponsors
+    </a> ·
     <a href="https://patreon.com/vbconsulting" target="_blank" style="display: inline-flex; align-items: center; gap: 4px;">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.957 7.21c-.004-3.064-2.391-5.576-5.191-6.482-3.478-1.125-8.064-.962-11.384.604C2.357 3.231 1.093 7.391 1.046 11.54c-.039 3.411.302 7.463 3.097 9.746 2.602 2.124 6.19 2.078 9.402 1.836 1.883-.142 3.939-.358 5.477-1.528 1.564-1.19 1.873-3.298 1.972-5.151.134-2.51.187-5.016-.037-7.233zm-2.55 7.703c-.078 1.593-.383 3.473-1.795 4.334-1.351.824-3.151.973-4.686 1.083-2.891.207-6.063.276-8.514-1.399C3.106 17.39 2.924 14.34 2.95 11.67c.03-3.206.678-6.721 3.654-8.375 2.756-1.531 6.556-1.727 9.544-.872 2.339.669 4.351 2.678 4.355 5.217.007 2.583-.016 5.168-.095 7.273z"/><path d="M16.088 5.19c-1.008-.542-2.607-.48-3.441.388-.568.591-.773 1.389-.8 2.172-.034.993.068 2.013.361 2.953.307.985 1.034 1.848 2.077 2.012.878.138 1.83-.088 2.458-.732.7-.718.88-1.81.877-2.779-.003-.989-.084-1.99-.423-2.91-.268-.726-.654-1.328-1.109-1.104zm-.294 5.482c-.182.462-.581.771-1.091.696-.532-.078-.859-.533-1.04-1.005-.248-.647-.327-1.375-.312-2.06.01-.46.095-.939.371-1.313.345-.467.993-.447 1.426-.115.41.315.607.835.74 1.32.18.66.211 1.675-.094 2.477zM8.4 10.394c.233 1.084.755 2.299 1.907 2.579.934.227 1.993-.165 2.434-1.048.455-.91.346-1.995.166-2.972-.165-.893-.46-1.885-1.207-2.445-.745-.559-1.832-.457-2.479.192-.84.843-.958 2.138-.955 3.277.001.147.119.364.134.417zm1.363-2.808c.302-.321.805-.336 1.14-.054.445.375.618 1.015.75 1.558.131.54.212 1.156.082 1.703-.1.423-.378.821-.84.882-.469.062-.886-.306-1.088-.704-.326-.644-.401-1.426-.381-2.148.013-.465.104-.993.337-1.237z"/></svg>
       Patreon

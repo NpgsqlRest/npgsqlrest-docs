@@ -21,7 +21,7 @@ head:
 # ERROR_CODE_POLICY
 
 ::: info Also known as
-`error_code_policy`, `error_code` (with or without `@` prefix)
+`error_code_policy_name`, `error_code` (with or without `@` prefix)
 :::
 
 Associate an error handling policy with the endpoint.

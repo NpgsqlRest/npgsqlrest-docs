@@ -99,6 +99,7 @@ select _t;
 end;
 
 comment on function get_nullable_param(text) is '
+HTTP GET
 @query_string_null_handling empty_string
 ';
 ```
@@ -109,9 +110,8 @@ comment on function get_nullable_param(text) is '
 /*
 HTTP GET
 @query_string_null_handling empty_string
-@param $1 t
 */
-select $1;
+select :t;
 ```
 
 | Request | Parameter Value |
@@ -130,6 +130,7 @@ select _filter;
 end;
 
 comment on function get_data(text) is '
+HTTP GET
 @query_string_null_handling null_literal
 ';
 ```
@@ -151,6 +152,7 @@ select _query;
 end;
 
 comment on function search(text) is '
+HTTP GET
 @query_string_null_handling ignore
 ';
 ```
@@ -179,7 +181,7 @@ end;
 
 comment on function get_item(int) is '
 HTTP GET /items/{p_id}
-query_string_null_handling null_literal
+@query_string_null_handling null_literal
 ';
 ```
 

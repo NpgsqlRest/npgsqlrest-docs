@@ -56,7 +56,7 @@ returns json language plpgsql as $$
 ...
 $$;
 comment on function convert_currency(numeric, text, text) is 'HTTP GET
-proxy GET /api/get-cached-rates';
+@proxy GET /api/get-cached-rates';
 ```
 
 - `GET /api/get-cached-rates` → **404 Not Found**

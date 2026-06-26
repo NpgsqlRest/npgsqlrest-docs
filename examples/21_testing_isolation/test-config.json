@@ -1,0 +1,63 @@
+{
+
+  // Template-database workflow: the migration is applied ONCE to a TEMPLATE database; the shared test
+  // database — and per-test isolated databases for tests that need perfect isolation — are then created
+  // as near-instant clones of it (`create database ... template ...`). The runner does no DDL itself:
+  // everything is a named step below. {rnd5} is one stable random token for the whole run; the indexed
+  // instances {rnd5_1} and {rnd5_2} are two MORE independent tokens (same length), used to give the two
+  // isolated tests DIFFERENT database names so their clones can coexist in one run.
+  "ConnectionStrings": {
+    // Maintenance connection (postgres db) for create/drop database. The login role needs CREATEDB.
+    "Admin":     "Host={PGHOST};Port={PGPORT};Database=postgres;Username={PGUSER};Password={PGPASSWORD}",
+    // The template: migrated once in Setup, then never connected to again (a template must have no
+    // active connections while it is being cloned).
+    "Template":  "Host={PGHOST};Port={PGPORT};Database=example_21_template_{rnd5};Username={PGUSER};Password={PGPASSWORD}",
+    // The shared per-run test database (a clone of the template) — most tests run here.
+    "Test":      "Host={PGHOST};Port={PGPORT};Database=example_21_test_{rnd5};Username={PGUSER};Password={PGPASSWORD}",
+    // Per-test clones for tests annotated `-- @connection Isolated1` / `Isolated2` (created/dropped by
+    // their `-- @setup` / `-- @teardown` steps). Distinct {rnd5_1}/{rnd5_2} tokens keep the names apart.
+    "Isolated1": "Host={PGHOST};Port={PGPORT};Database=example_21_iso_{rnd5_1};Username={PGUSER};Password={PGPASSWORD}",
+    "Isolated2": "Host={PGHOST};Port={PGPORT};Database=example_21_iso_{rnd5_2};Username={PGUSER};Password={PGPASSWORD}"
+  },
+
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRest": "Off",
+      "NpgsqlRestClient": "Off",
+      // The test runner's own channel. Debug shows the run lifecycle: Setup/Teardown steps and their
+      // Command output, discovery/parse results, per-file @setup/@teardown, outcomes. Raise to "Verbose"
+      // to also see every SQL statement and HTTP invocation; the default (Information) keeps runs quiet.
+      "NpgsqlRestTest": "Debug"
+    }
+  },
+
+  "TestRunner": {
+    "ConnectionName": "Test",
+    "FilePattern": "./21_testing_isolation/tests/**/*.test.sql",
+
+    "Steps": {
+      "CreateTemplate":    { "Sql": "create database example_21_template_{rnd5}", "ConnectionName": "Admin" },
+      "MigrateTemplate":   { "SqlFile": "./21_testing_isolation/migrations_21/R__example_21_schema.sql", "ConnectionName": "Template" },
+      "CreateTestDb":      { "Sql": "create database example_21_test_{rnd5} template example_21_template_{rnd5}", "ConnectionName": "Admin" },
+      "DropTestDb":        { "Sql": "drop database if exists example_21_test_{rnd5} with (force)", "ConnectionName": "Admin" },
+      "DropTemplate":      { "Sql": "drop database if exists example_21_template_{rnd5} with (force)", "ConnectionName": "Admin" },
+
+      // Per-test isolation: clone 1 is attached via the shared profile (tests/shared/isolated_database.sql),
+      // clone 2 via inline annotations (tests/clones_are_independent.test.sql).
+      "CreateIsolatedDb1": { "Sql": "create database example_21_iso_{rnd5_1} template example_21_template_{rnd5}", "ConnectionName": "Admin" },
+      "DropIsolatedDb1":   { "Sql": "drop database if exists example_21_iso_{rnd5_1} with (force)", "ConnectionName": "Admin" },
+      "CreateIsolatedDb2": { "Sql": "create database example_21_iso_{rnd5_2} template example_21_template_{rnd5}", "ConnectionName": "Admin" },
+      "DropIsolatedDb2":   { "Sql": "drop database if exists example_21_iso_{rnd5_2} with (force)", "ConnectionName": "Admin" }
+    },
+
+    // Name references and inline step objects mix freely. The Command step runs via the OS shell —
+    // {rnd} placeholders are substituted in commands too; in real projects this is where `docker run`,
+    // a readiness wait (`pg_isready`), or an external migrator (EF/Django/Flyway) would go. Its output
+    // is logged on the NpgsqlRestTest channel at Debug level.
+    "Setup": [
+      { "Command": "echo preparing run: template=example_21_template_{rnd5} clones={rnd5_1},{rnd5_2}" },
+      "CreateTemplate", "MigrateTemplate", "CreateTestDb"
+    ],
+    "Teardown": ["DropTestDb", "DropTemplate"]
+  }
+}

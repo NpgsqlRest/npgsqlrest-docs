@@ -2,9 +2,9 @@
 layout: doc
 outline: [2, 3]
 title: "Custom Types and Multiset for Nested JSON in PostgreSQL REST APIs"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Learn how to use PostgreSQL custom types and table types in REST APIs. Return nested JSON structures, use composite types as parameters, and build hierarchical responses with NpgsqlRest."
-badge: human
 head:
   - - meta
     - name: keywords
@@ -37,19 +37,19 @@ head:
 
 ---
 
-There has been some exciting new features added to NpgsqlRest lately, and I wanted to share them personally, so this post will be human-written. 
+There have been some exciting new features added to NpgsqlRest lately, and I wanted to share them personally, so this post will be human-written. 
 
 Those features revolve mainly around usage of custom types in PostgreSQL, including composite types and table types and their support in TypeScript code generation. 
 
 Custom types were supported from the beginning, but now, this support has been greatly expanded.
 
-So lets do a quick overview of custom types and how they can help us building better APIs.
+So let's do a quick overview of custom types and how they can help us building better APIs.
 
 ## Example Setup
 
 > **Source Code For This Example**: [github.com/NpgsqlRest/npgsqlrest-docs/examples/7_csv_excel_uploads](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples/7_csv_excel_uploads)
 
-Databa schema for this example is fairly simple, we have `authors` and `books` tables with a one-to-many relationship (one author can have many books). There is also a `reviews` table that holds reviews for books. Source code (schema ommitted here for brevity) can be found in the example folder:
+Databa schema for this example is fairly simple, we have `authors` and `books` tables with a one-to-many relationship (one author can have many books). There is also a `reviews` table that holds reviews for books. Source code (schema omitted here for brevity) can be found in the example folder:
 
 
 ```sql
@@ -185,7 +185,7 @@ Calling `/api/example-12/get-author-info?authorId=1` now returns:
 }
 ```
 
-This shows how we can use custom composite types to return simple JSON objects with specific fields. These types can also be reused accross multiple functions and even as parameters as we will see next.
+This shows how we can use custom composite types to return simple JSON objects with specific fields. These types can also be reused across multiple functions and even as parameters as we will see next.
 
 ## Using Custom Types as Parameters
 
@@ -414,7 +414,7 @@ Resulting JSON for `/api/example-12/get-authors-with-details-type` now looks lik
 ]
 ```
 
-So, this a powerful way to build tailored API responses using custom types, while keeping the database functions clean and reusable. There is one more piece.
+So, this is a powerful way to build tailored API responses using custom types, while keeping the database functions clean and reusable. There is one more piece.
 
 ## NEW: Nested JSON Objects
 
@@ -443,7 +443,7 @@ HTTP GET
 ';
 ```
 
-And when we enable this feauture, the response for `/api/example-12/get-authors-with-details` now looks like this:
+And when we enable this feature, the response for `/api/example-12/get-authors-with-details` now looks like this:
 
 ```json
 [
@@ -730,7 +730,7 @@ With the default `ResolveNestedCompositeTypes: true`, the `reviews` array is pro
 
 2) Working memory pressure on the database server.
 
-Aggegations in PostgreSQL are accumulated in working memory and by default PostgreSQL allocates 4MB per aggregation operation (see the `work_mem` parameter). Those allocations are per operation and even a single query can have multiple aggregations, let alone multiple concurrent queries. When memory limit is exceeded, PostgreSQL spills to disk to complete the operation, which can severely impact performance.
+Aggregations in PostgreSQL are accumulated in working memory and by default PostgreSQL allocates 4MB per aggregation operation (see the `work_mem` parameter). Those allocations are per operation and even a single query can have multiple aggregations, let alone multiple concurrent queries. When memory limit is exceeded, PostgreSQL spills to disk to complete the operation, which can severely impact performance.
 
 This is a consideriation when using aggregations excessively, especially with large datasets on a busy server. Always monitor memory usage and tune `work_mem` accordingly.
 
@@ -738,7 +738,7 @@ This is a consideriation when using aggregations excessively, especially with la
 
 Using custom types and multiset patterns in PostgreSQL with NpgsqlRest allows us to build expressive and efficient REST APIs with hierarchical JSON responses but as we can see, there are some limitations to be aware of.
 
-There is a good workaround taht I use in my projects. More like different pattern. Simply, run multiple queries, preferably in parallel, instead of a single complex query with multiple levels of nesting. This pattern gives us:
+There is a good workaround that I use in my projects. More like different pattern. Simply, run multiple queries, preferably in parallel, instead of a single complex query with multiple levels of nesting. This pattern gives us:
 
 - Better performance by avoiding complex aggregations and joins.
 - No working memory pressure on the database server.

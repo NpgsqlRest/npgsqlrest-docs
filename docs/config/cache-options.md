@@ -40,7 +40,37 @@ Caching configuration for PostgreSQL routines.
     "HybridCacheMaximumPayloadBytes": 1048576,
     "HybridCacheDefaultExpiration": null,
     "HybridCacheLocalCacheExpiration": null,
-    "Profiles": {}
+    "Profiles": {
+      "fast_memory": {
+        "Enabled": false,
+        "Type": "Memory",
+        "Expiration": "30 seconds",
+        "Parameters": [
+          "user_id"
+        ]
+      },
+      "shared_redis": {
+        "Enabled": false,
+        "Type": "Redis",
+        "Expiration": "1 hour"
+      },
+      "date_range_hybrid": {
+        "Enabled": false,
+        "Type": "Hybrid",
+        "Expiration": "5 minutes",
+        "Parameters": [
+          "from",
+          "to"
+        ],
+        "When": [
+          {
+            "Parameter": "to",
+            "Value": null,
+            "Then": "skip"
+          }
+        ]
+      }
+    }
   }
 }
 ```
@@ -225,30 +255,32 @@ This is useful when one app needs:
 ### Overview
 
 ```jsonc
-"CacheOptions": {
-  "Enabled": true,
-  "Type": "Memory",                 // root cache (used by endpoints WITHOUT @cache_profile)
-  // ... existing top-level fields ...
-  "Profiles": {
-    "fast_memory": {
-      "Enabled": true,
-      "Type": "Memory",
-      "Expiration": "30 seconds",
-      "Parameters": ["user_id"]
-    },
-    "shared_redis": {
-      "Enabled": true,
-      "Type": "Redis",
-      "Expiration": "1 hour"
-    },
-    "timeseries": {
-      "Enabled": true,
-      "Type": "Memory",
-      "Expiration": "1 hour",
-      "Parameters": ["from", "to"],
-      "When": [
-        { "Parameter": "to", "Value": null, "Then": "5 minutes" }
-      ]
+{
+  "CacheOptions": {
+    "Enabled": true,
+    "Type": "Memory",                 // root cache (used by endpoints WITHOUT @cache_profile)
+    // ... existing top-level fields ...
+    "Profiles": {
+      "fast_memory": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "30 seconds",
+        "Parameters": ["user_id"]
+      },
+      "shared_redis": {
+        "Enabled": true,
+        "Type": "Redis",
+        "Expiration": "1 hour"
+      },
+      "timeseries": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 hour",
+        "Parameters": ["from", "to"],
+        "When": [
+          { "Parameter": "to", "Value": null, "Then": "5 minutes" }
+        ]
+      }
     }
   }
 }

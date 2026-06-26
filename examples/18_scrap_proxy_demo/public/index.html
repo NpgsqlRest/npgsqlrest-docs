@@ -47,16 +47,20 @@
     </style>
 </head>
 <body>
-    <h1>Example 18: Web Scraping Demo 2</h1>
+    <h1>Example 18: Web Scraping Proxy Demo</h1>
     <p>
         This example fetches
         <a href="https://books.toscrape.com/" target="_blank">books.toscrape.com</a>
-        with an <strong>HTTP Custom Type</strong>, parses the HTML with PostgreSQL
-        <strong>XML functions</strong>, and returns the average book price on the page.
+        with an <strong>HTTP Custom Type</strong>, then <strong>proxies</strong> the
+        scraped HTML to an upstream service which parses it and returns the average
+        book price on the page.
     </p>
     <p>
-        Each book is an <code>&lt;article&gt;</code>; its price is the
-        <code>&lt;p class="price_color"&gt;</code> text (e.g. <code>£51.77</code>).
+        The scraped HTML is forwarded into the proxy request <strong>body</strong> with
+        <code>@body_parameter_name</code> — too large for the query string — while the
+        small HTTP-type fields ride the query string. The upstream service reads each
+        price from <code>&lt;p class="price_color"&gt;</code> (e.g. <code>£51.77</code>)
+        and averages them.
     </p>
 
     <div class="card">

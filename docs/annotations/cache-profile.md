@@ -77,52 +77,55 @@ The annotations override the profile's defaults:
 
 The profile still supplies the cache **backend** (Redis in this case) and any `When` rules.
 
-### Multi-tenant search_path pattern
+### Shorter TTL when a parameter is null
 
-A profile that bypasses the cache when no end date is supplied — the request asks for "until now" data, which changes constantly:
+A profile that shortens the cache TTL when no end date is supplied — the request asks for "until now" data, which changes constantly:
 
 ```jsonc
-// in appsettings.json
-"CacheOptions": {
-  "Enabled": true,
-  "Profiles": {
-    "timeseries": {
-      "Enabled": true,
-      "Type": "Memory",
-      "Expiration": "1 hour",
-      "Parameters": ["from", "to"],
-      "When": [
-        { "Parameter": "to", "Value": null, "Then": "5 minutes" }
-      ]
+{
+  "CacheOptions": {
+    "Enabled": true,
+    "Profiles": {
+      "timeseries": {
+        "Enabled": true,
+        "Type": "Memory",
+        "Expiration": "1 hour",
+        "Parameters": ["_from", "_to"],
+        "When": [
+          { "Parameter": "_to", "Value": null, "Then": "5 minutes" }
+        ]
+      }
     }
   }
 }
 ```
 
 ```sql
-comment on function compute_timeseries(from text, to text default null) is
+comment on function compute_timeseries(_from text, _to text default null) is
 'HTTP GET
 @cache_profile timeseries';
 ```
 
 Behavior per request:
-- Both `from` and `to` present → 1-hour cache (historical query, safe to cache long).
-- `to` is null → 5-minute cache (open-ended query; data may update at the matching cadence).
+- Both `_from` and `_to` present → 1-hour cache (historical query, safe to cache long).
+- `_to` is null → 5-minute cache (open-ended query; data may update at the matching cadence).
 
 ### Tiered TTL by user role
 
 ```jsonc
-"CacheOptions": {
-  "Profiles": {
-    "tier_aware": {
-      "Enabled": true,
-      "Type": "Hybrid",
-      "Parameters": ["tier"],
-      "When": [
-        { "Parameter": "tier", "Value": "free",  "Then": "5 minutes" },
-        { "Parameter": "tier", "Value": "pro",   "Then": "1 hour" },
-        { "Parameter": "tier", "Value": "admin", "Then": "skip" }
-      ]
+{
+  "CacheOptions": {
+    "Profiles": {
+      "tier_aware": {
+        "Enabled": true,
+        "Type": "Hybrid",
+        "Parameters": ["tier"],
+        "When": [
+          { "Parameter": "tier", "Value": "free",  "Then": "5 minutes" },
+          { "Parameter": "tier", "Value": "pro",   "Then": "1 hour" },
+          { "Parameter": "tier", "Value": "admin", "Then": "skip" }
+        ]
+      }
     }
   }
 }
@@ -141,7 +144,7 @@ comment on function get_account_data(tier text) is
 ## Behavior
 
 - `@cache_profile` implies `@cached` — explicit `@cached` is unnecessary.
-- The profile's `Cache` (backend instance) is used instead of the root `DefaultRoutineCache`.
+- The profile's backend (its `Type`) is used instead of the root `CacheOptions` backend.
 - The profile's `Expiration` is used unless overridden by `@cache_expires`.
 - The profile's `Parameters` list is used as the default cache-key set unless overridden by `@cached <list>`.
 - The profile's `When` rules are evaluated at request time; first match wins. Rules can `"skip"` (bypass cache) or override TTL with a PostgreSQL interval.
@@ -155,7 +158,7 @@ Misconfiguration is caught at startup:
 | Problem | Result |
 |---|---|
 | Unknown profile name referenced by `@cache_profile` | Startup fails with single error listing every unresolved name + offending endpoints |
-| Profile registered but no endpoint references it | Information-level log warning |
+| Profile registered but no endpoint references it | Information-level log message |
 | `When` rule references a parameter that's not in the cache-key list | Rule dropped at startup with Warning (other rules still apply) |
 | Multiple `@cache_profile` arguments (e.g. `@cache_profile a b`) | Annotation ignored with Warning; one name only |
 

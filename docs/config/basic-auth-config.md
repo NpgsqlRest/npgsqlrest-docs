@@ -155,27 +155,21 @@ end;
 $$;
 ```
 
-**Equivalent as a SQL file challenge command** (`sql/basic-auth-login.sql`):
+**Equivalent as inline SQL:**
 
-The challenge command is referenced from configuration (`ChallengeCommand: "select * from basic_auth_login($1, $2, $3)"`), so the call site stays the same. The implementation can also be a SQL file endpoint exposed as an internal helper:
+`ChallengeCommand` is executed directly, so it does not have to call a function — any statement using `$1`–`$5` works:
 
-```sql
-/*
-HTTP POST
-@internal
-@param $1 username
-@param $2 password
-@param $3 validated boolean
-*/
-select
-    u.password_hash = crypt($2, u.password_hash) as status,
-    u.id as user_id,
-    u.username as user_name,
-    array_agg(r.role_name) as user_roles
-from users u
-left join user_roles r on r.user_id = u.id
-where u.username = $1
-group by u.id, u.username, u.password_hash;
+```json
+{
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "BasicAuth": {
+        "Enabled": true,
+        "ChallengeCommand": "select u.password_hash = crypt($2, u.password_hash) as status, u.id as user_id, u.username as user_name, array_agg(r.role_name) as user_roles from users u left join user_roles r on r.user_id = u.id where u.username = $1 group by u.id, u.username, u.password_hash"
+      }
+    }
+  }
+}
 ```
 
 ## Complete Example
@@ -200,7 +194,8 @@ Production configuration with Basic Authentication:
 
 ## Related
 
-- [Authentication Options](./authentication-options) - Basic authentication configuration
+- [Authentication Guide](../guide/authentication) — the full walkthrough
+- [Authentication Options](./authentication-options) - Core authentication options (login/logout, password handling)
 - [Claims Mapping](./claims-mapping) - Configure user context and parameters mapping
 - [basic_auth annotation](../annotations/basic-auth) - Enable Basic Authentication per endpoint
 - [basic_auth_realm annotation](../annotations/basic-auth-realm) - Set realm per endpoint

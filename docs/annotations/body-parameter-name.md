@@ -55,10 +55,8 @@ comment on function process_payload(json, text) is
 /*
 HTTP POST
 @body_parameter_name payload
-@param $1 metadata json
-@param $2 payload text
 */
-select process_payload($1, $2);
+select process_payload(:metadata, :payload);
 ```
 
 ### JSON Body Parameter
@@ -108,7 +106,6 @@ The remaining small fields still travel on the proxy query string.
 
 ## Related
 
-- [NpgsqlRest Options configuration](../config/npgsqlrest) - Configure default body parameter
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

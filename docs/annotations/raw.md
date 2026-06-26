@@ -74,7 +74,7 @@ comment on function get_user_info() is
 @raw';
 ```
 
-Response: `JohnDoe john@example.com` (values concatenated)
+Response: `John Doejohn@example.com` (values concatenated with no separator — add `@separator` to delimit them)
 
 ### CSV Export
 
@@ -184,7 +184,7 @@ Content-Type: {_type}
 Content-Disposition: attachment; filename={_file}';
 ```
 
-Request: `GET /api/export-data?_type=text/csv&_file=users.csv`
+Request: `GET /api/export-data?type=text/csv&file=users.csv`
 
 Response headers:
 ```

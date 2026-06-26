@@ -1,10 +1,11 @@
 <template>
-  <div class="code-terminal" :aria-label="ariaLabel">
+  <div class="code-terminal" :class="{ paused }" :aria-label="ariaLabel">
     <div class="terminal-chrome">
       <span class="dot dot-red"></span>
       <span class="dot dot-yellow"></span>
       <span class="dot dot-green"></span>
       <span class="terminal-title">{{ frameTitle }}</span>
+      <TerminalPlayButton v-if="animated" :paused="paused" @toggle="toggle" />
     </div>
     <div class="terminal-body" :class="{ fading }" :style="bodyStyle">
       <template v-for="(block, bi) in completedBlocks" :key="'c' + bi">
@@ -32,7 +33,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import TerminalPlayButton from './TerminalPlayButton.vue'
+import { usePausableTimers } from '../usePausableTimers'
 
 const props = defineProps({
   title: { type: String, default: '~ npgsqlrest' },
@@ -51,6 +54,9 @@ const currentCmd = ref('')
 const currentLines = ref([])
 const sub = ref('typing')
 const fading = ref(false)
+const animated = ref(true)
+
+const { paused, schedule, toggle } = usePausableTimers()
 
 function normalizeFrame(frame) {
   if (!frame) return { blocks: [] }
@@ -76,10 +82,6 @@ const maxLines = computed(() => {
 const bodyStyle = computed(() => ({
   minHeight: `calc(${maxLines.value} * 1.55em + 2.2rem)`
 }))
-
-const timers = []
-const clearTimers = () => { while (timers.length) clearTimeout(timers.pop()) }
-const schedule = (fn, ms) => timers.push(setTimeout(fn, ms))
 
 function typeOut(text, onDone) {
   let i = 0
@@ -155,12 +157,11 @@ onMounted(() => {
     const f = normalizeFrame(props.frames[0])
     completedBlocks.value = f.blocks.map(b => ({ command: b.command, lines: [...(b.lines || [])] }))
     sub.value = 'idle'
+    animated.value = false
     return
   }
   schedule(() => runFrame(0), 500)
 })
-
-onBeforeUnmount(clearTimers)
 </script>
 
 <style scoped>
@@ -225,6 +226,15 @@ onBeforeUnmount(clearTimers)
 
 .terminal-body.fading {
   opacity: 0;
+}
+
+/* keep content visible if paused mid-fade */
+.code-terminal.paused .terminal-body.fading {
+  opacity: 1;
+}
+
+.code-terminal.paused .cursor {
+  animation-play-state: paused;
 }
 
 .line {

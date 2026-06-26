@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Turn PostgreSQL into a BI Server: CSV Exports & Excel Integration"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Serve CSV reports directly from PostgreSQL to Excel with Basic Auth. Build a complete BI data delivery system without application code."
 head:

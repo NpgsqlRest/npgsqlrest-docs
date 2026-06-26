@@ -22,7 +22,7 @@ head:
 
 NpgsqlRest creates REST API endpoints directly from `.sql` files. No `CREATE FUNCTION`, no `RETURNS TABLE`, no `LANGUAGE sql`, no `COMMENT ON FUNCTION` — just the query itself.
 
-> **Source Code**: Every example in this guide comes from the [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples). Each function-based example has a `_sql_file` counterpart.
+> **Source Code**: Every example in this guide comes from the [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples). Most function-based examples have a `_sql_file` counterpart.
 
 ## How It Works
 
@@ -42,7 +42,7 @@ error 42703: column u.id does not exist
              ^
 ```
 
-This is the default behavior (`ErrorMode: "Exit"`). Set `ErrorMode: "Skip"` to log errors and continue startup instead. Individual statements can bypass Describe entirely with [`@returns`](#returns--skip-describe), which is necessary when the SQL references objects that don't exist at startup (e.g. temp tables created at runtime).
+This is the default behavior (`ErrorMode: "Exit"`). Set `ErrorMode: "Skip"` to log errors and continue startup instead. Individual statements can bypass Describe entirely with [`@returns`](#returns-—-skip-describe), which is necessary when the SQL references objects that don't exist at startup (e.g. temp tables created at runtime).
 
 ## Configuration
 
@@ -67,6 +67,7 @@ Other settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
+| `SkipPattern` | `*.test.sql` | Glob for files to exclude from endpoint discovery — keeps co-located [test files](/guide/testing) out of the API |
 | `ErrorMode` | `Exit` | `Exit` fails fast at startup. `Skip` logs errors and continues |
 | `CommentScope` | `All` | `All` parses every comment. `Header` only parses comments before the first statement |
 | `UnnamedSingleColumnSet` | `true` | Single-column queries return flat arrays (`["a","b"]`) instead of object arrays |
@@ -99,7 +100,33 @@ Without an explicit `HTTP` annotation, the verb is inferred from the SQL: `SELEC
 
 ## Parameters
 
-SQL files use PostgreSQL positional parameters (`$1`, `$2`, ...). The [`@param`](/annotations/param) annotation gives them meaningful names and optionally overrides the type:
+SQL files use **named parameters** (`:name`, since 3.19.0) or PostgreSQL positional parameters (`$1`, `$2`, ...) — one style per file.
+
+### Named Parameters (`:name`)
+
+The placeholder **is** the parameter name — no annotations needed:
+
+```sql
+-- sql/get-reports.sql
+-- HTTP GET
+select id, title, created_at
+from reports
+where created_at between :from_date and :to_date;
+```
+
+`GET /api/get-reports?fromDate=2024-01-01&toDate=2024-12-31`
+
+The API name goes through the same `NameConverter` routine parameters use (`:from_date` → `fromDate` with the default camelCase converter). Under the hood the SQL is rewritten to native `$N` before it is described and executed — PostgreSQL never sees the `:name` form, so type inference and runtime behavior are identical to positional files.
+
+- **Repetition collapses**: the same name used multiple times — including across statements in a multi-command file — is **one** parameter (`where :user_id = author_id or :user_id = editor_id` takes a single `userId` value).
+- **Claim mappings hook up by placeholder name**: `select :_user_id` under `@authorize` + `@user_parameters` binds the mapped claim with zero annotations.
+- **Annotations match by name** where still needed: `@param from_date default null` (defaults), `@param :from_date timestamptz` (type hint), or the retype-without-rename form `@param from_date type is timestamptz`.
+- **The tokenizer knows SQL**: strings, comments, and dollar-quoted bodies are untouched; `::int` casts, `:=` calls, and numeric slice bounds (`a[1:3]`) never match. One caveat: an array slice with a *variable* bound must be written with a space (`a[1 : n]`).
+- Mixing `$N` and `:name` in one file is rejected at startup. (JDBC-style `?` is deliberately not supported — `?`, `?|`, `?&`, `@?` are PostgreSQL's own jsonb operators.)
+
+### Positional Parameters (`$N`)
+
+The [`@param`](/annotations/param) annotation gives positional parameters meaningful names and optionally overrides the type:
 
 ```sql
 -- sql/get-reports.sql
@@ -187,7 +214,7 @@ Returns a JSON object with one key per statement:
 
 ### Positional Annotations
 
-Three annotations are **positional** — they apply to the next statement below them (or inline after `;` on the same line):
+These annotations are **positional** — they apply to the next statement below them (or inline after `;` on the same line):
 
 - [`@result name`](/annotations/result-name) — rename result key (default: `result1`, `result2`, ...)
 - [`@single`](/annotations/single) — return a single row as an object instead of an array
@@ -249,6 +276,16 @@ All NpgsqlRest features that existed before SQL File Source — authentication (
 
 The [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/main/examples) has a `_sql_file` counterpart for most examples demonstrating this.
 
+## The Dev Loop: Watch Mode
+
+Run the server under [watch mode](../config/watch) while writing endpoint files:
+
+```sh
+npgsqlrest ./config.json --watch
+```
+
+Save a `.sql` file and the running API restarts with the change (~1s) — a new endpoint is immediately callable, a broken one prints its error while the rest keep serving (`ErrorMode` is relaxed to `Skip` while watching), and configured code generation (TypeScript/Dart clients, HTTP files, OpenAPI) regenerates on every cycle, so frontend types follow your SQL as you type. Configuration files and database routines are watched too. For testing the same loop, see [`--test --watch`](./testing#watch-mode).
+
 ## SQL Files vs Functions
 
 **Use SQL files when:** the query is declarative, involves multi-statement workflows, or the team prefers plain SQL files over DDL.
@@ -256,7 +293,7 @@ The [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/mai
 **Use functions when:**
 
 - **Procedural logic** — functions receive parameters and return results natively. `DO` blocks require `set_config`/temp table workarounds.
-- **Testing** — functions support `assert` blocks inside [repeatable migrations](https://flywaydb.org/documentation/concepts/migrations#repeatable-migrations) that run on every build, giving you database-level unit tests with rollback isolation. SQL files have no equivalent. See [End-to-End Type Checking](/blog/end-to-end-static-type-checking-postgresql-typescript) for examples.
+- **Testing** — functions support `assert` blocks inside [repeatable migrations](https://flywaydb.org/documentation/concepts/migrations#repeatable-migrations) that run on every build, giving you database-level unit tests with rollback isolation. SQL files have no in-migration equivalent — the [SQL test runner](/guide/testing) covers both sources, but from the outside. See [End-to-End Type Checking](/blog/end-to-end-static-type-checking-postgresql-typescript) for examples.
 - **Optimization** — `VOLATILE`/`STABLE`/`IMMUTABLE`, `COST`, `ROWS`, `PARALLEL` hints.
 - **Overloading** — multiple function signatures per name.
 
@@ -270,5 +307,6 @@ The [examples repository](https://github.com/NpgsqlRest/npgsqlrest-docs/tree/mai
 - [`@returns`](/annotations/returns) — skip Describe for temp tables
 - [`@void`](/annotations/void) — force 204 No Content
 - [`@define_param`](/annotations/define-param) — virtual parameters
-- [Changelog v3.12.0](/guide/changelog/v3.12.0) — full release notes
+- [Testing Guide](/guide/testing) — test your SQL file endpoints with plain `.sql` test files (`--test`)
+- [Changelog v3.12.0](/guide/changelog/v3.12.0) — full release notes; [v3.19.0](/guide/changelog/v3.19.0) — named parameters, `SkipPattern`, test runner
 - [Examples](/examples/) — all examples with SQL file variants

@@ -1,0 +1,15 @@
+{
+  "ApplicationName": "21_testing_isolation",
+
+  "NpgsqlRest": {
+    "RequiresAuthorization": false,
+
+    "RoutineOptions": { "Enabled": false },
+
+    // Endpoints come from ./sql only; tests live in ./tests (see test-config.json).
+    "SqlFileSource": {
+      "Enabled": true,
+      "FilePattern": "./21_testing_isolation/sql/**/*.sql"
+    }
+  }
+}

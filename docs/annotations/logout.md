@@ -40,7 +40,7 @@ When an endpoint is marked with `logout`, NpgsqlRest executes the sign-out opera
 
 If the function returns `void`, NpgsqlRest simply:
 1. Executes the function
-2. Calls sign-out on all authentication schemes
+2. Signs out of the default authentication scheme
 3. Completes the response
 
 ### Functions with Return Values
@@ -50,7 +50,7 @@ If the function returns values, **all returned values are interpreted as authent
 - Single values are added as scheme names
 - Arrays are expanded - each element becomes a scheme name
 - NULL values are ignored
-- If no schemes are returned (empty result), signs out from all schemes
+- If no schemes are returned (empty result), signs out of the default scheme
 
 This is useful when using multiple authentication schemes (e.g., Cookie and Bearer Token) and you want to sign out from only specific ones.
 
@@ -82,7 +82,7 @@ comment on function signout() is
 delete from sessions where user_id = current_user_id();
 ```
 
-Signs out from all authentication schemes.
+Signs out of the default authentication scheme.
 
 ### Logout from Specific Scheme
 
@@ -127,7 +127,7 @@ create function smart_logout(_scheme text default null)
 returns text
 language sql
 begin atomic;
-  select _scheme;  -- Returns NULL to logout from all, or specific scheme
+  select _scheme;  -- NULL signs out of the default scheme, otherwise the named scheme
 end;
 
 comment on function smart_logout(text) is
@@ -136,8 +136,8 @@ comment on function smart_logout(text) is
 @authorize';
 ```
 
-- `POST /auth/logout` → Signs out from all schemes
-- `POST /auth/logout?_scheme=Cookies` → Signs out only from Cookies
+- `POST /auth/logout` → Signs out of the default scheme
+- `POST /auth/logout` with body `{"scheme": "Cookies"}` → Signs out only from Cookies
 
 ### Logout with Cleanup
 
@@ -164,6 +164,7 @@ comment on function full_logout() is
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — auth methods, claims, and login flows
 - [Authentication configuration](../config/auth) - Configure authentication schemes
 - [Authentication Options configuration](../config/authentication-options) - Configure logout behavior
 - [Comment Annotations Guide](../guide/annotations) - How annotations work

@@ -124,16 +124,18 @@ For non-string configuration values, use the quoted form `"{VARIABLE_NAME}"` in 
 }
 ```
 
-### Optional and Required Placeholders <Badge type="tip" text="3.17.0+" />
+### Optional, Required and Fallback Placeholders <Badge type="tip" text="3.17.0+" />
 
-Placeholders come in two forms, supported for **every** value type (bool, int, string, enum, arrays, dictionaries):
+Placeholders come in three forms, supported for **every** value type (bool, int, string, enum, arrays, dictionaries):
 
 - **`{NAME}` — optional.** Substituted with the variable's value when set; **left untouched when not set** — so typed `bool`/`int` reads fall back to their default instead of crashing, and legitimate non-env brace syntax (e.g. a Serilog `OutputTemplate`) is preserved.
 - **`{!NAME}` — required.** Substituted with the value, or **throws a clear startup error naming the variable** when it is not set.
+- **`{!NAME:fallback}` — fallback** <Badge type="tip" text="3.21.0+" />**.** Substituted with the value when set, otherwise with the literal `fallback` text — never fails. The fallback starts after the first `:` and runs to the closing brace, so it may itself contain `:` (`{!BASE_URL:http://localhost:5000}`). Only the `{!` form takes a fallback — a plain `{NAME:...}` is never treated as an env placeholder.
 
 ```jsonc
 "Enabled": "{GITHUB_AUTH_ENABLED}"   // env unset → feature defaults to off (no crash)
 "Enabled": "{!GITHUB_AUTH_ENABLED}"  // env unset → startup error naming the variable
+"Port": "{!APP_PORT:5432}"           // env unset → 5432
 ```
 
 Placeholder parsing is controlled by [`Config:ParseEnvironmentVariables`](../config/config-section) (enabled by default).
@@ -266,7 +268,7 @@ Consider this scenario with multiple configuration sources:
 }
 ```
 
-**Environment variables:**
+**Environment variables** (with `Config.AddEnvironmentVariables` enabled — see above):
 ```bash
 export NpgsqlRest__UrlPathPrefix="/api/v2"
 ```
@@ -317,7 +319,7 @@ npgsqlrest appsettings.json --npgsqlrest:commandtimeout=30 --config
 
 ## Configuration Structure Overview
 
-This section provides a complete overview of the NpgsqlRest configuration file structure.
+This section provides an overview of the NpgsqlRest configuration file structure — every section, and the core `NpgsqlRest` keys with their defaults. For every key with its description, run `npgsqlrest --config` or see the [Latest Default Configuration](../config/latest).
 
 ```json
 {
@@ -353,8 +355,19 @@ This section provides a complete overview of the NpgsqlRest configuration file s
   "ResponseCompression": { ... },
   "StaticFiles": { ... },
   "Cors": { ... },
+  "SecurityHeaders": { ... },
+  "ForwardedHeaders": { ... },
+  "HealthChecks": { ... },
+  "Stats": { ... },
+
+  // Testing & Development
+  "TestRunner": { ... },
+  "Watch": { ... },
+
+  // Retries, Caching, Validation & Rate Limiting
   "CommandRetryOptions": { ... },
   "CacheOptions": { ... },
+  "ValidationOptions": { ... },
   "RateLimiterOptions": { ... },
 
   // Error Handling
@@ -370,30 +383,30 @@ This section provides a complete overview of the NpgsqlRest configuration file s
     // Schema & Name Filtering
     "SchemaSimilarTo": null,
     "SchemaNotSimilarTo": null,
-    "IncludeSchemas": [],
-    "ExcludeSchemas": [],
+    "IncludeSchemas": null,
+    "ExcludeSchemas": null,
     "NameSimilarTo": null,
     "NameNotSimilarTo": null,
-    "IncludeNames": [],
-    "ExcludeNames": [],
+    "IncludeNames": null,
+    "ExcludeNames": null,
 
     // URL & Naming Options
     "UrlPathPrefix": "/api",
     "KebabCaseUrls": true,
     "CamelCaseNames": true,
-    "CommentsMode": "OnlyWithHttpTag",
+    "CommentsMode": "OnlyAnnotated",
 
     // Request Handling
     "DefaultHttpMethod": null,
     "DefaultRequestParamType": null,
-    "RequiresAuthorization": false,
+    "RequiresAuthorization": true,
 
     // Request Headers
     "RequestHeadersMode": "Parameter",
     "RequestHeadersContextKey": "request.headers",
     "RequestHeadersParameterName": "_headers",
     "InstanceIdRequestHeaderName": null,
-    "CustomRequestHeaders": [],
+    "CustomRequestHeaders": { ... },
     "ExecutionIdHeaderName": "X-NpgsqlRest-ID",
 
     // Server-Sent Events
@@ -401,7 +414,7 @@ This section provides a complete overview of the NpgsqlRest configuration file s
     "ServerSentEventsResponseHeaders": { ... },
 
     // Logging
-    "LogConnectionNoticeEvents": false,
+    "LogConnectionNoticeEvents": true,
     "LogConnectionNoticeEventsMode": "FirstStackFrameAndMessage",
     "LogCommands": false,
     "LogCommandParameters": false,
@@ -409,10 +422,16 @@ This section provides a complete overview of the NpgsqlRest configuration file s
     // Nested Configuration Objects
     "RoutineOptions": { ... },
     "UploadOptions": { ... },
+    "TableFormatOptions": { ... },
     "AuthenticationOptions": { ... },
     "HttpFileOptions": { ... },
     "OpenApiOptions": { ... },
-    "ClientCodeGen": { ... }
+    "McpOptions": { ... },
+    "ClientCodeGen": { ... },
+    "DartClientCodeGen": { ... },
+    "HttpClientOptions": { ... },
+    "ProxyOptions": { ... },
+    "SqlFileSource": { ... }
   }
 }
 ```

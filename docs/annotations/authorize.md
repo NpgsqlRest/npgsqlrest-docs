@@ -190,6 +190,7 @@ comment on function another_protected() is
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — auth methods, claims, and login flows
 - [Authentication configuration](../config/auth) - Configure authentication providers
 - [Authentication Options configuration](../config/authentication-options) - Configure authentication behavior
 - [Comment Annotations Guide](../guide/annotations) - How annotations work

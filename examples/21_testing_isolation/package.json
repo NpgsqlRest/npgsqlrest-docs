@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev": "cd .. && bun npgsqlrest ./config.json ./21_testing_isolation/config.json",
+    "watch": "cd .. && bun npgsqlrest ./config.json ./21_testing_isolation/config.json --watch",
+    "test": "cd .. && bun npgsqlrest ./config.json ./21_testing_isolation/config.json ./21_testing_isolation/test-config.json --test",
+    "db:up": "cd .. && bun db up --config=./db.js --migrationDir=./21_testing_isolation/migrations_21",
+    "db:list": "cd .. && bun db up --list --config=./db.js --migrationDir=./21_testing_isolation/migrations_21"
+  }
+}

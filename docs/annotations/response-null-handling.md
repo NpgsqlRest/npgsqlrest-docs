@@ -21,7 +21,7 @@ head:
 # RESPONSE_NULL_HANDLING
 
 ::: info Also known as
-`response_null`, `text_response_null_handling` (with or without `@` prefix)
+`response_null` (with or without `@` prefix)
 :::
 
 Control how NULL results are returned in plain text responses when the execution returns NULL from the database.
@@ -31,16 +31,15 @@ Control how NULL results are returned in plain text responses when the execution
 ```
 @response_null <mode>
 @response_null_handling <mode>
-@text_response_null_handling <mode>
 ```
 
 ## Values
 
-| Value | Description |
-|-------|-------------|
-| `empty_string` | Returns an empty string response with status code 200 OK (default) |
-| `null_literal` | Returns a string literal "NULL" with status code 200 OK |
-| `no_content` or `204_no_content` | Returns status code 204 NO CONTENT |
+| Value | Alias | Description |
+|-------|-------|-------------|
+| `empty_string` | `empty` | Returns an empty response body with status code 200 OK (default) |
+| `null_literal` | `null` | Returns the string literal `null` with status code 200 OK |
+| `no_content` | `204`, `204_no_content` | Returns status code 204 NO CONTENT |
 
 ## Examples
 
@@ -52,7 +51,7 @@ comment on function get_value(_id int) is
 @response_null empty_string';
 ```
 
-If result is NULL → Response body: `""`
+If result is NULL → empty response body (200 OK)
 
 ### Return 204 for NULL
 

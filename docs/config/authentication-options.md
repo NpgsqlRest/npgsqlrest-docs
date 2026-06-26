@@ -20,7 +20,7 @@ head:
 
 # Authentication Options
 
-Basic authentication configuration for NpgsqlRest endpoints including login/logout handling and password settings.
+Core authentication configuration for NpgsqlRest endpoints including login/logout handling and password settings.
 
 ## Overview
 
@@ -38,6 +38,7 @@ Basic authentication configuration for NpgsqlRest endpoints including login/logo
       "DefaultUserIdClaimType": "user_id",
       "DefaultNameClaimType": "user_name",
       "DefaultRoleClaimType": "user_roles",
+      "DefaultDisplayNameClaimType": "display_name",
       "SerializeAuthEndpointsResponse": false,
       "ObfuscateAuthParameterLogValues": true,
       "PasswordVerificationFailedCommand": null,
@@ -60,18 +61,13 @@ Basic authentication configuration for NpgsqlRest endpoints including login/logo
       "IpAddressParameterName": "_ip_address",
       "LoginPath": null,
       "LogoutPath": null,
-      "BasicAuth": {
-        "Enabled": false,
-        "Realm": null,
-        "Users": {},
-        "SslRequirement": "Required",
-        "UseDefaultPasswordHasher": true,
-        "ChallengeCommand": null
-      }
+      "BasicAuth": { ... }
     }
   }
 }
 ```
+
+The `BasicAuth` subsection is documented on its own page: [Basic Auth Config](./basic-auth-config).
 
 ## General Settings
 
@@ -99,7 +95,7 @@ These settings are part of the **built-in password verification system**. For de
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `PasswordParameterNameContains` | string | `"pass"` | Identifies password parameter (first param containing this string). See [Password Parameter Detection](../annotations/login#password-parameter-detection). |
+| `PasswordParameterNameContains` | string | `"pass"` | Identifies password parameter (first param containing this string). See [Password Parameter Detection](../annotations/login#password-verification). |
 | `PasswordVerificationFailedCommand` | string | `null` | Command executed on password verification failure. |
 | `PasswordVerificationSucceededCommand` | string | `null` | Command executed on password verification success. |
 
@@ -120,6 +116,7 @@ Both `PasswordVerificationFailedCommand` and `PasswordVerificationSucceededComma
 | `DefaultUserIdClaimType` | string | `"user_id"` | Claim type for user ID. |
 | `DefaultNameClaimType` | string | `"user_name"` | Claim type for username. |
 | `DefaultRoleClaimType` | string | `"user_roles"` | Claim type for user roles. |
+| `DefaultDisplayNameClaimType` | string | `"display_name"` | Claim type for the user display name. |
 
 ## User Context Settings
 
@@ -136,9 +133,15 @@ Settings for automatically passing authenticated user claims to PostgreSQL via c
 
 ```json
 {
-  "request.user_id": "user_id",
-  "request.user_name": "user_name",
-  "request.user_roles": "user_roles"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ContextKeyClaimsMapping": {
+        "request.user_id": "user_id",
+        "request.user_name": "user_name",
+        "request.user_roles": "user_roles"
+      }
+    }
+  }
 }
 ```
 
@@ -159,9 +162,15 @@ Settings for automatically mapping authenticated user claims to function paramet
 
 ```json
 {
-  "_user_id": "user_id",
-  "_user_name": "user_name",
-  "_user_roles": "user_roles"
+  "NpgsqlRest": {
+    "AuthenticationOptions": {
+      "ParameterNameClaimsMapping": {
+        "_user_id": "user_id",
+        "_user_name": "user_name",
+        "_user_roles": "user_roles"
+      }
+    }
+  }
 }
 ```
 
@@ -258,6 +267,7 @@ Production configuration with login endpoint and user context:
 
 ## Related
 
+- [Authentication Guide](../guide/authentication) — the full walkthrough
 - [Claims Mapping](./claims-mapping) - Configure user context and parameters mapping
 - [Basic Auth Configuration](./basic-auth-config) - Configure HTTP Basic Authentication
 - [login annotation](../annotations/login) - Mark endpoint as sign-in

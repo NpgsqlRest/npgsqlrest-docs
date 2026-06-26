@@ -1,6 +1,19 @@
 {
   "ApplicationName": "2_static_type_checking_sql_file",
 
+  // Logging configuration: https://npgsqlrest.github.io/config/logging.html
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRest": "Debug",
+      "NpgsqlRestClient": "Off",
+      "NpgsqlRestTest": "Information",
+      "System": "Warning",
+      "Microsoft": "Warning"
+    },
+    "ToConsole": true
+  },
+
+
   "StaticFiles": {
     "RootPath": "./2_static_type_checking_sql_file/public"
   },

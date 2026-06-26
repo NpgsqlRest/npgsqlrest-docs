@@ -97,6 +97,7 @@ select _user_claims;
 end;
 
 comment on function secure_endpoint(json) is '
+HTTP GET
 @basic_auth
 @challenge_command = select * from validate_user($1, $2, $3, $4, $5)
 @realm = SecureZone
@@ -119,7 +120,7 @@ The realm value (`SecureZone`) is passed as the 4th parameter (`$4`) to the chal
 The realm is determined in the following order:
 
 1. Endpoint-specific `realm` annotation (highest priority)
-2. Global `BasicAuth.Realm` configuration option
+2. Global `AuthenticationOptions.BasicAuth.Realm` configuration option
 3. Default value: `NpgsqlRest`
 
 ## Related

@@ -1,0 +1,29 @@
+@host=http://127.0.0.1:8080
+
+// SQL file: ./19_testing_basic/sql/create_user.sql
+//
+// HTTP POST
+// @authorize admin
+// @param $1 name text
+// @param $2 email text
+// @single
+//  POST /create-user — admin-only. Inserts a user (email normalized) and returns the created row.
+//  `@authorize admin` gates by role: no token → 401, non-admin → 403, admin → 200.
+POST {{host}}/api/create-user
+content-type: application/json
+
+{
+    "name": "ABC",
+    "email": "XYZ"
+}
+
+###
+
+// SQL file: ./19_testing_basic/sql/get_users.sql
+//
+// HTTP GET
+//  GET /get-users — list all users. Anonymous (no @authorize).
+GET {{host}}/api/get-users
+
+###
+

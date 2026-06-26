@@ -1,0 +1,15 @@
+{
+  "Log": {
+    "MinimalLevels": {
+      "NpgsqlRest": "Off",
+      "NpgsqlRestClient": "Off"
+      //"NpgsqlRestTest": "Verbose"
+    }
+  },
+  
+  // SQL test runner (top-level section). Discovers *.test.sql via a glob (same engine as SqlFileSource).
+  // Run with:  npgsqlrest ./config.json ./19_testing_basic/config.json --test
+  "TestRunner": {
+    "FilePattern": "./19_testing_basic/sql/**/*.test.sql"
+  }
+}
