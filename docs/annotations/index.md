@@ -42,8 +42,8 @@ Each annotation has its own page with:
 - [PATH](./path) - Set custom endpoint path
 - [PROXY](./proxy) - Mark endpoint as reverse proxy
 - [PROXY_OUT](./proxy-out) - Execute function first, then forward result to upstream
-- [ENABLED](./enabled) - Enable endpoint for specific tags
-- [DISABLED](./disabled) - Disable endpoint for specific tags
+- [ENABLED](./enabled) - Re-enable an endpoint after `@disabled`, optionally only for specific tags
+- [DISABLED](./disabled) - Disable endpoint, optionally only for specific tags
 - [TAGS](./tags) - Filter annotations by tags
 - [OPENAPI](./openapi) - Hide from the OpenAPI document or override the section tag
 - [MCP](./mcp) - Expose a routine as a Model Context Protocol (MCP) tool for AI agents
@@ -82,7 +82,12 @@ Each annotation has its own page with:
 
 ### Table Format Output
 
-- [Custom Parameters](./custom-parameters#table-format-parameters) - `table_format`, `excel_file_name`, `excel_sheet` for HTML table and Excel rendering
+- [TABLE_FORMAT](./table-format) - `table_format`, `excel_file_name`, `excel_sheet` for HTML table and Excel rendering
+
+### Client Code Generation
+
+- [TSCLIENT](./tsclient) - Control TypeScript client generation per endpoint (disable, module names, URL exports, TanStack Query hooks opt-out)
+- [DARTCLIENT](./dartclient) - Control Dart (Flutter) client generation per endpoint (disable, module names, URL exports, response options)
 
 ### Raw Output Mode
 
@@ -135,6 +140,8 @@ Each annotation has its own page with:
 - [PARAMETER_HASH](./parameter-hash) - Hash one parameter using another
 - [ENCRYPT](./encrypt-decrypt) - Encrypt parameter values before sending to PostgreSQL
 - [DECRYPT](./encrypt-decrypt) - Decrypt result column values before returning to client
+- [Parameter Value Substitution](./parameter-substitution) - `{name}` placeholders in annotation values
+- [Resolved Parameters](./resolved-parameters) - Compute a parameter value server-side from a SQL expression
 
 ### SQL File Annotations
 
@@ -142,6 +149,17 @@ Each annotation has its own page with:
 - [RESULT_NAME](./result-name) - Rename result keys in multi-command SQL file endpoints
 - [SKIP](./skip) - Exclude commands from multi-command results
 - [RETURNS](./returns) - Skip Describe step and resolve return columns from a composite type (for runtime-created temp tables)
+
+### Test File Annotations
+
+These apply **only to test files** run by the [SQL test runner](../guide/testing) (`npgsqlrest --test`) — not to endpoint SQL files or routine comments:
+
+- [TEST @setup](./test-setup) - Run named steps before an individual test file
+- [TEST @teardown](./test-teardown) - Run named steps after an individual test file, always
+- [TEST @connection](./test-connection) - Run a test file on a different named connection
+- [TEST @tag](./test-tag) - Tag a test file for Tag/ExcludeTag filtering
+- [TEST @claim](./test-claim) - Set the acting principal for an in-process endpoint call (HTTP block directive)
+- [TEST @response](./test-response) - Name the captured response temp table (HTTP block directive)
 
 ### Custom
 

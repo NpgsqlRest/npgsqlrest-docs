@@ -153,8 +153,12 @@ The same interval format is used in JSON configuration files:
     "CommandTimeout": "30s"
   },
   "CacheOptions": {
-    "DefaultExpiration": "5m",
-    "LocalCacheExpiration": "1m"
+    "Profiles": {
+      "short": {
+        "Type": "Memory",
+        "Expiration": "5m"
+      }
+    }
   },
   "Auth": {
     "JwtClockSkew": "5m"

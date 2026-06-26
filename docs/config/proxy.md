@@ -312,6 +312,7 @@ Production configuration with proxy enabled:
 
 ## Related
 
+- [Proxy Endpoints Guide](../guide/proxy) — the full walkthrough
 - [proxy annotation](../annotations/proxy) - Enable proxy for specific endpoints
 - [user_context annotation](../annotations/user-context) - Enable user context forwarding
 - [user_parameters annotation](../annotations/user-parameters) - Enable user parameters forwarding

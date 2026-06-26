@@ -133,6 +133,7 @@ select _user_claims;
 end;
 
 comment on function protected_resource(json) is '
+HTTP GET
 @basic_auth
 @challenge_command = select * from auth_challenge_command($1, $2, $3, $4, $5)
 @user_params
@@ -147,9 +148,8 @@ HTTP GET
 @basic_auth
 @challenge_command = select * from auth_challenge_command($1, $2, $3, $4, $5)
 @user_params
-@param $1 user_claims
 */
-select $1;
+select :_user_claims;
 ```
 
 ### Challenge Command with Pre-Validated Password
@@ -190,6 +190,7 @@ select _user_claims;
 end;
 
 comment on function get_basic_auth_challenge_command_pass(json) is '
+HTTP GET
 @basic_auth my_name Myb55+6lW6iiUOI3opLkysOaS8J0NNIuQ+qE2SGaKs3r62ngDJROrhX75+zmLC7t
 @challenge_command = select * from auth_with_preval($1, $2, $3, $4, $5)
 @user_params
@@ -235,6 +236,7 @@ select _user_claims;
 end;
 
 comment on function denied_endpoint(json) is '
+HTTP GET
 @basic_auth
 @challenge_command = select * from auth_challenge_command_failed($1, $2, $3, $4, $5)
 @user_params
@@ -258,6 +260,7 @@ select _user_claims;
 end;
 
 comment on function get_basic_auth_challenge_command(json) is '
+HTTP GET
 @basic_auth
 @challenge_command = select * from auth_challenge_command($1, $2, $3, $4, $5)
 @user_params

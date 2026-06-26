@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "NpgsqlRest 3.13.0: Cache Profiles, Auth Schemes, Per-User Rate Limits, and pgBouncer Compatibility"
+date: "2026-05-01"
 titleTemplate: NpgsqlRest
 description: "NpgsqlRest 3.13.0 release notes with real-world examples: conditional caching with When rules, short-lived sensitive sessions, per-user rate limiting, and multi-tenant search_path with pgBouncer."
 head:
@@ -59,24 +60,26 @@ A common analytics endpoint has parameters like `from`, `to`, and `live`. The ri
 Before 3.13, this either meant three different endpoints or imperative cache logic in SQL. Now it's a single profile with `When` rules. Here's the full `CacheOptions` block backed by Redis (so cache state survives restarts and is shared across multiple NpgsqlRest instances behind a load balancer):
 
 ```jsonc
-"CacheOptions": {
-  "Enabled": true,
-  "Type": "Redis",
-  "RedisConfiguration": "redis-server:6379,password={REDIS_PASSWORD},ssl=true,abortConnect=false,connectTimeout=10000,syncTimeout=5000,connectRetry=3",
-  "MaxCacheableRows": 1000,
-  "UseHashedCacheKeys": true,
-  "HashKeyThreshold": 256,
-  "InvalidateCacheSuffix": "invalidate",
-  "Profiles": {
-    "timeseries_compute": {
-      "Enabled": true,
-      "Type": "Redis",
-      "Expiration": "1 hour",
-      "Parameters": ["from", "to", "live"],
-      "When": [
-        { "Parameter": "live", "Value": true,  "Then": "skip" },
-        { "Parameter": "to",   "Value": null,  "Then": "5 minutes" }
-      ]
+{
+  "CacheOptions": {
+    "Enabled": true,
+    "Type": "Redis",
+    "RedisConfiguration": "redis-server:6379,password={REDIS_PASSWORD},ssl=true,abortConnect=false,connectTimeout=10000,syncTimeout=5000,connectRetry=3",
+    "MaxCacheableRows": 1000,
+    "UseHashedCacheKeys": true,
+    "HashKeyThreshold": 256,
+    "InvalidateCacheSuffix": "invalidate",
+    "Profiles": {
+      "timeseries_compute": {
+        "Enabled": true,
+        "Type": "Redis",
+        "Expiration": "1 hour",
+        "Parameters": ["from", "to", "live"],
+        "When": [
+          { "Parameter": "live", "Value": true,  "Then": "skip" },
+          { "Parameter": "to",   "Value": null,  "Then": "5 minutes" }
+        ]
+      }
     }
   }
 }
@@ -120,15 +123,17 @@ A user is signed in with a normal 14-day cookie. Now they want to view recovery 
 Before 3.13, this meant either re-prompting for the password and just trusting it, or building a separate "step-up" auth service. Now you register an additional cookie scheme:
 
 ```jsonc
-"Auth": {
-  "CookieAuth": true,
-  "CookieValid": "14 days",
-  "Schemes": {
-    "short_session": {
-      "Type": "Cookies",
-      "Enabled": true,
-      "CookieValid": "1 hour",
-      "CookieMultiSessions": false
+{
+  "Auth": {
+    "CookieAuth": true,
+    "CookieValid": "14 days",
+    "Schemes": {
+      "short_session": {
+        "Type": "Cookies",
+        "Enabled": true,
+        "CookieValid": "1 hour",
+        "CookieMultiSessions": false
+      }
     }
   }
 }
@@ -167,20 +172,22 @@ Pre-3.13, a rate limiter policy was a single global bucket. `PermitLimit: 100, W
 The new `Partition` block resolves a partition key per request and gives each key its own bucket:
 
 ```jsonc
-"RateLimiterOptions": {
-  "Enabled": true,
-  "Policies": {
-    "per_user": {
-      "Type": "FixedWindow",
-      "Enabled": true,
-      "PermitLimit": 100,
-      "WindowSeconds": 60,
-      "Partition": {
-        "Sources": [
-          { "Type": "Claim", "Name": "name_identifier" },
-          { "Type": "IpAddress" },
-          { "Type": "Static", "Value": "anonymous" }
-        ]
+{
+  "RateLimiterOptions": {
+    "Enabled": true,
+    "Policies": {
+      "per_user": {
+        "Type": "FixedWindow",
+        "Enabled": true,
+        "PermitLimit": 100,
+        "WindowSeconds": 60,
+        "Partition": {
+          "Sources": [
+            { "Type": "Claim", "Name": "name_identifier" },
+            { "Type": "IpAddress" },
+            { "Type": "Static", "Value": "anonymous" }
+          ]
+        }
       }
     }
   }
@@ -206,7 +213,7 @@ comment on function user_dashboard() is 'HTTP GET
 Behavior is unchanged for policies without a `Partition` block. See [Per-User Rate Limiting](/config/rate-limiter#per-user-rate-limiting-partition) for source types and validation rules.
 
 ::: warning Breaking change
-`RateLimiterOptions:Policies` is now an object keyed by policy name, no longer an array of objects with `"Name"` properties. Migration is mechanical — see the [changelog](/guide/changelog/v3.13.0#breaking-rate-limiter-options-policies-is-now-a-dict-not-an-array).
+`RateLimiterOptions:Policies` is now an object keyed by policy name, no longer an array of objects with `"Name"` properties. Migration is mechanical — see the [changelog](/guide/changelog/v3.13.0#breaking-ratelimiteroptions-policies-is-now-a-dict-not-an-array).
 :::
 
 ## 4. Multi-Tenant search_path with pgBouncer (or RDS Proxy, or Supabase Pooler)

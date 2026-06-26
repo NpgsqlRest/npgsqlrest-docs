@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "NpgsqlRest vs PostgREST vs Supabase: Complete Feature Comparison"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Side-by-side comparison of NpgsqlRest, PostgREST, and Supabase. Performance benchmarks, features, authentication, file handling, and deployment options compared."
 head:
@@ -45,12 +46,12 @@ Three tools can expose a PostgreSQL database as a REST API without a hand-writte
 | **What It Is** | Complete platform in a single binary | Standalone executable/Docker | Backend-as-a-Service platform |
 | **Core Focus** | SQL files + functions as REST endpoints | Table/View-centric REST API | Complete backend platform |
 | **Best For** | SQL-first APIs, self-hosted full-stack | Flexible client-side queries | Managed hosting with dashboard |
-| **Performance** | 4,588 req/s (100 VU)¹ | 1,749 req/s (100 VU)¹ | Uses PostgREST internally |
-| **Deployment** | Single binary (~30MB), any cloud | Single binary (~20MB) | Managed cloud or complex self-host |
+| **Performance** | 3,524 req/s (100 VU)¹ | 1,322 req/s (100 VU)¹ | Uses PostgREST internally |
+| **Deployment** | Single binary (~35MB), any cloud | Single binary (~20MB) | Managed cloud or complex self-host |
 | **Self-Hosting** | Simple (single binary) | Simple | Complex (7+ services) |
 | **Learning Curve** | Low (SQL comments) | Medium (RLS policies) | Medium (platform concepts) |
 
-¹ Benchmarked on a single PostgreSQL function returning a simple result set. See the [full benchmark methodology](/blog/postgresql-rest-api-benchmark-2026) for details. Performance will vary with query complexity and workload type.
+¹ Benchmarked on a single PostgreSQL function returning a simple result set. See the [July 2026 benchmark series](/blog/benchmarks-2026-07/) for methodology and full results. Performance will vary with query complexity and workload type.
 
 ## Architecture Comparison
 
@@ -59,7 +60,7 @@ Three tools can expose a PostgreSQL database as a REST API without a hand-writte
 ```mermaid
 flowchart LR
     A[Client] <--> B["NpgsqlRest
-    (30MB AOT)
+    (35MB AOT)
     Single executable"]
     B <--> C
     subgraph C [PostgreSQL]
@@ -118,38 +119,40 @@ flowchart LR
 
 Supabase is a **platform** composed of multiple services. PostgREST handles REST API generation, GoTrue manages authentication, Kong is the API gateway, and further services handle storage, realtime, and the admin dashboard. Self-hosting means orchestrating all of these.
 
-**Key difference**: Both NpgsqlRest and Supabase are platforms, but NpgsqlRest packages everything into a single binary (~30MB) while Supabase requires 7+ separate services. Supabase offers a managed cloud service with a visual dashboard; NpgsqlRest gives you full control with simpler self-hosting on any cloud provider.
+**Key difference**: Both NpgsqlRest and Supabase are platforms, but NpgsqlRest packages everything into a single binary (~35MB) while Supabase requires 7+ separate services. Supabase offers a managed cloud service with a visual dashboard; NpgsqlRest gives you full control with simpler self-hosting on any cloud provider.
 
 ## Performance Benchmarks
 
-Benchmark results from [PostgreSQL REST API Benchmark 2026](/blog/postgresql-rest-api-benchmark-2026), testing 14 frameworks under identical conditions:
+Benchmark results from the [PostgreSQL REST API Benchmark, July 2026](/blog/benchmarks-2026-07/) — 20 services tested under equalized conditions: identical PostgreSQL functions, equal CPU and connection-pool budgets, dedicated cores, per-test warmup. (Numbers from earlier rounds are not comparable; the methodology changed substantially.)
 
 ### Requests Per Second (100 Concurrent Users, 1 Record)
 
-| Framework | Requests/sec | Latency | Scaling Factor |
-|-----------|-------------|---------|----------------|
-| **NpgsqlRest JIT** | **4,588** | **10.88ms** | **9.5x** |
-| NpgsqlRest AOT | 4,527 | 11.02ms | 9.7x |
-| Swoole PHP | 4,423 | 11.29ms | 9.4x |
-| Rust (Actix) | 3,940 | 12.67ms | 7.8x |
-| PostgREST | 1,749 | 28.58ms | 6.5x |
+| Framework | Requests/sec | Avg Latency | Field rank |
+|-----------|-------------|---------|:---:|
+| **NpgsqlRest SQL Files AOT** | **3,524** | **26.1ms** | **#2 of 20** |
+| NpgsqlRest SQL Files JIT | 3,467 | 26.6ms | #3 |
+| Go (net/http) | 2,948 | 31.3ms | #6 |
+| NpgsqlRest Routine JIT | 2,617 | 35.3ms | #10 |
+| Swoole PHP | 2,431 | 38.0ms | #14 |
+| PostgREST | 1,322 | 69.9ms | #20 |
 
 **Key findings:**
 
-- **NpgsqlRest JIT is 2.6x faster than PostgREST** at 100 concurrent users
-- PostgREST improved significantly in v14.3: from 271 req/s (1 user) to 1,749 req/s (100 users) - a 6.5x improvement
-- NpgsqlRest JIT scales excellently: from 480 req/s (1 user) to 4,588 req/s (100 users) - a 9.5x improvement
-- The gap between NpgsqlRest JIT and AOT has nearly closed (only 1.3% difference)
+- **NpgsqlRest (SQL file source) is 2.7x faster than PostgREST** at 100 concurrent users — at comparable memory (62 MB vs 57 MB average)
+- Even the routine source — the model closest to PostgREST's function-call approach — is **2x faster**
+- The gap concentrates in routing, parameter parsing, and small-response throughput; on payload-heavy scenarios (nested JSON, POST echo) the two are at **parity** — both delegate JSON construction to PostgreSQL
+- Full head-to-head across all six scenarios: [NpgsqlRest deep dive](/blog/benchmarks-2026-07/npgsqlrest#the-other-zero-code-platform-postgrest-head-to-head)
 
 ### Larger Payloads (500 Records, 100 VU)
 
-| Framework | Requests/sec | Latency |
-|-----------|-------------|---------|
-| Swoole PHP | 106.88 | 468ms |
-| **NpgsqlRest JIT** | **82.37** | **607ms** |
-| PostgREST | 78.59 | 636ms |
+| Framework | Requests/sec |
+|-----------|-------------|
+| Swoole PHP | 45 |
+| Go (net/http) | 39 |
+| **NpgsqlRest** | **35** |
+| PostgREST | 35 |
 
-With larger payloads where database I/O dominates, the performance gap narrows significantly. Swoole PHP leads in data-heavy scenarios, while NpgsqlRest remains competitive with PostgREST.
+With larger payloads, database I/O dominates and the field converges — NpgsqlRest and PostgREST are at parity here, as expected for two systems that both ship PostgreSQL's own JSON to the wire.
 
 ### PostgreSQL Type Handling
 
@@ -177,6 +180,8 @@ All three frameworks handle PostgreSQL types correctly.
 | Template parsing (claim substitution) | ✅ | ❌ | ❌ |
 | TypeScript/JavaScript code generation | ✅ | ❌ | ✅ |
 | HTTP test file generation | ✅ | ❌ | ❌ |
+| Built-in SQL test runner | ✅ | ❌ | ❌ |
+| Watch mode (dev reload) | ✅ | ❌ | ⚠️ |
 | Built-in authentication | ✅ | ❌ | ✅ |
 | File uploads | ✅ | ❌ | ✅ |
 | Visual dashboard | ❌ | ❌ | ✅ |
@@ -184,7 +189,7 @@ All three frameworks handle PostgreSQL types correctly.
 | Single-binary deployment | ✅ | ✅ | ❌ |
 | Deploy on any cloud/server | ✅ | ✅ | ⚠️ |
 
-⚠️ = Complex self-hosting (7+ services)
+⚠️ = Complex self-hosting (7+ services); Supabase local dev reloads via the CLI, not the platform itself
 
 **NpgsqlRest as a complete platform**: Unlike PostgREST (API-only), NpgsqlRest covers the rest of the stack:
 
@@ -192,6 +197,8 @@ All three frameworks handle PostgreSQL types correctly.
 - **[Template parsing](/config/static-files#content-parsing)** replaces `{claimType}` placeholders in HTML files with authenticated user claims (name, email, role, etc.) before serving—build personalized pages without JavaScript
 - **[TypeScript/JavaScript code generation](/config/codegen)** creates type-safe API clients automatically, keeping your frontend in sync with your database schema
 - **[HTTP test file generation](/config/http-files)** creates `.http` files for VS Code REST Client and Visual Studio, enabling rapid API testing during development
+- **[Built-in SQL test runner](/guide/testing)** (`--test`, since 3.19) — write endpoint tests as plain `.sql` files: the real endpoint pipeline is invoked in-process on the test's own transaction, so fixtures roll back cleanly; includes throwaway test databases, JUnit XML, and endpoint-coverage gating for CI. PostgREST has no testing story of its own (pgTAP tests the database, not the HTTP layer)
+- **[Watch mode](/config/watch)** (`--watch`, since 3.19) — the dev server restarts on SQL file, configuration, and even database routine changes, regenerating the TypeScript client every cycle
 - **Deployment** on any cloud server (AWS EC2, DigitalOcean, Hetzner, Azure VM, GCP Compute) or on-premises—copy the binary and run
 
 **Supabase offers different platform strengths**: managed cloud hosting, a visual Studio dashboard for database management, and real-time WebSocket subscriptions. Choose Supabase if you prefer managed infrastructure and a visual interface; choose NpgsqlRest if you want full control with simpler self-hosting.
@@ -209,11 +216,16 @@ All three frameworks handle PostgreSQL types correctly.
 | Function overloading | ✅ | ✅ | ✅ |
 | Custom URL paths | ✅ | ❌ | ❌ |
 | Path parameters (`/users/{id}`) | ✅ | ❌ | ❌ |
+| HTTP QUERY method | ✅ | ❌ | ❌ |
 | OpenAPI/Swagger generation | ✅ | ✅ | ✅ |
 | TypeScript client generation | ✅ | ❌ | ✅ |
+| Dart / Flutter client generation | ✅ | ❌ | ❌ |
+| TanStack Query (React Query) hooks generation | ✅ | ❌ | ❌ |
 | HTTP test file generation | ✅ | ❌ | ❌ |
 
 **SQL file endpoints** are unique to NpgsqlRest. Neither PostgREST nor Supabase can turn a `.sql` file on disk into a REST endpoint. Both require you to create database objects first (functions, views, or tables) before anything is exposed as an API. With NpgsqlRest, you write a SQL file, annotate it with a comment, and the endpoint exists — no database deployment step, no `CREATE FUNCTION`. Multi-command files execute as a batch and return a JSON object with named result sets.
+
+**Client code generation targets multiple outputs from the same schema.** Alongside the [TypeScript client](/config/codegen), NpgsqlRest 3.20 generates a typed **[Dart client for Flutter](/config/dart-codegen)** (built on `package:http`; runs on mobile, desktop, and web) and a **[TanStack Query (React Query) hooks](/config/codegen#tanstack-query-react-query-hooks)** module (`useQuery`/`useMutation` with exported query-key factories) next to the TypeScript client. PostgREST generates no client code at all. Supabase ships hand-written SDK libraries (including a generic Flutter SDK) and TypeScript type generation, but does not generate a typed, per-endpoint Dart client or ready-made React Query hooks from your schema. NpgsqlRest 3.20 also adds the standardized **HTTP QUERY** method (safe and idempotent like GET, but carrying its parameters in the request body) end to end — routing, the TypeScript and Dart clients, and MCP.
 
 ### Table and View Query Features
 
@@ -427,12 +439,16 @@ NpgsqlRest ships performance features the other two delegate to external infrast
 The practical difference: NpgsqlRest's multi-tenant `search_path` is 4 lines of JSON config:
 
 ```jsonc
-"BeforeRoutineCommands": [
-  {
-    "Sql": "select set_config('search_path', $1, true)",
-    "Parameters": [{ "Source": "Claim", "Name": "tenant_id" }]
+{
+  "NpgsqlRest": {
+    "BeforeRoutineCommands": [
+      {
+        "Sql": "select set_config('search_path', $1, true)",
+        "Parameters": [{ "Source": "Claim", "Name": "tenant_id" }]
+      }
+    ]
   }
-]
+}
 ```
 
 The PostgREST equivalent requires creating a SQL function that reads `request.jwt.claims`, parses the JSON, extracts `tenant_id`, and calls `set_config()` — plus the `db-pre-request = '<function_name>'` config entry. Functionally equivalent, but the NpgsqlRest version is declarative with type-safe parameter binding rather than string-parsing JWT claims in SQL.
@@ -451,6 +467,22 @@ For details on the NpgsqlRest options, see [Connection Pooler Compatibility](/co
 | Event scoping (authorize/matching/all) | ✅ | ❌ | ❌ |
 
 NpgsqlRest uses **Server-Sent Events** for real-time streaming, which is simpler than WebSockets and works through standard HTTP. PostgreSQL's `RAISE INFO/NOTICE/WARNING` statements stream directly to connected clients - no message brokers or LISTEN/NOTIFY infrastructure needed. See the [Real-Time Chat example](/blog/real-time-chat-postgresql-sse-npgsqlrest).
+
+### AI Agent Integration (MCP & Tool Schemas)
+
+| Feature | NpgsqlRest | PostgREST | Supabase |
+|---------|:----------:|:---------:|:--------:|
+| Expose your endpoints as MCP tools | ✅ | ❌ | ❌ |
+| Model Context Protocol server (`/mcp`) | ✅ | ❌ | ❌ |
+| Per-tool authorization (same auth as REST) | ✅ | ❌ | ❌ |
+| OpenAI function-calling `tools` schema | ✅ | ❌ | ❌ |
+| Anthropic Messages API `tools` schema | ✅ | ❌ | ❌ |
+| llms.txt capability document | ✅ | ❌ | ❌ |
+| Generated from the same SQL (no second schema) | ✅ | ❌ | ❌ |
+
+Since v3.17, any endpoint annotated with [`@mcp`](/annotations/mcp) is simultaneously a **Model Context Protocol tool** on a single `/mcp` endpoint — one routine is both a REST endpoint and a tool an AI agent can discover and call, with the same [`@authorize`](/annotations/authorize) role checks enforced on tool calls. v3.20 goes further: the same tool catalog is projected into **OpenAI** and **Anthropic** function-calling `tools` documents and an **llms.txt** capability document, served from the running server (or written to disk) straight from your SQL annotations — the schema is never written twice and cannot drift from the API.
+
+Neither PostgREST nor Supabase generates AI-agent tooling from your data API. Making a PostgREST- or Supabase-backed database callable by an LLM means standing up and maintaining a separate MCP server, or hand-authoring OpenAI/Anthropic tool schemas and keeping them in sync by hand. With NpgsqlRest it is one annotation plus a config block: one SQL source, REST + MCP + function-calling schemas out. See [MCP](/config/mcp) and the [MCP server walkthrough](/blog/mcp-server-postgresql-ai-tools-npgsqlrest).
 
 ### External Service Integration and Custom Code Execution
 
@@ -786,7 +818,7 @@ Supabase uses a web dashboard for most configuration, RLS for authorization, and
 ### NpgsqlRest
 
 ```bash
-# Option 1: Direct download (30MB)
+# Option 1: Direct download (35MB)
 wget https://github.com/NpgsqlRest/NpgsqlRest/releases/latest/download/npgsqlrest-linux64
 chmod +x npgsqlrest-linux64
 ./npgsqlrest-linux64 --connection "Host=localhost;Database=mydb;Username=api"
@@ -834,7 +866,7 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 
 - **You want SQL files as endpoints** — write a `.sql` file, get a REST endpoint. No `CREATE FUNCTION` needed
 - **You want a self-hosted platform** — API, static files, auth, and code generation in one binary
-- **Performance is critical** — 2.6x faster than PostgREST under load
+- **Performance is critical** — 2.7x faster than PostgREST under load
 - **You want server-side API design** — SQL files for simple queries, functions for complex logic
 - **You need enterprise features** — caching (memory/Redis/hybrid), rate limiting, retry logic, multi-host failover
 - **You need conditional caching** — different TTLs for historical vs live data, declarative skip-on-condition
@@ -845,6 +877,8 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 - **You want real-time without WebSocket complexity** — SSE with PostgreSQL RAISE statements
 - **You prefer simple deployment** — single binary on any cloud server (AWS, DigitalOcean, Hetzner, etc.)
 - **You use TypeScript** — auto-generated type-safe clients with full type definitions
+- **You build a Flutter app** — generate a typed Dart client from the same schema, plus TanStack Query hooks for React frontends
+- **You expose your data to AI agents** — `@mcp` tools plus OpenAI/Anthropic function-calling schemas and llms.txt, all generated from the same SQL
 - **You want custom URL paths** — `/users/{id}` instead of `/rpc/get_user?id=1`
 
 ### Choose PostgREST When:
@@ -891,13 +925,15 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 | Criteria | Winner |
 |----------|--------|
 | **SQL File Endpoints** | NpgsqlRest (only native support) |
-| **Raw Performance** | NpgsqlRest (2.6x faster) |
+| **Raw Performance** | NpgsqlRest (2.7x faster) |
 | **Self-Hosted Platform** | NpgsqlRest (single binary) |
 | **Table/View Query Flexibility** | PostgREST / Supabase |
 | **Function-Based APIs** | NpgsqlRest |
 | **Per-Endpoint Configuration** | NpgsqlRest |
 | **Static Files + Template Parsing** | NpgsqlRest |
 | **Frontend Code Generation** | NpgsqlRest / Supabase |
+| **Dart / Flutter Client Generation** | NpgsqlRest (only native support) |
+| **React Query (TanStack) Hooks** | NpgsqlRest (only native support) |
 | **Deployment Simplicity** | NpgsqlRest / PostgREST (tie) |
 | **Authentication Options** | NpgsqlRest |
 | **Passkey/WebAuthn** | NpgsqlRest (only native support) |
@@ -915,13 +951,14 @@ Supabase self-hosting requires **Docker Compose with 7+ containers**: PostgreSQL
 | **PostgreSQL Statistics Endpoints** | NpgsqlRest / Supabase |
 | **Custom Types / Nested JSON** | All three (different strengths) |
 | **External Service Integration (proxy)** | NpgsqlRest (declarative, zero infrastructure) |
+| **AI Agent Tools (MCP, function-calling schemas, llms.txt)** | NpgsqlRest (only native support) |
 | **Custom Code Runtime** | Supabase (Edge Functions) |
 | **Real-Time** | Supabase (WebSockets) / NpgsqlRest (SSE) |
 | **Managed Hosting** | Supabase |
 | **Visual Dashboard** | Supabase |
 | **Maturity/Community** | PostgREST / Supabase |
 
-**NpgsqlRest** is a **complete self-hosted platform** where the fastest way to create an endpoint is to write a SQL file. No `CREATE FUNCTION`, no database deployment — just a `.sql` file with a comment annotation. For complex logic, PostgreSQL functions are fully supported with true end-to-end type checking. Beyond API generation, it serves static files with template parsing, generates TypeScript clients, and includes built-in authentication — all in a single ~30MB binary, with per-endpoint caching, rate limiting, timeout, and auth rules version-controlled in SQL comments.
+**NpgsqlRest** is a **complete self-hosted platform** where the fastest way to create an endpoint is to write a SQL file. No `CREATE FUNCTION`, no database deployment — just a `.sql` file with a comment annotation. For complex logic, PostgreSQL functions are fully supported with true end-to-end type checking. Beyond API generation, it serves static files with template parsing, generates TypeScript clients, and includes built-in authentication — all in a single ~35MB binary, with per-endpoint caching, rate limiting, timeout, and auth rules version-controlled in SQL comments.
 
 **PostgREST** shines for **flexible client-side queries** with its GraphQL-like resource embedding, 28+ filtering operators, aggregates, and pagination. It's the right choice when your API consumers need to compose their own queries against tables and views. PostgREST is API-only—you'll need additional services for auth, static files, and file uploads.
 

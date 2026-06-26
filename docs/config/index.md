@@ -25,7 +25,7 @@ Complete reference documentation for all NpgsqlRest configuration options.
 For an introduction to how configuration works (sources, precedence, environment variables, command-line arguments), see the [Configuration Guide](../guide/configuration).
 
 ::: tip Latest Default Configuration
-See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.18.2.
+See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.21.0.
 :::
 
 ## Reference Sections
@@ -57,11 +57,14 @@ See the [Latest Default Configuration](./latest) for a complete reference of all
 ### Features
 
 - [SQL File Source](./sql-file-source) - REST API endpoints from SQL files
+- [Test Runner](./test-runner) - SQL test runner (`--test`): discovery, test databases, setup/teardown, coverage
+- [Watch Mode](./watch) - `--watch`: restart the server or re-run tests on SQL file, configuration, and database routine changes
 - [Proxy](./proxy) - Reverse proxy support for forwarding requests to upstream services
 - [OpenAPI](./openapi) - OpenAPI/Swagger documentation generation
 - [MCP](./mcp) - Model Context Protocol server — expose routines as MCP tools for AI agents
 - [HTTP Files](./http-files) - HTTP test file generation
-- [Code Generation](./codegen) - Client code generation (TypeScript, etc.)
+- [Code Generation](./codegen) - Client code generation (TypeScript, TanStack Query hooks)
+- [Dart Code Generation](./dart-codegen) - Dart client code generation for Flutter projects
 - [Uploads](./uploads) - File upload handling
 - [Table Format](./table-format) - HTML table and Excel spreadsheet rendering for function results
 - [HTTP Client](./http-client) - HTTP Types for external API calls from PostgreSQL functions

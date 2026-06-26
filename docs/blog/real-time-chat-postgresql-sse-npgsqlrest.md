@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Build a Real-Time Chat App with PostgreSQL and Server-Sent Events"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Build real-time chat with PostgreSQL LISTEN/NOTIFY and Server-Sent Events. No WebSocket servers, no message brokers - just SQL procedures and TypeScript."
 head:
@@ -41,7 +42,7 @@ head:
 
 Adding chat to an application usually means adding a WebSocket server, a message broker, pub/sub plumbing, and hundreds of lines of code spread across multiple services.
 
-What if you could build a fully functional, **secure real-time chat** with just a single SQL procedure and a few lines of TypeScript?
+It doesn't have to. A **secure real-time chat** fits in one SQL procedure and a few lines of TypeScript.
 
 This tutorial shows how NpgsqlRest's Server-Sent Events (SSE) support turns PostgreSQL `RAISE` statements into real-time events.
 
@@ -144,7 +145,7 @@ HTTP POST
 @anonymous';
 ```
 
-The `login` annotation creates a cookie-based session automatically.
+The `@login` annotation creates a cookie-based session automatically.
 
 ### Step 3: The Magic - Send Message with SSE
 
@@ -191,8 +192,8 @@ Three annotations do the work:
 
 | Annotation | Purpose |
 |------------|---------|
-| `authorize` | Only authenticated users can send messages |
-| `sse` | Two effects: (1) registers `/info` as an SSE connection URL, (2) makes this procedure's `RAISE`s feed the SSE broadcaster |
+| `@authorize` | Only authenticated users can send messages |
+| `@sse` | Two effects: (1) registers `/info` as an SSE connection URL, (2) makes this procedure's `RAISE`s feed the SSE broadcaster |
 | `sse_scope authorize` | Per-event filter: only authenticated subscribers receive events from this endpoint |
 
 The `RAISE INFO` statement with JSON payload becomes the SSE event data. NpgsqlRest automatically:

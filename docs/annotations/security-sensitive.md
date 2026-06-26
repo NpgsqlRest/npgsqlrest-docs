@@ -107,6 +107,7 @@ comment on function process_payment(text, text, numeric) is
 
 ## Related
 
+- [Logging Guide](../guide/logging) — command logging and parameter obfuscation
 - [Logging configuration](../config/logging) - Configure logging output
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works

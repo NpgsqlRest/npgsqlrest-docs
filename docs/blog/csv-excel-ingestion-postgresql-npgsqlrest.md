@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "CSV and Excel Ingestion Made Easy: PostgreSQL Row Processing"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Import CSV and Excel files into PostgreSQL with dynamic schema handling. Row-by-row processing, automatic TypeScript client, progress tracking - all in SQL."
 head:
@@ -80,7 +81,7 @@ The result: a simple change like adding a column requires code changes, testing,
 
 **Your row function receives a `text[]` array containing whatever is in the row.** That's it. No hardcoded structure, no column mappings in application code, no redeployment when formats change.
 
-Simply put:
+In short:
 - Your row function is **executed for every row** in the file
 - You receive **dynamic data as `text[]`** - the raw values from that row
 - You receive **upload metadata** - file name, content type, user claims
@@ -114,7 +115,7 @@ NpgsqlRest:
 4. **Manages the transaction** - all rows succeed or all are rolled back
 5. **Returns metadata** about the upload to your main function
 
-## The Row Function: Four Parameters, Infinite Flexibility
+## The Row Function: Four Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -590,7 +591,7 @@ HTTP POST
 
 The handler list is comma-separated. With this configuration:
 1. The CSV handler processes each row via `row_command`
-2. The [Large Object handler](/blog/secure-image-uploads-postgresql-typescript#large-object-handler) stores the original file in PostgreSQL
+2. The [Large Object handler](/blog/secure-image-uploads-postgresql-typescript#storage-options) stores the original file in PostgreSQL
 3. **Both operate within the same transaction**
 
 ### Combined Handler Metadata

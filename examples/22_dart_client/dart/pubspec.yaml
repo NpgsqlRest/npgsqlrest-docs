@@ -1,0 +1,7 @@
+name: example_22_dart_client
+description: Generated Dart client for the NpgsqlRest Dart client example.
+publish_to: none
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  http: ^1.2.0

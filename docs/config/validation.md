@@ -33,6 +33,22 @@ Parameter validation configuration for validating endpoint parameters before dat
         "Type": "NotNull",
         "Message": "Parameter '{0}' cannot be null",
         "StatusCode": 400
+      },
+      "not_empty": {
+        "Type": "NotEmpty",
+        "Message": "Parameter '{0}' cannot be empty",
+        "StatusCode": 400
+      },
+      "required": {
+        "Type": "Required",
+        "Message": "Parameter '{0}' is required",
+        "StatusCode": 400
+      },
+      "email": {
+        "Type": "Regex",
+        "Pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+        "Message": "Parameter '{0}' must be a valid email address",
+        "StatusCode": 400
       }
     }
   }
@@ -43,7 +59,7 @@ Parameter validation configuration for validating endpoint parameters before dat
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `Enabled` | bool | `true` | Enable parameter validation. |
+| `Enabled` | bool | `true` | When `false`, this section is ignored and the four [default rules](#default-rules) are used; `@validate` annotations still run. |
 | `Rules` | object | See [Default Rules](#default-rules) | Named validation rules that can be referenced in comment annotations. |
 
 ## Validation Types

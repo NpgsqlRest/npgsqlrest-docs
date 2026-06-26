@@ -27,14 +27,14 @@ head:
 
 Transparent application-level column encryption using ASP.NET [Data Protection](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/introduction). Parameter values are encrypted before being sent to PostgreSQL, and result column values are decrypted before being returned to the API client. The database stores ciphertext; the API consumer sees plaintext. No `pgcrypto` or client-side encryption required.
 
-> **Prerequisite**: The `DataProtection` section must be enabled in `appsettings.json` (it is by default). See [Data Protection Configuration](../config/data-protection).
+> **Prerequisite**: The `DataProtection` section must be enabled in `appsettings.json` (`"DataProtection": { "Enabled": true }` — it is disabled by default). See [Data Protection Configuration](../config/data-protection).
 
 ## Encrypt Parameters
 
 ### Syntax
 
 ```
-encrypt [parameter_name, ...]
+@encrypt [parameter_name, ...]
 ```
 
 Mark specific parameters to encrypt before they are sent to PostgreSQL:
@@ -50,7 +50,7 @@ end;
 $$;
 comment on function store_patient_ssn(int, text) is '
 HTTP POST
-encrypt _ssn
+@encrypt _ssn
 ';
 ```
 
@@ -60,21 +60,19 @@ encrypt _ssn
 /*
 HTTP POST
 @encrypt ssn
-@param $1 patient_id
-@param $2 ssn
 */
-insert into patients (id, ssn) values ($1, $2)
+insert into patients (id, ssn) values (:patient_id, :ssn)
 on conflict (id) do update set ssn = excluded.ssn;
 ```
 
-The client calls `POST /api/store-patient-ssn/` with `{"patientId": 1, "ssn": "123-45-6789"}`. The server encrypts `_ssn` using Data Protection before executing the SQL — the database stores ciphertext like `CfDJ8N...`, never the plaintext SSN.
+The client calls `POST /api/store-patient-ssn` with `{"patientId": 1, "ssn": "123-45-6789"}`. The server encrypts `_ssn` using Data Protection before executing the SQL — the database stores ciphertext like `CfDJ8N...`, never the plaintext SSN.
 
-Use `encrypt` without arguments to encrypt **all** text parameters:
+Use `@encrypt` without arguments to encrypt **all** text parameters:
 
 ```sql
 comment on function store_all_secrets(text, text) is '
 HTTP POST
-encrypt
+@encrypt
 ';
 ```
 
@@ -83,7 +81,7 @@ encrypt
 ### Syntax
 
 ```
-decrypt [column_name, ...]
+@decrypt [column_name, ...]
 ```
 
 Mark specific result columns to decrypt before returning to the client:
@@ -97,17 +95,19 @@ begin
 end;
 $$;
 comment on function get_patient(int) is '
-decrypt ssn
+HTTP GET
+@decrypt ssn
 ';
 ```
 
-The client calls `GET /api/get-patient/?patientId=1`. The `ssn` column is decrypted from ciphertext back to `"123-45-6789"` before being included in the JSON response. The `id` and `name` columns are returned as-is.
+The client calls `GET /api/get-patient?patientId=1`. The `ssn` column is decrypted from ciphertext back to `"123-45-6789"` before being included in the JSON response. The `id` and `name` columns are returned as-is.
 
-Use `decrypt` without arguments to decrypt **all** result columns:
+Use `@decrypt` without arguments to decrypt **all** text result columns:
 
 ```sql
 comment on function get_all_secrets(text) is '
-decrypt
+HTTP GET
+@decrypt
 ';
 ```
 
@@ -115,7 +115,8 @@ Decrypt also works on scalar (single-value) return types:
 
 ```sql
 create function get_secret(_id int) returns text ...
-comment on function get_secret(int) is 'decrypt';
+comment on function get_secret(int) is 'HTTP GET
+@decrypt';
 ```
 
 ## Full Roundtrip Example
@@ -125,19 +126,20 @@ comment on function get_secret(int) is 'decrypt';
 create function store_secret(_key text, _value text) returns void ...
 comment on function store_secret(text, text) is '
 HTTP POST
-encrypt _value
+@encrypt _value
 ';
 
 -- Retrieve with decryption
 create function get_secret(_key text) returns table(key text, value text) ...
 comment on function get_secret(text) is '
-decrypt value
+HTTP GET
+@decrypt value
 ';
 ```
 
 ```
-POST /api/store-secret/  {"key": "api-key", "value": "sk-abc123"}
-GET  /api/get-secret/?key=api-key  →  {"key": "api-key", "value": "sk-abc123"}
+POST /api/store-secret  {"key": "api-key", "value": "sk-abc123"}
+GET  /api/get-secret?key=api-key  →  {"key": "api-key", "value": "sk-abc123"}
 ```
 
 The value is stored encrypted in PostgreSQL and decrypted transparently on read.
@@ -145,7 +147,7 @@ The value is stored encrypted in PostgreSQL and decrypted transparently on read.
 ## Behavior
 
 - **NULL values**: NULL parameters are not encrypted (passed as `DBNull`). NULL columns are not decrypted (returned as JSON `null`).
-- **Non-text types**: Only `string` parameter values are encrypted. Integer, boolean, and other types are unaffected even when `encrypt` is used without arguments.
+- **Non-text types**: Only `string` parameter values are encrypted. Integer, boolean, and other types are unaffected even when `@encrypt` is used without arguments.
 - **Decryption failures**: If a column value cannot be decrypted (e.g., it was not encrypted, or keys were rotated/lost), the raw value is returned as-is — no error is thrown.
 - **Key rotation**: ASP.NET Data Protection maintains a key ring. Old keys still decrypt old ciphertext. Keys rotate based on `DefaultKeyLifetimeDays` (default: 90 days).
 - **Encrypted columns are opaque to PostgreSQL**: The database cannot filter, join, sort, or index on encrypted values. Use encryption only for columns that are written and read back, never queried by content.

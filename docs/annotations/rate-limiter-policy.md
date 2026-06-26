@@ -21,7 +21,7 @@ head:
 # RATE_LIMITER_POLICY
 
 ::: info Also known as
-`rate_limiter_policy`, `rate_limiter` (with or without `@` prefix)
+`rate_limiter_policy_name`, `rate_limiter_policy`, `rate_limiter` (with or without `@` prefix)
 :::
 
 Apply a rate limiting policy to the endpoint. The policy name must match a policy configured in the [Rate Limiter configuration](../config/rate-limiter).
@@ -162,7 +162,7 @@ Each authenticated user gets their own quota instead of all users sharing one gl
 ## Behavior
 
 - The policy name must match a key in the `Policies` dictionary defined in the [Rate Limiter configuration](../config/rate-limiter#complete-example)
-- If the policy name doesn't match any configured policy, rate limiting won't be applied
+- The name is not validated at startup — if it doesn't match a configured (and enabled) policy, requests to the endpoint fail with the framework's "policy not found" error
 - Returns `429 Too Many Requests` when limit exceeded (status code and message are [configurable](../config/rate-limiter#settings-reference))
 - Policy defines requests per time window based on the [policy type](../config/rate-limiter#policy-types) (FixedWindow, SlidingWindow, TokenBucket, or Concurrency)
 - Policies with a `Partition` block bucket requests per-user / per-IP / per-header instead of using a single global bucket

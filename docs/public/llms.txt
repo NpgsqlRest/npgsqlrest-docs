@@ -1,0 +1,74 @@
+# NpgsqlRest
+
+> NpgsqlRest is a production-ready, standalone web server that turns a PostgreSQL database into a fast, typed REST API. You write SQL — plain `.sql` files or functions/procedures — and annotate it with comments to declare HTTP routes, authorization, caching, rate limits, and more. There are no controllers, no models, no mapping layers, and no C# to write. Your SQL is the API.
+
+Key ideas for navigating this documentation:
+
+- Endpoints come from **two sources**, using the same annotation vocabulary: plain **SQL files** (the flagship source — no functions, no migrations) and **PostgreSQL routines** (functions/procedures).
+- Behavior is **declared in SQL comment annotations** (all prefixed with `@`, e.g. `@authorize`, `@cached`, `@mcp`) and in `appsettings.json`.
+- The server generates typed **client code** (TypeScript, TanStack Query hooks, and Dart for Flutter), **HTTP test files**, **OpenAPI** documents, and **MCP tools** / function-calling schemas for AI agents — all from the same SQL.
+- Tests are also plain `.sql` files, run in-process against real endpoints inside a transaction.
+- Configuration is a single `appsettings.json` plus environment variables: a `./.env` file is loaded by default (3.21), and `{NAME}` / `{!NAME}` / `{!NAME:fallback}` placeholders resolve in every configuration value. Multiple named connections are supported, with per-connection routine discovery (3.21).
+
+## Guide
+
+- [Overview](https://npgsqlrest.github.io/guide/): What NpgsqlRest is and how it works
+- [Installation](https://npgsqlrest.github.io/guide/installation): Install the standalone binary, npm package, or Docker image
+- [Quick Start](https://npgsqlrest.github.io/guide/quick-start): Build your first endpoint from SQL
+- [SQL File Endpoints](https://npgsqlrest.github.io/guide/sql-files): The flagship source — REST endpoints from plain `.sql` files, with named parameters and multi-command batches
+- [Configuration Guide](https://npgsqlrest.github.io/guide/configuration): How configuration works — sources, precedence, environment variables, command-line arguments
+- [Comment Annotations Guide](https://npgsqlrest.github.io/guide/annotations): How SQL comment annotations declare endpoint behavior
+- [Connection Management](https://npgsqlrest.github.io/guide/connections): Multiple named connections, routing with `@connection`, per-connection routine discovery, failover and read replicas
+- [Authentication](https://npgsqlrest.github.io/guide/authentication): Cookie, JWT/Bearer, passkey, and external OAuth sign-in from SQL
+- [Server-Sent Events](https://npgsqlrest.github.io/guide/sse): Stream progress from long-running SQL via SSE
+- [HTTP Custom Types](https://npgsqlrest.github.io/guide/http-types): Call external APIs from PostgreSQL using composite-type comments
+- [Proxy Endpoints](https://npgsqlrest.github.io/guide/proxy): Reverse-proxy endpoints in passthrough and transform modes
+- [Testing](https://npgsqlrest.github.io/guide/testing): The built-in SQL test runner — in-process, transactional, isolated
+- [Logging](https://npgsqlrest.github.io/guide/logging): Console, file, and database logging, per-channel levels, command logging
+- [Claude Code Skill](https://npgsqlrest.github.io/guide/claude-code-skill): The official Claude Code skill for NpgsqlRest projects, installed with `npgsqlrest --install-skill`
+- [FAQ & Troubleshooting](https://npgsqlrest.github.io/guide/faq): Common questions and answers
+
+## Reference
+
+- [Annotations Reference](https://npgsqlrest.github.io/annotations/): Every SQL comment annotation, grouped by category
+- [Configuration Reference](https://npgsqlrest.github.io/config/): Every `appsettings.json` section and option
+- [Latest Default Configuration](https://npgsqlrest.github.io/config/latest): The complete default `appsettings.json` for the latest version
+- [Examples](https://npgsqlrest.github.io/examples/): Hands-on, runnable examples from the examples repository
+- [Changelog](https://npgsqlrest.github.io/guide/changelog/): Release notes for every version
+
+## Key configuration topics
+
+- [Connection Settings](https://npgsqlrest.github.io/config/connection): Connection strings, environment placeholders, multiple connections, `ReadMetadataFromConnections`, `VerifyRoutedEndpoints`
+- [Config Section](https://npgsqlrest.github.io/config/config-section): Configuration sources, `.env` file loading, placeholder forms, key validation
+- [SQL File Source](https://npgsqlrest.github.io/config/sql-file-source): Enable and configure `.sql` file endpoints
+- [Code Generation](https://npgsqlrest.github.io/config/codegen): Typed TypeScript client modules generated from endpoints
+- [React Query Hooks](https://npgsqlrest.github.io/config/react-query): TanStack Query v5 useQuery/useMutation hooks generated alongside the TypeScript client
+- [Dart Code Generation](https://npgsqlrest.github.io/config/dart-codegen): Typed Dart client modules for Flutter projects
+- [MCP](https://npgsqlrest.github.io/config/mcp): Expose endpoints as Model Context Protocol tools, plus OpenAI/Anthropic tool schemas and llms.txt
+- [OpenAPI](https://npgsqlrest.github.io/config/openapi): Generate OpenAPI/Swagger documents (3.0 or 3.1)
+- [Authentication](https://npgsqlrest.github.io/config/auth): Cookie, JWT, Bearer, passkey, and external OAuth configuration
+- [Cache Options](https://npgsqlrest.github.io/config/cache-options): Response caching with profiles, When-rules, Memory/Redis/Hybrid backends
+- [Rate Limiter](https://npgsqlrest.github.io/config/rate-limiter): Global and per-user rate-limiting policies
+- [Test Runner](https://npgsqlrest.github.io/config/test-runner): `--test` options — test connections, setup/teardown, parallelism, JUnit output, endpoint coverage
+- [Watch Mode](https://npgsqlrest.github.io/config/watch): Live reload on SQL, config, and database-routine changes
+- [Uploads](https://npgsqlrest.github.io/config/uploads): File uploads — large objects, file system, CSV/Excel ingestion
+
+## Blog
+
+- [NpgsqlRest 3.20.0: Dart Clients, React Query Hooks, and Tool Schemas](https://npgsqlrest.github.io/blog/npgsqlrest-3.20-dart-client-react-query-tool-schemas): The code-generation release — Dart for Flutter, TanStack Query hooks, AI-agent tool schemas and llms.txt, and the HTTP QUERY method
+- [Tests Are SQL Files Too](https://npgsqlrest.github.io/blog/npgsqlrest-3.19-sql-test-runner-watch-mode): The SQL test runner and watch mode, and why database testing was never actually impossible
+- [SQL REST API](https://npgsqlrest.github.io/blog/sql-rest-api): SQL file endpoints, database-first development, and the case against Clean Architecture
+- [REST APIs from Plain SQL Files](https://npgsqlrest.github.io/blog/sql-file-source-rest-api-from-plain-sql): The complete guide to the SQL File Source
+- [From SQL to Type-Safe TypeScript](https://npgsqlrest.github.io/blog/typescript-codegen-walkthrough): Generating typed fetch clients and interfaces from PostgreSQL
+- [Turn PostgreSQL into MCP Tools an AI Agent Can Call](https://npgsqlrest.github.io/blog/mcp-server-postgresql-ai-tools-npgsqlrest): One source, two interfaces (REST + MCP), with structured output and per-tool authorization
+- [Case Study: 74 Endpoints, Zero Backend Code](https://npgsqlrest.github.io/blog/case-study-zero-backend-code): A production app built entirely on NpgsqlRest, with real numbers
+
+## Optional
+
+- [PostgreSQL REST API Benchmark, July 2026](https://npgsqlrest.github.io/blog/benchmarks-2026-07/): 20 services under equalized conditions — per-framework analysis, the routine-vs-SQL-files verdict, and the raw dataset
+- [PostgreSQL REST API Benchmark 2026](https://npgsqlrest.github.io/blog/postgresql-rest-api-benchmark-2026): NpgsqlRest vs 13 other frameworks on identical PostgreSQL functions
+- [NpgsqlRest vs PostgREST vs Supabase](https://npgsqlrest.github.io/blog/npgsqlrest-vs-postgrest-supabase-comparison): Feature-by-feature comparison of three PostgreSQL REST platforms
+- [NpgsqlRest 3.13.0: Production Patterns](https://npgsqlrest.github.io/blog/npgsqlrest-3.13-production-patterns): Cache profiles, auth schemes, per-user rate limits, pgBouncer compatibility
+- [Performance, Scalability, and High Availability](https://npgsqlrest.github.io/blog/performance-scalability-high-availability-npgsqlrest): Caching, retries, rate limiting, and multi-host PostgreSQL
+- [Database-Level Security](https://npgsqlrest.github.io/blog/database-level-security-postgresql-authentication): Cookie auth and the principle of least privilege in the database
+- [GitHub repository](https://github.com/NpgsqlRest/NpgsqlRest): Source code, issues, and releases

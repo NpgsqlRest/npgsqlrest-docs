@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://npgsqlrest.github.io/sitemap.xml

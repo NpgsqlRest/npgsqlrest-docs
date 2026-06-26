@@ -21,7 +21,7 @@ head:
 # REQUEST_HEADERS_PARAMETER_NAME
 
 ::: info Also known as
-`request_headers_param_name` (with or without `@` prefix)
+`request_headers_param_name`, `request-headers-param-name` (with or without `@` prefix)
 :::
 
 Set the parameter name that receives request headers when using parameter mode.
@@ -58,7 +58,7 @@ HTTP POST
 @request_headers_mode parameter
 @request_headers_parameter_name req_headers
 @param $1 data
-@param $2 req_headers json
+@param $2 req_headers json default null
 */
 select json_build_object('data', $1, 'headers', $2);
 ```

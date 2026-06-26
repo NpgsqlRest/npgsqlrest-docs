@@ -83,7 +83,7 @@ comment on function with_headers(text, json) is
 HTTP POST
 @request_headers_mode parameter
 @param $1 data
-@param $2 headers json
+@param $2 _headers json default null
 */
 select json_build_object('data', $1, 'headers', $2);
 ```
@@ -92,7 +92,7 @@ select json_build_object('data', $1, 'headers', $2);
 
 - Default mode is configured in `NpgsqlRest.RequestHeadersMode`
 - `context` mode uses the key from `RequestHeadersContextKey` setting
-- `parameter` mode uses the parameter name from `RequestHeadersParameterName` setting
+- `parameter` mode uses the parameter name from the `RequestHeadersParameterName` setting (default `_headers`); the parameter must be `json` or `text` and must have a default value
 
 ## Related
 

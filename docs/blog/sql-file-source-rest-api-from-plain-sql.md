@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "SQL File Source: REST Endpoints from Plain .sql Files"
+date: "2026-04-02"
 titleTemplate: NpgsqlRest
 description: "NpgsqlRest 3.12.0 introduces SQL File Source — build REST APIs from plain .sql files. See real examples: auth, real-time chat, CSV exports, external API calls, and file uploads."
 head:
@@ -414,6 +415,12 @@ SQL files win on simplicity and flexibility. Here's the short version:
 - **Complex procedural logic.** `DO` blocks in SQL files work but have hard limitations: no parameters (requires `set_config` or temp table workarounds) and no return values. Functions handle this natively with PL/pgSQL.
 
 **The rule of thumb:** start with SQL files. Move to functions when you need unit-testable procedural logic or when `DO` block workarounds become too clumsy.
+
+## What Came After This Post
+
+::: info Updates since 3.12
+SQL files kept growing up: **named parameters** (`where email = :email` — the placeholder is the API parameter, since 3.19) replace the positional `$1` + `@param` dance shown above; the [**SQL test runner**](/guide/testing) (`--test`) runs plain `.sql` tests against these endpoints in-process; and [**watch mode**](/config/watch) (`--watch`) restarts the server on file, config, and database changes with the TypeScript client regenerated every cycle.
+:::
 
 ## Get Started
 

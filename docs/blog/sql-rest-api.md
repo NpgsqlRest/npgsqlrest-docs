@@ -2,9 +2,9 @@
 layout: doc
 outline: [2, 4]
 title: "SQL REST API"
+date: "2026-04-02"
 titleTemplate: NpgsqlRest
 description: "The story behind NpgsqlRest 3.12.0 — SQL file endpoints, the philosophy of database-first development, AI tools, and why I think Clean Architecture got it wrong."
-badge: human
 head:
   - - meta
     - name: keywords
@@ -51,8 +51,6 @@ Start typing "This" ...
 Damn it, shut up Copilot you. How do I turn this thing off? Ask Claude Code how to do it, turn it on again. And now he sees me writing a new blog post, damn it, who told you, is that you Copilot again? What's going on here?
 
 Oh I see, there is actually a mute button, let's start finally...
-
-![](https://img.shields.io/badge/Human-Written-blue)
 
 ## Introduction
 

@@ -31,7 +31,7 @@ Enable server-side response caching for routine results.
 
 Space-separated lists are also valid: `@cached _year _department`
 
-Parameters specified become part of the cache key.
+Parameters specified become part of the cache key. A bare `@cached` keys on all routine parameters.
 
 ## Examples
 
@@ -125,19 +125,20 @@ Use `MaxCacheableRows` in [Cache Options](../config/cache-options) to limit the 
 
 - Caches the response for subsequent identical requests
 - Works with scalar results, set-returning functions, and record types
-- Cache key is based on specified parameters
-- Use with `cache_expires_in` to set expiration time
+- Cache key is based on the specified parameters (all routine parameters for a bare `@cached`)
+- Use with `@cache_expires_in` to set expiration time
 
 ## Cache Configuration
 
-The `cached` annotation requires cache to be enabled in [Cache Options](../config/cache-options) configuration.
+The `@cached` annotation requires caching to be enabled in [Cache Options](../config/cache-options) configuration.
 
-Two cache types are available:
+Three cache types are available:
 
 | Type | Description | Use Case |
 |------|-------------|----------|
 | `Memory` | In-memory cache on the application server | Single instance deployments, development |
 | `Redis` | Distributed cache using Redis | Multi-instance deployments, production |
+| `Hybrid` | `Microsoft.Extensions.Caching.Hybrid` — in-memory L1 with stampede protection and an optional Redis L2 (`HybridCacheUseRedisBackend`) | Multi-instance deployments that want a local L1 |
 
 Example configuration:
 

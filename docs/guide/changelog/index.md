@@ -1,12 +1,63 @@
+---
+description: "Full changelog for NpgsqlRest — release notes for every version of the automatic PostgreSQL REST API server, from v3.0.0 to the latest release."
+---
+
 # Changelog
 
 Select a version below to view the full changelog.
 
-Note: The changelog for versions older than 3.0 can be found here: [Changelog Archive](https://github.com/NpgsqlRest/NpgsqlRest/blob/master/changelog-old.md)
+Note: The changelog for versions older than 3.0 can be found here: [Changelog Archive](https://github.com/NpgsqlRest/NpgsqlRest/blob/master/changelog/legacy.md)
 
 ---
 
-## Version 3.18 (Latest)
+## Version 3.21 (Latest)
+
+| Version | Date |
+|---------|------|
+| [v3.21.0](/guide/changelog/v3.21.0) | 2026-07-12 |
+
+- New: **per-connection routine discovery** — `RoutineOptions.ReadMetadataFromConnections` lists `ConnectionStrings` names to read functions/procedures metadata from (one routine source per name, shared filters); **endpoints execute on the connection they were discovered from** (an explicit `@connection` annotation still wins), so databases hosting *different* routines (OLTP + OLAP/DW) no longer need routines duplicated on the default database; implicitly enables multiple connections, composite types resolve per database, watch mode polls each discovery connection, and cross-source path collisions warn at startup
+- New: **routed endpoint verification** — `RoutineOptions.VerifyRoutedEndpoints` (`None`/`Warn`/`Fail`) checks at startup that routines behind `@connection`-routed endpoints actually exist on the target connection (one batched `to_regprocedure` round-trip per target) — a content check complementing `ConnectionSettings.TestConnectionStrings` connectivity testing
+- New: **environment variable fallback values** — `{!NAME:fallback}` completes the placeholder grammar (`{NAME}` optional, `{!NAME}` required) and works in every configuration value, static file content, and annotation values with the same rules; the default connection string ships with PostgreSQL-convention fallbacks (`{!PGHOST:localhost}`, `{!PGPORT:5432}`, `{!PGUSER:postgres}`, `{!PGPASSWORD:postgres}`) and only `PGDATABASE` required
+- New: **`.env` file loaded by default** — `Config.EnvFile` defaults to `"./.env"`; real environment variables always win over the file (dotenv convention — a behavior change for explicit `EnvFile` users), missing default file logs information, missing custom path warns; minimal setup is now the default config plus a one-line `.env`
+- New: **`npgsqlrest --install-skill [global]`** — installs the Claude Code skill from the release branch matching the running version (project or user scope), replacing the manual download instructions
+- New: two-tone ANSI-block CLI logo with UTF-8 output on legacy Windows consoles
+- Fix: `@connection <main-name>` now resolves (was a request-time 500); the `connection=name` annotation form is validated; multi-host main connection no longer builds a duplicate pool; connection name matching is case-insensitive; `--annotations` output gained six missing entries
+
+> Version 3.20.1 was never released — its changes are included in v3.21.0.
+
+---
+
+## Version 3.20
+
+| Version | Date |
+|---------|------|
+| [v3.20.0](/guide/changelog/v3.20.0) | 2026-07-09 |
+
+- New: **Dart client code generator** — `NpgsqlRest.DartClient` plugin generates Dart fetch modules for Flutter projects (package:http only, all Flutter targets): request/response model classes with `fromJson`/`toJson`, `ApiResult<T>`/`ApiError` status wrappers, multipart uploads with progress callback, server-sent events (`SseSubscription` + event source factories), raw responses for proxy endpoints, per-call `parseUrl`/`parseRequest` hooks, login/logout special-casing, and `MockClient` testability via a `httpClient` override — full parity with the TypeScript client
+- New: **TanStack Query (React Query) hooks generation** for the TypeScript client — `useQuery` hooks for GET/QUERY endpoints and `useMutation` hooks for the rest, with exported query-key factories, `QueryKeyPrefix` namespacing, an `ImportFrom` wrapper-module option, and a `tsclient_hooks=off` opt-out annotation; TanStack v5 object syntax, compiles under `tsc --strict`
+- New: **function-calling schemas and llms.txt from the MCP tool set** (`McpOptions.ToolSchemas`) — OpenAI and Anthropic `tools` array documents plus an llms.txt capability document, projected verbatim from the MCP tool catalog and generated/served even when the /mcp endpoint is disabled
+- New: **HTTP QUERY method** support across the stack — `HTTP QUERY` annotation, parameters default to the JSON body, `useQuery` hook mapping, MCP `readOnlyHint`, and an OpenAPI skip-with-warning (no `query` operation key until OpenAPI 3.2)
+- New: `OpenApiOptions.SpecVersion` — emit `openapi: 3.0.3` (default) or `openapi: 3.1.1`
+- New: **required environment variables in the default connection string** (`{!PGHOST}`, `{!PGDATABASE}`, `{!PGUSER}`, `{!PGPASSWORD}`) — a missing variable fails at startup naming exactly what to set; the `{!NAME}` syntax now works in any `ConnectionStrings` entry
+
+---
+
+## Version 3.19
+
+| Version | Date |
+|---------|------|
+| [v3.19.0](/guide/changelog/v3.19.0) | 2026-07-03 |
+
+- New: **SQL test runner** (`npgsqlrest --test`) — write endpoint tests as plain `.sql` files: boolean-`SELECT` and `DO`-block assertions, in-process endpoint invocation via embedded HTTP blocks (`# @claim` principals, response captured into a temp table), per-file isolated non-pooled connections running in parallel, `Setup`/`Teardown` steps with named-step registry and per-step connections, dedicated test databases with `{rnd}` tokens, `\i`/`\ir` script includes with paste semantics, per-file `-- @setup`/`-- @teardown`/`-- @connection`/`-- @tag` annotations, path filtering (`Filter`) and tag filtering (`Tag`/`ExcludeTag`), watch mode (`--watch`) with in-process endpoint rebuilds, endpoint coverage reporting (on by default for full runs) with a CI threshold gate, JUnit XML output, and guaranteed teardown on Ctrl+C/SIGTERM and hard exits
+- New: **watch mode** (`--watch`) — two modes: with `--test` it re-runs tests on changes (endpoint files rebuild in-process); without `--test` it supervises the server and restarts it on SQL file source and configuration changes, regenerating code (TypeScript client, HTTP files, OpenAPI) on every cycle
+- New: **named parameters in SQL files** — `where email = :email` instead of `$1`; the placeholder is the parameter name (camelCase-converted for the API), repeated names map to one parameter (also across statements), claim mappings hook up by placeholder name, and the new `@param name type is type` form retypes without renaming
+- New: `SqlFileSource.SkipPattern` (default `"*.test.sql"`) — exclude files from endpoint discovery by glob
+- New: `Log:MinimalLevels` entries accept `"Off"` (`"None"`, `"Silent"`) to fully mute an individual logger
+
+---
+
+## Version 3.18
 
 | Version | Date |
 |---------|------|
@@ -29,7 +80,7 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 | Version | Date |
 |---------|------|
-| [v3.17.0](/guide/changelog/v3.17.0) | 2026-06-10 |
+| [v3.17.0](/guide/changelog/v3.17.0) | 2026-06-13 |
 
 - New plugin `NpgsqlRest.Mcp` — expose opted-in PostgreSQL routines as MCP tools (`tools/list` / `tools/call` over Streamable HTTP) via the `@mcp` annotation; a bare `@mcp` with no HTTP tag is an MCP-only tool with no public route
 - MCP OAuth 2.1 resource-server authorization: Protected Resource Metadata (RFC 9728), audience binding (RFC 8707), per-tool `@authorize` enforcement on `tools/call`

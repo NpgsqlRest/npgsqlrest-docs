@@ -36,6 +36,7 @@ Response compression settings for reducing HTTP response sizes using Brotli and 
       "text/plain",
       "text/css",
       "application/javascript",
+      "text/javascript",
       "text/html",
       "application/xml",
       "text/xml",

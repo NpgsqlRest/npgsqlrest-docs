@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Case Study: 74 Endpoints, Zero Backend Code — A Production App Built Entirely on NpgsqlRest"
+date: "2026-05-01"
 titleTemplate: NpgsqlRest
 description: "What it actually looks like to ship a production application without a controller layer. Real numbers from a finance/visualization app: ~74 HTTP endpoints, 12K LOC of SQL, zero lines of C# or Python, and an estimated 3,500–7,300 LOC of host-language boilerplate eliminated versus an equivalent ASP.NET Core build."
 head:
@@ -64,7 +65,7 @@ The application has shipped to production at build number **2.9.1517** — fifte
 
 Read through the repository and the workload NpgsqlRest absorbs turns out broader than most users probably realize from the docs:
 
-- **All ~74 endpoints** are auto-exposed from annotated PostgreSQL functions. HTTP verb, route, authorization, response shape, and per-module grouping are declared in SQL comments via `HTTP POST` / `HTTP GET`, `authorize`, `tsclient_module = ...`. There is no route table.
+- **All ~74 endpoints** are auto-exposed from annotated PostgreSQL functions. HTTP verb, route, authorization, response shape, and per-module grouping are declared in SQL comments via `HTTP POST` / `HTTP GET`, `@authorize`, `@tsclient_module = ...`. There is no route table.
 - **The entire TypeScript client (~5,679 lines across 12 modules)** is regenerated from the live database catalog on every dev-mode startup. The frontend imports the generated per-module API files (e.g. `from "./<feature>Api.ts"`) — files no human ever touches.
 - **The full WebAuthn / passkey ceremony** is implemented as nine named SQL commands wired up in `appsettings.json`. Challenge generation, attestation, authentication, sign-count validation — all in PL/pgSQL. The host process knows the protocol; the application logic lives in functions.
 - **Data-protection key storage** (the keys ASP.NET uses to encrypt cookies and other transient state) is two SQL commands, not a custom `IXmlRepository` implementation in C#.
@@ -204,7 +205,7 @@ A case study that doesn't acknowledge tradeoffs is a sales pitch. After working 
 That's the honest list. A few other objections look like tradeoffs at first but don't survive scrutiny:
 
 - *"Refactoring SQL across a schema lacks IDE support."* In practice, the auto-generated TypeScript client gives every backend function a real, IDE-indexed symbol on the frontend (`some_function_name` → `someFunctionName`). "Find all references" on the generated function locates every cross-stack caller. Modern PostgreSQL IDEs (DataGrip, JetBrains DB tools) also index PL/pgSQL, and the database itself fails function creation if a referenced object is missing. The cross-stack refactoring story is, if anything, *better* than in conventional architectures.
-- *"Logic-heavy SQL is harder to test."* The opposite turned out to be true on this project. `set constraints all deferred` plus a transaction-scoped rollback gives clean isolation with no fixture framework. Putting `drop function`, `create function`, and the test in a single `.sql` file lets you re-run the entire cycle on save — a feedback loop measurably faster than rebuilding a .NET or Python project. Different idiom from xUnit / pytest, but not harder.
+- *"Logic-heavy SQL is harder to test."* The opposite turned out to be true on this project. `set constraints all deferred` plus a transaction-scoped rollback gives clean isolation with no fixture framework. Putting `drop function`, `create function`, and the test in a single `.sql` file lets you re-run the entire cycle on save — a feedback loop measurably faster than rebuilding a .NET or Python project. Different idiom from xUnit / pytest, but not harder. (Since this project shipped, NpgsqlRest 3.19 turned this pattern into a built-in [SQL test runner](/guide/testing) — `.sql` tests invoking the real endpoints in-process, with watch mode and coverage reporting.)
 - *"Lock-in to NpgsqlRest."* The exit path is to write the controller layer and cross-cutting concerns you skipped — i.e., to do the ~3,500–7,300 LOC of host-language work this case study just argued against. That isn't lock-in in any meaningful sense; it's a choice that's reversible at exactly the price the alternative architecture charges upfront. The SQL stays portable.
 - *"Calling external APIs requires a host language."* It doesn't. NpgsqlRest's [HTTP Types](/blog/external-api-calls-postgresql-http-types) let you declare external REST calls in a PostgreSQL type comment using `.http` file syntax — function parameters substitute into URLs, headers, and request bodies, and the response is handed to your function as a parameter. The HTTP call is made from the NpgsqlRest tier, not from inside the database, so there's no `pgsql-http` extension to install and no database connection sitting blocked on a remote service. For full gateway scenarios, the [reverse proxy](/config/proxy) `@proxy` annotation supports both passthrough and transform modes (response routed through a PG function for caching, enrichment, or transformation). External integration is one of the architecture's stronger stories, not a weak point.
 
@@ -221,7 +222,7 @@ If you've been wondering whether a database-first architecture scales past CRUD 
     { text: 'TypeScript Code Generation Walkthrough', href: '/blog/typescript-codegen-walkthrough' },
     { text: 'Implementing WebAuthn Passkeys with Pure SQL', href: '/blog/passkey-sql-auth' },
     { text: 'The Power of Simplicity', href: '/blog/the-power-of-simplicity' },
-    { text: 'PostgreSQL REST API Benchmark 2026', href: '/blog/postgresql-rest-api-benchmark-2026' },
+    { text: 'PostgreSQL REST API Benchmark, July 2026', href: '/blog/benchmarks-2026-07/' },
     { text: 'Quick Start Guide', href: '/guide/quick-start' }
   ]"
 />

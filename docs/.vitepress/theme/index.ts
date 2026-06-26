@@ -5,7 +5,6 @@ import { useData, useRoute } from 'vitepress'
 import type { Theme } from 'vitepress'
 import { createMermaidRenderer } from 'vitepress-mermaid-renderer'
 import Chatbot from './components/Chatbot.vue'
-import ClaudeBadge from './components/ClaudeBadge.vue'
 import BlogSidebar from './components/BlogSidebar.vue'
 import BlogNav from './components/BlogNav.vue'
 import GiscusComments from './components/GiscusComments.vue'
@@ -51,7 +50,6 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'home-hero-image': () => frontmatter.value.layout === 'home' ? h(HeroTerminal) : null,
       'layout-bottom': () => frontmatter.value.layout === 'home' ? h(Chatbot) : null,
-      'doc-before': () => h(ClaudeBadge),
       'aside-outline-after': () => isBlogPage
         ? [h(CommentsOutlineLink), h(BlogSidebar)]
         : isDocPage ? h(CommentsOutlineLink) : null,

@@ -37,7 +37,9 @@ Health check endpoints for container orchestration (Kubernetes, Docker Swarm) an
     "ReadyPath": "/health/ready",
     "LivePath": "/health/live",
     "IncludeDatabaseCheck": true,
-    "ConnectionName": null
+    "DatabaseCheckName": "postgresql",
+    "RequireAuthorization": false,
+    "RateLimiterPolicy": null
   }
 }
 ```
@@ -52,7 +54,9 @@ Health check endpoints for container orchestration (Kubernetes, Docker Swarm) an
 | `ReadyPath` | string | `"/health/ready"` | Path for the readiness probe endpoint. |
 | `LivePath` | string | `"/health/live"` | Path for the liveness probe endpoint. |
 | `IncludeDatabaseCheck` | bool | `true` | Include PostgreSQL database connectivity in health checks. |
-| `ConnectionName` | string | `null` | Use a specific named connection for health checks. When `null`, uses the default connection. |
+| `DatabaseCheckName` | string | `"postgresql"` | Name for the database health check (appears in detailed health reports). |
+| `RequireAuthorization` | bool | `false` | Require an authenticated user for all health endpoints. Health endpoints can reveal infrastructure information — enable when they are publicly accessible. Kubernetes/Docker probes may then need to authenticate. |
+| `RateLimiterPolicy` | string | `null` | Name of a [rate limiter policy](./rate-limiter) applied to health check endpoints, or `null` to disable rate limiting. |
 
 ## Health Check Types
 
@@ -135,28 +139,6 @@ When `IncludeDatabaseCheck` is `true`, the readiness probe verifies PostgreSQL c
 If the database is unreachable:
 - `/health/ready` returns `503 Service Unavailable`
 - `/health/live` still returns `200 OK` (the app is running, just can't reach the database)
-
-### Using a Different Connection
-
-Use a specific named connection for health checks:
-
-```json
-{
-  "ConnectionStrings": {
-    "Default": "Host=primary;Database=myapp;...",
-    "HealthCheck": "Host=replica;Database=myapp;..."
-  },
-  "HealthChecks": {
-    "Enabled": true,
-    "ConnectionName": "HealthCheck"
-  }
-}
-```
-
-This is useful when you want to:
-- Use a read-only connection for health checks
-- Query a different database server
-- Use credentials with limited permissions
 
 ## Kubernetes Integration
 

@@ -92,7 +92,7 @@ Controls whether the browser should allow the page to be rendered in a `<frame>`
 | `SAMEORIGIN` | Allow framing from the same origin only |
 
 ::: warning
-This header is **skipped** if [Antiforgery](./antiforgery) is enabled, as Antiforgery already sets `X-Frame-Options: SAMEORIGIN` by default via its `SuppressXFrameOptionsHeader` setting.
+This header is **skipped** whenever [Antiforgery](./antiforgery) is enabled, because Antiforgery already sets `X-Frame-Options: SAMEORIGIN` by default (unless its `SuppressXFrameOptionsHeader` is `true` — the skip applies even then).
 :::
 
 ## Referrer-Policy

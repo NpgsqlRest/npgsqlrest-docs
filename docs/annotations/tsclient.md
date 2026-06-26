@@ -37,6 +37,7 @@ TypeScript client generation must be enabled in the [Code Generation](../config/
 @tsclient_status_code = <true|false>
 @tsclient_export_url = <true|false>
 @tsclient_url_only = <true|false>
+@tsclient_hooks = <true|false>
 ```
 
 ## Parameters
@@ -50,6 +51,7 @@ TypeScript client generation must be enabled in the [Code Generation](../config/
 | `tsclient_parse_request` | Enable or disable `parseRequest` parameter in the generated function. |
 | `tsclient_status_code` | Enable or disable status code in the return value. |
 | `tsclient_export_url` | When `true`, exports a URL constant for this endpoint regardless of the global `ExportUrls` setting. |
+| `tsclient_hooks` | When `off`/`false`/`disabled`, excludes this endpoint from the generated [TanStack Query hooks](../config/react-query) file only; the client function is still generated. Available since 3.20.0. |
 | `tsclient_url_only` | When `true`, only the URL constant and request interface are exported — the fetch function and response type are skipped. Implies `tsclient_export_url = true`. Useful for endpoints consumed via browser navigation (e.g., table format downloads). |
 
 ## Examples

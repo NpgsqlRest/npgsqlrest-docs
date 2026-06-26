@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "HTTP Annotation"
 titleTemplate: NpgsqlRest
-description: "Expose PostgreSQL functions, procedures, and SQL files as HTTP endpoints. Configure HTTP methods (GET, POST, PUT, DELETE) and custom URL paths."
+description: "Expose PostgreSQL functions, procedures, and SQL files as HTTP endpoints. Configure HTTP methods (GET, POST, PUT, DELETE, QUERY) and custom URL paths."
 head:
   - - meta
     - name: keywords
@@ -35,7 +35,9 @@ HTTP <path>
 HTTP <method> <path>
 ```
 
-**method**: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`
+**method**: `GET`, `POST`, `PUT`, `DELETE`, `QUERY`
+
+`QUERY` is the recently standardized safe, idempotent HTTP method that carries the query in the request body: parameters default to the JSON body (like POST), while clients treat it as a cacheable read (the TypeScript client's React Query hooks map it to `useQuery`, MCP tools get `readOnlyHint: true`). Available since version 3.20.0. Note: QUERY endpoints are not representable in OpenAPI 3.0/3.1 documents and are skipped there with a logged warning.
 
 **path**: Custom URL path (must start with `/` or be a relative path)
 
@@ -45,11 +47,11 @@ The `HTTP` annotation behavior depends on the [CommentsMode](../config/npgsqlres
 
 | Mode | HTTP Annotation Behavior |
 |------|--------------------------|
-| `OnlyWithHttpTag` | **Required** - Endpoints are only created for routines with `HTTP` in their comment (default). |
+| `OnlyAnnotated` | **Required** - Endpoints are only created for routines with `HTTP` in their comment (or a plugin annotation that requests an endpoint, such as `@mcp`). Default. `OnlyWithHttpTag` is a backward-compatible alias. |
 | `ParseAll` | Optional - All routines become endpoints; `HTTP` can customize method/path. |
 | `Ignore` | Ignored - All routines become endpoints; comments are not parsed. |
 
-With the default `OnlyWithHttpTag` mode, a function without the `HTTP` annotation will not be exposed as an endpoint.
+With the default `OnlyAnnotated` mode, a function without the `HTTP` annotation will not be exposed as an endpoint.
 
 ## Default Behavior
 
@@ -217,8 +219,8 @@ Call: `POST /products/7` with body `{"newName": "New Name"}` → `p_id = 7`, `ne
 ### Path Parameter Key Features
 
 - Parameter names in `{param}` can use either the PostgreSQL name (`{p_id}`) or the converted camelCase name (`{pId}`), matching is case-insensitive
-- Works with all HTTP methods (GET, POST, PUT, DELETE)
-- Can be combined with query string parameters (GET/DELETE) or JSON body parameters (POST/PUT)
+- Works with all HTTP methods (GET, POST, PUT, DELETE, QUERY)
+- Can be combined with query string parameters (GET/DELETE) or JSON body parameters (POST/PUT/QUERY)
 - Supports all parameter types (int, text, uuid, bigint, etc.)
 - Zero performance impact on endpoints without path parameters
 

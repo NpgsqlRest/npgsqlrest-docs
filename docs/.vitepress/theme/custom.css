@@ -437,18 +437,6 @@ html, body {
   border-color: rgba(93, 217, 209, 0.4);
 }
 
-/* Human-written blog post label */
-.blog-links a.human-written {
-  position: relative;
-}
-
-.blog-links a.human-written .badge {
-  position: absolute;
-  top: -0.5rem;
-  right: 1rem;
-  height: 18px;
-}
-
 /* Annotation Showcase */
 .annotation-showcase {
   max-width: 760px;

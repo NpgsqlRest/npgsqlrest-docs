@@ -47,25 +47,48 @@ NpgsqlRest HTTP middleware general configuration for endpoint generation and req
     "LogConnectionNoticeEventsMode": "FirstStackFrameAndMessage",
     "LogCommands": false,
     "LogCommandParameters": false,
+    "DebugLogEndpointCreateEvents": true,
+    "DebugLogCommentAnnotationEvents": true,
     "DefaultHttpMethod": null,
     "DefaultRequestParamType": null,
+    "QueryStringNullHandling": "Ignore",
+    "TextResponseNullHandling": "EmptyString",
     "RequestHeadersMode": "Parameter",
     "RequestHeadersContextKey": "request.headers",
     "RequestHeadersParameterName": "_headers",
+    "WrapInTransaction": false,
+    "JsonTimestampsAreUtc": true,
+    "BeforeRoutineCommands": [
+      {
+        "Enabled": false,
+        "Sql": "select set_config('search_path', $1, true)",
+        "Parameters": [
+          {
+            "Source": "Claim",
+            "Name": "tenant_id"
+          }
+        ]
+      }
+    ],
     "InstanceIdRequestHeaderName": null,
     "CustomRequestHeaders": {},
+    "AvailableEnvVars": [],
     "ExecutionIdHeaderName": "X-NpgsqlRest-ID",
-    "QueryStringNullHandling": "Ignore",
-    "TextResponseNullHandling": "EmptyString",
     "DefaultServerSentEventsEventNoticeLevel": "INFO",
     "ServerSentEventsResponseHeaders": {},
+    "WarnUnboundServerSentEventsNotices": true,
     "RoutineOptions": { ... },
-    "AuthenticationOptions": { ... },
-    "SqlFileSource": { ... },
     "UploadOptions": { ... },
-    "ClientCodeGen": { ... },
+    "TableFormatOptions": { ... },
+    "AuthenticationOptions": { ... },
     "HttpFileOptions": { ... },
-    "OpenApiOptions": { ... }
+    "OpenApiOptions": { ... },
+    "McpOptions": { ... },
+    "ClientCodeGen": { ... },
+    "DartClientCodeGen": { ... },
+    "HttpClientOptions": { ... },
+    "ProxyOptions": { ... },
+    "SqlFileSource": { ... }
   }
 }
 ```
@@ -77,16 +100,21 @@ See related configuration pages:
 - [SQL File Source](./sql-file-source) for `SqlFileSource` configuration
 - [Upload Options](./uploads) for `UploadOptions` configuration
 - [Code Generation](./codegen) for `ClientCodeGen` configuration
+- [Dart Code Generation](./dart-codegen) for `DartClientCodeGen` configuration
 - [HTTP Files](./http-files) for `HttpFileOptions` configuration
 - [OpenAPI Options](./openapi) for `OpenApiOptions` configuration
+- [MCP](./mcp) for `McpOptions` configuration
+- [Table Format](./table-format) for `TableFormatOptions` configuration
+- [Proxy](./proxy) for `ProxyOptions` configuration
+- [HTTP Client](./http-client) for `HttpClientOptions` configuration
 
 ## Connection Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `ConnectionName` | string | `null` | Connection name from `ConnectionStrings` section. Uses first available if `null`. |
-| `UseMultipleConnections` | bool | `false` | Allow individual routines to use different connections from `ConnectionStrings`. |
-| `CommandTimeout` | string | `null` | Command timeout using [interval format](../annotations/interval-format) (e.g., `"30s"`, `"1m"`). Uses default 30 seconds if `null`. Can be overridden per endpoint with [command_timeout](../annotations/command-timeout) annotation. |
+| `ConnectionName` | string | `null` | Connection name from `ConnectionStrings` section. If `null`, the first connection in key order is used (configuration keys are sorted alphabetically, not by file position) — set it explicitly when more than one connection is defined. |
+| `UseMultipleConnections` | bool | `false` | Allow individual routines to use different connections from `ConnectionStrings` via the `@connection` annotation. Assumes identical routine metadata on all targets (replicas, shards); for genuinely different databases use `RoutineOptions.ReadMetadataFromConnections` (3.21.0+), which enables multiple connections implicitly. Routed endpoints can be verified at startup with `RoutineOptions.VerifyRoutedEndpoints` (3.21.0+). |
+| `CommandTimeout` | string | `null` | Command timeout using [interval format](../annotations/interval-format) (e.g., `"30s"`, `"1m"`). Uses default 30 seconds if `null`. Can be overridden per endpoint with the [`@command_timeout`](../annotations/command-timeout) annotation. |
 
 ## Schema and Name Filtering
 
@@ -213,7 +241,7 @@ With default settings, `get_user_profile` becomes `/api/get-user-profile`.
 ### Default Behavior
 
 When `DefaultHttpMethod` is `null`:
-- `GET` is used when routine is not volatile, or name starts with `get_`, contains `_get_`, or ends with `_get`
+- `GET` is used when routine is not volatile, or name starts with `get_`, contains `_get_`, or ends with `_get` (case-insensitive)
 - `POST` is used otherwise
 
 When `DefaultRequestParamType` is `null`:
@@ -229,14 +257,14 @@ When `DefaultRequestParamType` is `null`:
 | `RequestHeadersParameterName` | string | `"_headers"` | Parameter name when mode is `Parameter`. |
 | `CustomRequestHeaders` | object | `{}` | Custom headers added to requests before sending to PostgreSQL. |
 | `InstanceIdRequestHeaderName` | string | `null` | Header name for NpgsqlRest instance ID. Set to `null` to disable. |
-| `ExecutionIdHeaderName` | string | `"X-NpgsqlRest-ID"` | Execution request header name. Used for request tracking and SSE correlation and in [`ConnectionSettings.UseJsonApplicationName`](./connection.html#json-application-name). |
+| `ExecutionIdHeaderName` | string | `"X-NpgsqlRest-ID"` | Execution request header name. Used for request tracking and SSE correlation and in [`ConnectionSettings.UseJsonApplicationName`](./connection#json-application-name). |
 
 ### Request Headers Modes
 
 | Mode | Description |
 |------|-------------|
 | `Ignore` | Don't send request headers to routines. |
-| `Context` | Set context variable `context.headers` with JSON string via `set_config()`. |
+| `Context` | Set the context variable named by `RequestHeadersContextKey` (default `request.headers`) to a JSON string via `set_config()`. |
 | `Parameter` | Send headers to parameter named by `RequestHeadersParameterName`. Parameter must be JSON/text type with default value. |
 
 ## Connection Pooler Compatibility
@@ -248,7 +276,7 @@ When `DefaultRequestParamType` is `null`:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `WrapInTransaction` | bool | `false` | When `true`, **every request** is wrapped in an explicit `BEGIN ... COMMIT`, and all `set_config` calls switch from session-scoped (`is_local=false`) to transaction-local (`is_local=true`). |
-| `BeforeRoutineCommands` | array | `[]` | SQL commands executed after any context is set but before the main routine call. Run in the same batch as the context `set_config` calls (no extra round-trip). |
+| `BeforeRoutineCommands` | array | `[]` | SQL commands executed after any context is set but before the main routine call. Run in the same batch as the context `set_config` calls (no extra round-trip). Object entries run only when their `Enabled` is `true` (default `false`); the shipped configuration contains one disabled example entry. |
 
 ### WrapInTransaction
 
@@ -266,7 +294,7 @@ The default remains `false` to preserve existing behavior; it is safe to leave o
 
 ### BeforeRoutineCommands
 
-Each entry can be either a raw SQL string (no parameters) or an object with `Sql` and `Parameters`. Each parameter has a `Source` (`Claim`, `RequestHeader`, or `IpAddress`) and an optional `Name` (claim type or header name). Parameter values are bound at request time from `HttpContext` — claim and header values are passed as parameterized SQL inputs (no string interpolation, no injection risk).
+Each entry can be either a raw SQL string (no parameters, always active) or an object with `Enabled`, `Sql` and `Parameters`. Object entries are gated by `Enabled` (default `false`) — set `"Enabled": true` to activate them. Each parameter has a `Source` (`Claim`, `RequestHeader`, or `IpAddress`) and an optional `Name` (claim type or header name; ignored for `IpAddress`). Parameter values are bound at request time from `HttpContext` — claim and header values are passed as parameterized SQL inputs (no string interpolation, no injection risk).
 
 The most useful pattern is **multi-tenant `search_path` setup** driven by a JWT/cookie claim:
 
@@ -277,6 +305,7 @@ The most useful pattern is **multi-tenant `search_path` setup** driven by a JWT/
     "BeforeRoutineCommands": [
       "select set_config('app.request_time', clock_timestamp()::text, true)",
       {
+        "Enabled": true,
         "Sql": "select set_config('search_path', $1, true)",
         "Parameters": [{ "Source": "Claim", "Name": "tenant_id" }]
       }
@@ -395,21 +424,21 @@ The `X-Accel-Buffering: no` header is commonly needed when running behind nginx 
 
 ### Related
 
-- [SSE Annotation](../annotations/sse) - Enable SSE streaming per endpoint
-- [SSE_EVENTS_LEVEL Annotation](../annotations/sse-events-level) - Override notice level per endpoint
-- [SSE_EVENTS_SCOPE Annotation](../annotations/sse-events-scope) - Control event distribution scope
+- [`@sse` annotation](../annotations/sse) - Enable SSE streaming per endpoint
+- [`@sse_events_level` annotation](../annotations/sse-events-level) - Override notice level per endpoint
+- [`@sse_events_scope` annotation](../annotations/sse-events-scope) - Control event distribution scope
 
 ### Unbound RAISE warning
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `WarnUnboundServerSentEventsNotices` | bool | `true` | When at least one SSE endpoint exists, log a one-time warning per endpoint whose `RAISE` matches the SSE notice level but is not annotated as an SSE publisher (a likely missing [`sse_publish`](../annotations/sse) annotation). Apps with no SSE endpoints pay zero overhead and see no warnings. |
+| `WarnUnboundServerSentEventsNotices` | bool | `true` | When at least one SSE endpoint exists, log a one-time warning per endpoint whose `RAISE` matches the SSE notice level but is not annotated as an SSE publisher (a likely missing [`@sse_publish`](../annotations/sse) annotation). Apps with no SSE endpoints pay zero overhead and see no warnings. |
 
 ## Environment Variables in Annotation Values
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `AvailableEnvVars` | array or object | `[]` | Allowlist of environment variable names available to [`{name}` placeholder substitution](../annotations/parameter-substitution) in comment annotation values (response headers, custom parameters, HTTP custom type calls), alongside the routine's parameters. Array form lists names (a missing variable becomes the empty string); object form maps `name → default`. Resolved once at startup; matched case-insensitively; a routine parameter of the same name takes precedence. |
+| `AvailableEnvVars` | array or object | `[]` | Allowlist of environment variable names available to [`{name}` placeholder substitution](../annotations/parameter-substitution) in comment annotation values (response headers, custom parameters, HTTP custom type calls), alongside the routine's parameters. Array form lists names (a missing variable becomes the empty string); object form maps `name → default`. Annotation values can also use the strict forms `{!NAME}` and `{!NAME:fallback}` (3.21.0+) — the inline fallback applies when the listed variable is unset with no configured default, or when a parameter value is null; unlisted names stay literal. Resolved once at startup; matched case-insensitively; a routine parameter of the same name takes precedence. |
 
 ::: warning Security
 A value substituted into a *response* header is sent to the client. Reserve secrets (API keys, tokens) for outbound HTTP custom type calls, and use response headers only for non-secret values (e.g. a server/environment name). Only allowlisted names are ever read from the environment.
@@ -460,14 +489,14 @@ Development configuration with verbose logging:
 
 ## Related
 
-- [http annotation](../annotations/http) - Expose function as HTTP endpoint
-- [path annotation](../annotations/path) - Set custom endpoint path
-- [request_param_type annotation](../annotations/request-param-type) - Query string vs body parameters
-- [request_headers_mode annotation](../annotations/request-headers-mode) - Control header passing
-- [command_timeout annotation](../annotations/command-timeout) - Set query timeout
-- [query_string_null_handling annotation](../annotations/query-string-null-handling) - NULL in query strings
-- [response_null_handling annotation](../annotations/response-null-handling) - NULL in responses
-- [sse annotation](../annotations/sse) - Enable Server-Sent Events
+- [HTTP annotation](../annotations/http) - Expose function as HTTP endpoint
+- [`@path` annotation](../annotations/path) - Set custom endpoint path
+- [`@request_param_type` annotation](../annotations/request-param-type) - Query string vs body parameters
+- [`@request_headers_mode` annotation](../annotations/request-headers-mode) - Control header passing
+- [`@command_timeout` annotation](../annotations/command-timeout) - Set query timeout
+- [`@query_string_null_handling` annotation](../annotations/query-string-null-handling) - NULL in query strings
+- [`@response_null_handling` annotation](../annotations/response-null-handling) - NULL in responses
+- [`@sse` annotation](../annotations/sse) - Enable Server-Sent Events
 - [Comment Annotations Guide](../guide/annotations) - How annotations work
 - [Configuration Guide](../guide/configuration) - How configuration works
 

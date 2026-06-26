@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "PostgreSQL REST API Benchmark 2026: 14 Frameworks Compared"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Performance comparison of 14 REST API frameworks serving PostgreSQL data. NpgsqlRest, PostgREST, Swoole PHP, Go, Rust, Express, FastAPI, Spring Boot and more tested under load."
 head:
@@ -34,6 +35,10 @@ head:
 <span class="tag">Benchmark</span> · <span class="tag">Performance</span> · <span class="tag">January 2026</span>
 </p>
 
+::: warning A newer benchmark round is available
+The [July 2026 benchmark series](/blog/benchmarks-2026-07/) supersedes this post: 20 services (including Express, Axum, Deno, and NpgsqlRest's SQL file source), a substantial fairness overhaul (equalized workers, connection pools, CPU pinning, real warmup), and a full per-framework analysis with the raw dataset. Because of the methodology changes, the numbers below are **not comparable** to the new round — this post remains as a historical record.
+:::
+
 ---
 
 ::: info
@@ -43,11 +48,11 @@ I wanted to repeat the benchmark from last year for several big reasons:
 - I waanted to add more scenarios, and test different aspects (such as system resource usage which are now included).
 - Some other frameworks also had major updates, so I wanted to see how they compare now.
 
-Other than that, during the developement and explaration of the [test project](https://github.com/NpgsqlRest/pg_function_load_tests), I found some issues. For example:
-- Pause between tests was way too short. Increaed from 5 to 30 seconds to allow TCP TIME_WAIT sockets to clear, JIT warmup, Garbage Collection, etc.
+Other than that, during the development and explaration of the [test project](https://github.com/NpgsqlRest/pg_function_load_tests), I found some issues. For example:
+- Pause between tests was way too short. Increased from 5 to 30 seconds to allow TCP TIME_WAIT sockets to clear, JIT warmup, Garbage Collection, etc.
 - Logging setup was uneven across frameworks, causing some to log to console/file during tests, impacting performance. Now all logging is disabled.
 
-Other then that, I wanted to make the benchmarks as transparent, fair, realistic and accurate as possible. Everyone can check the source code used for tests, and run run themself if desired with their own setup. Also, anyone can suggest improvements or make PRs with new frameworks, optimizations or new test scenarios, and I would very much welcome that. As development of NpgsqlRest continues, I plan to repeat this benchmark from time to time to keep track of performance changes.
+Other than that, I wanted to make the benchmarks as transparent, fair, realistic and accurate as possible. Everyone can check the source code used for tests, and run them themselves if desired with their own setup. Also, anyone can suggest improvements or make PRs with new frameworks, optimizations or new test scenarios, and I would very much welcome that. As development of NpgsqlRest continues, I plan to repeat this benchmark from time to time to keep track of performance changes.
 
 What follows is the detailed AI-generated analysis and report of the benchmark results. But you can also skip to [summary results table](#summary-tables) or to [conclusion sections](#conclusion) directly.
 
@@ -340,12 +345,12 @@ Swoole PHP's impressive numbers come with a caveat: JSON/JSONB and array fields 
 
 Where each framework fits, based on the 2026 numbers:
 
-- **For low-latency, high-concurrency APIs**: NpgsqlRest JIT remains the top choice at 4,588 req/s
-- **For data-heavy workloads**: Swoole PHP now leads with superior large-payload handling
-- **For pure HTTP performance**: Go is unmatched at 20,000+ req/s
-- **For balanced workloads**: Bun, Go, and Fastify offer excellent all-around performance
+- **For low-latency, high-concurrency APIs**: NpgsqlRest JIT remains on top at 4,588 req/s
+- **For data-heavy workloads**: Swoole PHP now leads on large payloads
+- **For pure HTTP performance**: Go, at 20,000+ req/s
+- **For balanced workloads**: Bun, Go, and Fastify are solid across the board
 
-The "database as API" approach continues to hold the top tier: NpgsqlRest requires **zero application code** - just configuration - while delivering top-tier performance and correct PostgreSQL type handling.
+The "database as API" approach holds the top tier: NpgsqlRest gets there with **zero application code** - just configuration - and correct PostgreSQL type handling.
 
 ### Lines of Code Comparison
 

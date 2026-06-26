@@ -2,6 +2,7 @@
 layout: doc
 outline: [2, 3]
 title: "Multiple Auth Schemes, RBAC, and External OAuth Providers"
+date: "2025-08-24"
 titleTemplate: NpgsqlRest
 description: "Implement multiple authentication schemes, role-based access control, Google/GitHub OAuth integration, and JWT tokens with PostgreSQL. Complete auth system guide."
 head:
@@ -122,7 +123,7 @@ insert into example_4.users (username, email, roles, password_hash) values
 
 ### Automatic Parameter Hashing for Registration
 
-For user registration endpoints, NpgsqlRest can automatically hash password parameters before they reach your function. Configure [`PasswordParameterNameContains`](/config/authentication-options#password-hashing-settings) to specify which parameters should be hashed:
+For user registration endpoints, NpgsqlRest can automatically hash password parameters before they reach your function. Configure [`PasswordParameterNameContains`](/config/authentication-options#password-handling) to specify which parameters should be hashed:
 
 ```json
 {
@@ -338,7 +339,7 @@ These callbacks are the **only way to know** whether NpgsqlRest's built-in passw
 
 ## Role-Based Access Control
 
-RBAC is implemented through the `authorize` annotation with role names:
+RBAC is implemented through the `@authorize` annotation with role names:
 
 ```sql
 -- R__example_4_get_users.sql
@@ -362,12 +363,12 @@ HTTP GET
 @authorize admin';  -- Only admin role can access
 ```
 
-The `authorize admin` annotation restricts this endpoint to users with the `admin` role. Users without this role receive 403 Forbidden.
+The `@authorize admin` annotation restricts this endpoint to users with the `admin` role. Users without this role receive 403 Forbidden.
 
 Compare these authorization levels:
-- `authorize` - Any authenticated user
-- `authorize admin` - Only users with `admin` role
-- `authorize admin, manager` - Users with `admin` OR `manager` role
+- `@authorize` - Any authenticated user
+- `@authorize admin` - Only users with `admin` role
+- `@authorize admin, manager` - Users with `admin` OR `manager` role
 
 ### User Context with current_setting
 
@@ -667,7 +668,7 @@ Use this example as a template:
 1. **Copy the schema** - Adapt the users table to your needs
 2. **Copy the configuration** - Enable the schemes you need, add your OAuth credentials
 3. **Write your login function** - Return the scheme and claims you want
-4. **Add role annotations** - `authorize admin` on endpoints that need it
+4. **Add role annotations** - `@authorize admin` on endpoints that need it
 5. **Done** - You have production-ready authentication
 
 The code you don't write has no bugs, and authentication is exactly where you want fewer of them.

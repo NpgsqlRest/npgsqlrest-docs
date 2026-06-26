@@ -86,11 +86,10 @@ comment on function generate_report(int) is 'HTTP GET
 /*
 HTTP GET
 @proxy_out POST https://render-service.internal/render
-@param $1 report_id
 */
 select json_build_object(
     'title', 'Monthly Report',
-    'data', (select json_agg(row_to_json(t)) from sales t where month = $1)
+    'data', (select json_agg(row_to_json(t)) from sales t where month = :report_id)
 );
 ```
 
@@ -108,11 +107,13 @@ Uses the host from `ProxyOptions.Host` configuration:
 
 ```sql
 -- function form
-comment on function my_func() is '@proxy_out';
+comment on function my_func() is 'HTTP GET
+@proxy_out';
 ```
 
 ```sql
 -- sql/my-func.sql (SQL file form)
+-- HTTP GET
 -- @proxy_out
 select my_func();
 ```
@@ -345,6 +346,7 @@ See [Proxy Options](../config/proxy) for complete configuration reference.
 
 ## Related
 
+- [Proxy Endpoints Guide](../guide/proxy) — the full walkthrough
 - [PROXY](./proxy) - Forward incoming requests to upstream (reverse proxy)
 - [Proxy Options](../config/proxy) - Proxy configuration reference
 - [HTTP](./http) - Expose function as HTTP endpoint
