@@ -42,7 +42,7 @@ When the [OpenAPI plugin](../config/openapi) is not loaded, both sub-commands ar
 @openapi tags <a>, <b>, <c>     # replace default tag with multiple tags
 ```
 
-Tag values preserve their original casing — `@openapi tag Partner API` produces a `Partner API` tag, not `partner api`.
+Tag values preserve their original casing — `@openapi tag Partner API` produces a `Partner API` tag, not `partner api`. Tags are separated by **commas**, so a tag may be several words (since 4.0.0; earlier versions also split on spaces, which turned `Partner API` into two tags).
 
 ## How it composes with config-level filters
 

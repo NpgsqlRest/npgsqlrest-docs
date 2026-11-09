@@ -19,6 +19,12 @@ drop schema if exists example_14 cascade;
 drop schema if exists example_15 cascade;
 drop schema if exists example_16 cascade;
 drop schema if exists example_17 cascade;
+drop schema if exists example_18 cascade;
+drop schema if exists example_19 cascade;
+drop schema if exists example_20 cascade;
+drop schema if exists example_21 cascade;
+drop schema if exists example_22 cascade;
+drop schema if exists example_23 cascade;
 
 drop schema if exists pgmigrations cascade;
 

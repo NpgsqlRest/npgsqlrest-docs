@@ -46,7 +46,7 @@ PostgreSQL 13 and newer. Discovery uses standard `pg_catalog` views that are sta
 
 ### What .NET version is required?
 
-None, for most users — the standalone executable and the Docker image are fully self-contained (AOT-compiled). The NuGet library targets .NET 10.
+None, for most users — the standalone executable and the Docker image are fully self-contained (AOT-compiled). The NuGet library and its plugins target .NET 10 (LTS) and .NET 11.
 
 ### Is it safe from SQL injection?
 
@@ -386,7 +386,7 @@ The default AOT image (~60 MB compressed) starts instantly — best for developm
 
 ### How do I stream very large result sets?
 
-Responses are flushed every 25 rows by default. [`@buffer_rows 0`](/annotations/buffer-rows) writes each row as it arrives (constant memory, immediate first byte); higher values trade memory for throughput.
+By default, rows are sent to the client once at least 16 KB is collected (checked every 25 rows), so small responses go out in one piece and large ones are streamed in pieces. [`@buffer_rows 0`](/annotations/buffer-rows) writes each row as it arrives (constant memory, immediate first byte); `@buffer_rows 1` buffers the whole response.
 
 ---
 

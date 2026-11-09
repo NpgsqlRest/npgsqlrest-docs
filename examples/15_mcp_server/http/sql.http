@@ -78,7 +78,6 @@ GET {{host}}/api/list-categories
 // @login
 // @allow_anonymous
 // @param $1 username
-// @define_param password text
 //  Issues a JWT for a staff member. `scheme = 'jwt'` selects the JWT auth scheme (see config.json Auth),
 //  so a successful response body carries { accessToken, refreshToken, tokenType, expiresIn, ... }.
 //  `password` is declared with @define_param: it is accepted from the request but NOT bound to the SQL —

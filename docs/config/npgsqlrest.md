@@ -39,6 +39,7 @@ NpgsqlRest HTTP middleware general configuration for endpoint generation and req
     "IncludeNames": null,
     "ExcludeNames": null,
     "CommentsMode": "OnlyAnnotated",
+    "RequireAtPrefix": false,
     "UrlPathPrefix": "/api",
     "KebabCaseUrls": true,
     "CamelCaseNames": true,
@@ -169,6 +170,7 @@ Filter by name pattern:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `CommentsMode` | string | `"OnlyAnnotated"` | How comment annotations affect endpoint creation. |
+| `RequireAtPrefix` | bool | `false` | When `true`, a comment line is an annotation only if it begins with `@`; every other line is text. See [RequireAtPrefix](#requireatprefix). Since 4.1.0. |
 
 Available modes:
 
@@ -183,6 +185,15 @@ With the default `OnlyAnnotated` mode, routines without an `HTTP` (or endpoint-r
 
 ::: info Client vs. library default
 The standalone client (`npgsqlrest` executable) defaults to `OnlyAnnotated` since 3.17.0. The C# library (`NpgsqlRestOptions.CommentsMode`) defaults to `OnlyWithHttpTag`; the two behave identically unless a plugin (such as MCP) requests endpoints.
+
+### RequireAtPrefix
+
+::: tip New in 4.1.0
+:::
+
+By default the `@` in front of an annotation is optional: `HTTP GET` and `@http get` are the same line. With `RequireAtPrefix` set to `true`, a line is an annotation only if it begins with `@` (`@http get`, `@authorize admin`, `@timeout = 30s`, `@Content-Type: text/plain`), and every other line is text: the endpoint's description, whatever word it begins with. A sentence such as "Login for staff only." or "Note: see the wiki" can then never be taken for an annotation, which matters most to tools that read and write these comments.
+
+It applies to routine comments, to the comments of SQL files (also `@returns`, `@result`, `@single`, `@skip`, `@param`, `@define_param`) and to the directives in HTTP Custom Type comments (`@timeout`, `@retry_delay`, `@cache`). The C# library option is `NpgsqlRestOptions.RequireAtPrefix`. See [Requiring the Prefix](../guide/annotations#requiring-the-prefix) for the details and for what happens to comments written in the short form.
 :::
 
 ## URL and Naming
@@ -275,14 +286,14 @@ When `DefaultRequestParamType` is `null`:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `WrapInTransaction` | bool | `false` | When `true`, **every request** is wrapped in an explicit `BEGIN ... COMMIT`, and all `set_config` calls switch from session-scoped (`is_local=false`) to transaction-local (`is_local=true`). |
+| `WrapInTransaction` | bool | `false` | When `true`, **every request** is wrapped in an explicit `BEGIN ... COMMIT`, and all `set_config` calls are transaction-local (`is_local=true`). |
 | `BeforeRoutineCommands` | array | `[]` | SQL commands executed after any context is set but before the main routine call. Run in the same batch as the context `set_config` calls (no extra round-trip). Object entries run only when their `Enabled` is `true` (default `false`); the shipped configuration contains one disabled example entry. |
 
 ### WrapInTransaction
 
 This is required for connection poolers in transaction mode — including PgBouncer transaction-pool, AWS RDS Proxy in transaction mode, and Supabase Pooler. Previously, `set_config(name, value, false)` would set the GUC at the session level on the underlying PostgreSQL backend. With a transaction-mode pooler, the same backend is reused for unrelated client requests, which means session-scoped GUCs from one request could be visible to the next. With `WrapInTransaction = true`, GUCs are scoped to the request transaction and discarded on `COMMIT`.
 
-The default remains `false` to preserve existing behavior; it is safe to leave off when using Npgsql's native pool only (which issues `DISCARD ALL` on connection return).
+The default remains `false` to preserve existing behavior; it is safe to leave off when using Npgsql's native pool only. Since 4.0.0 the request context of functions, tables, views and single-statement SQL files is sent [together with the routine](/annotations/user-context#how-the-context-reaches-postgresql), local to that one transaction, and the `npgsqlrest` client [resets connections between requests](/config/connection#connection-reset-between-requests) whenever some other endpoint leaves session-level settings on them.
 
 ```jsonc
 {

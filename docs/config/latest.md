@@ -20,14 +20,14 @@ head:
 
 # Latest Default Configuration Reference
 
-This is the latest default configuration reference for NpgsqlRest version 3.21.0.
+This is the latest default configuration reference for NpgsqlRest version 4.1.0.
 
 ::: tip Downloading Configuration for Specific Versions
-To download the default configuration file for a specific version (e.g., 3.21.0):
-- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.21.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v3.21.0/appsettings.json)
-- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/3.21.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/3.21.0/NpgsqlRestClient/appsettings.json)
+To download the default configuration file for a specific version (e.g., 4.1.0):
+- **Download**: [https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v4.1.0/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/releases/download/v4.1.0/appsettings.json)
+- **View in branch**: [https://github.com/NpgsqlRest/NpgsqlRest/blob/4.1.0/NpgsqlRestClient/appsettings.json](https://github.com/NpgsqlRest/NpgsqlRest/blob/4.1.0/NpgsqlRestClient/appsettings.json)
 
-Replace `3.21.0` with your desired version number.
+Replace `4.1.0` with your desired version number.
 :::
 
 ```json
@@ -1009,6 +1009,12 @@ Replace `3.21.0` with your desired version number.
     //
     "EnableForHttps": false,
     //
+    // Use Zstandard compression when supported by client (Accept-Encoding: zstd). It compresses about as well as
+    // Brotli for a fraction of the CPU time. Among the encodings a client accepts with equal preference, the
+    // order is Zstandard, Brotli, Gzip.
+    //
+    "UseZstandard": false,
+    //
     // Use Brotli compression algorithm when supported by client.
     //
     "UseBrotli": true,
@@ -1020,6 +1026,11 @@ Replace `3.21.0` with your desired version number.
     // Compression level: Optimal, Fastest, NoCompression, SmallestSize.
     //
     "CompressionLevel": "Optimal",
+    //
+    // Zstandard quality, from 1 (fastest) to 22 (smallest). When null, it follows CompressionLevel:
+    // Optimal is 3, Fastest is 1, SmallestSize is 19.
+    //
+    "ZstandardQuality": null,
     //
     // MIME types to include for compression.
     //
@@ -1702,6 +1713,12 @@ Replace `3.21.0` with your desired version number.
     //
     "MemoryCachePruneIntervalSeconds": 60,
     //
+    // Maximum number of entries in the memory cache. Cache keys contain request values, so this bounds memory use.
+    // Once full, responses for new keys are returned without being cached; existing entries keep serving and expire normally.
+    // Set to 0 for no limit.
+    //
+    "MemoryCacheMaxEntries": 100000,
+    //
     // Redis configuration string. Used when Type is "Redis", or when Type is "Hybrid" with UseRedisBackend: true.
     // See: https://stackexchange.github.io/StackExchange.Redis/Configuration.html
     //
@@ -1880,6 +1897,12 @@ Replace `3.21.0` with your desired version number.
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
+    //
+    // Send the Retry-After header with a rejected request: the number of seconds (rounded up) until the
+    // limiter will let a request through again. Fixed window, sliding window and token bucket policies know
+    // that time; a concurrency policy does not, so its rejections carry no such header.
+    //
+    "RetryAfterHeader": true,
     //
     // Named rate-limiter policies. The object key is the policy name (referenced from endpoints via the
     // `rate_limiter_policy <name>` comment annotation, or used as `DefaultPolicy` above).
@@ -2093,6 +2116,14 @@ Replace `3.21.0` with your desired version number.
     //
     "CommentsMode": "OnlyAnnotated",
     //
+    // Require the @ prefix on annotations. When false (default), the prefix is optional: `HTTP GET` and `@http get` are both read.
+    // When true, a comment line is an annotation only if it begins with @ (`@http get`, `@authorize admin`, `@timeout = 30s`, `@Content-Type: text/plain`); every other line is text, the endpoint's description, whatever word it begins with.
+    // That makes a comment unambiguous for people and for tools: a sentence such as "Disabled until Friday" or "Note: see the docs" can never be taken for an annotation.
+    // It applies to routine comments, to the comments of SQL files (also `@returns`, `@result`, `@single`, `@skip`, `@param`, `@define_param`) and to the directives in HTTP Custom Type comments (`@timeout`, `@retry_delay`, `@cache`).
+    // Lines without the prefix that look like an access restriction (`authorize`, `disabled`, `login` ...) are logged as a warning when this is on.
+    //
+    "RequireAtPrefix": false,
+    //
     // The URL prefix string for every URL created by the default URL builder or `null` to ignore the URL prefix.
     //
     "UrlPathPrefix": "/api",
@@ -2101,7 +2132,7 @@ Replace `3.21.0` with your desired version number.
     //
     "KebabCaseUrls": true,
     //
-    // Convert all parameter names to camel case from the original PostgreSQL parameter names.
+    // Convert all parameter names to camel case from the original PostgreSQL paramater names.
     //
     "CamelCaseNames": true,
     //
@@ -2162,7 +2193,7 @@ Replace `3.21.0` with your desired version number.
     //
     // Configure how to send request headers to PostgreSQL routines execution: 
     // - `Ignore` (default) don't send any request headers to routines. 
-    // - `Context` sets a context variable for the current session `context.headers` containing JSON string with current request headers. This executes `set_config('context.headers', headers, false)` before any routine executions. 
+    // - `Context` passes the request headers to the routine as a JSON string in the PostgreSQL setting named by `RequestHeadersContextKey` (`request.headers` by default), set with `set_config` just before the routine runs. Read it with `current_setting('request.headers', true)`. 
     // - `Parameter` sends request headers to the routine parameter defined with the `RequestHeadersParameterName` option. Parameter with this name must exist, must be one of the JSON or text types and must have the default value defined. This option for individual endpoints can be changed with the `EndpointCreated` function callback, or by using comment annotations.
     //
     "RequestHeadersMode": "Parameter",
@@ -2179,7 +2210,7 @@ Replace `3.21.0` with your desired version number.
     // transaction-local form (`is_local=true`).
     // Required when using a connection pooler in transaction mode (PgBouncer transaction-pool, AWS RDS Proxy in transaction mode,
     // Supabase Pooler) — without this, the backend can be reused across unrelated requests, allowing GUC state (and the routine
-    // call itself) to leak or split mid-request. Default false to preserve existing behavior; safe to leave off when using Npgsql's native pool only.
+    // call itself) to leak or split mid-request. Default false to preserve existing behavior; safe to leave off with Npgsql's native pool as long as the connection string does not set "No Reset On Close".
     //
     "WrapInTransaction": false,
     //
@@ -2340,9 +2371,9 @@ Replace `3.21.0` with your desired version number.
         // General settings for all upload handlers
         //
         "StopAfterFirstSuccess": false,
-        // csv string containing mime type patterns, set to null to ignore
+        // csv string containing mime type patters, set to null to ignore
         "IncludedMimeTypePatterns": null,
-        // csv string containing mime type patterns, set to null to ignore
+        // csv string containing mime type patters, set to null to ignore
         "ExcludedMimeTypePatterns": null,
         "BufferSize": 8192, // Buffer size for the upload handlers file_system and large_object, in bytes. Default is 8192 bytes (8 KB).
         "TextTestBufferSize": 4096, // Buffer sample size for testing textual content, in bytes. Default is 4096 bytes (4 KB).
@@ -2484,7 +2515,7 @@ Replace `3.21.0` with your desired version number.
       // The default column name in the data reader which will be used to read the value of the hash of the password. 
       // If this column is present, the value will be used to verify the password from the password parameter. 
       // Password parameter is the first parameter which name contains the value of PasswordParameterNameContains. 
-      // If verification fails, the login will fail and the HTTP Status Code will be set to 404 Not Found.
+      // If verification fails, the login will fail with 401 Unauthorized (the same response as when no record is returned).
       //
       "HashColumnName": "hash",
       //
@@ -2585,7 +2616,7 @@ Replace `3.21.0` with your desired version number.
       // - If "StatusColumnName" is present in the returned record, it must be either boolean (true for success, false for failure) or numeric (HTTP Status Code, 200 for success, anything else for failure). If not present, the success is when the endpoint returns any records.
       // - If "SchemeColumnName" is present in the returned record, it must be text value that defines the authentication scheme to use for the login.
       // - If "BodyColumnName" is present in the returned record, it must be text value that defines the message to return to the client as response body where possible. This only works for authentication that doesn't write response body (cookie authentication).
-      // - If "HashColumnName" is present in the returned record, it must be text value that defines the hash of the password. Password parameter is the first parameter which name contains the value of PasswordParameterNameContains option. If verification fails, the login will fail and the HTTP Status Code will be set to 404 Not Found.
+      // - If "HashColumnName" is present in the returned record, it must be text value that defines the hash of the password. Password parameter is the first parameter which name contains the value of PasswordParameterNameContains option. If verification fails, the login will fail with 401 Unauthorized (the same response as when no record is returned).
       //
       "LoginPath": null,
       //
@@ -2728,9 +2759,11 @@ Replace `3.21.0` with your desired version number.
       //
       "DocumentDescription": null,
       //
-      // OpenAPI specification version of the generated document: "3.0" or "3.1".
+      // OpenAPI specification version of the generated document: "3.0", "3.1" or "3.2".
       // "3.0" emits openapi: 3.0.3 (default, backward compatible),
-      // "3.1" emits openapi: 3.1.1 (JSON Schema 2020-12 alignment).
+      // "3.1" emits openapi: 3.1.1 (JSON Schema 2020-12 alignment),
+      // "3.2" emits openapi: 3.2.0 and documents HTTP QUERY endpoints, which earlier versions cannot describe
+      // (they are left out with a warning). Check that your tools read 3.2 before choosing it.
       // This is the spec version, not your API version (that is DocumentVersion).
       //
       "SpecVersion": "3.0",
@@ -2838,7 +2871,7 @@ Replace `3.21.0` with your desired version number.
       //
       "RateLimiterPolicy": null,
       //
-      // Allowed values of the HTTP Origin header (DNS-rebinding protection for the Streamable HTTP transport). A request whose Origin is present but matches neither this list nor the server's own origin is rejected with 403. Requests without an Origin header (e.g. server-to-server) are allowed. Empty = only same-origin browser requests pass.
+      // Allowed values of the HTTP Origin header (DNS-rebinding protection for the Streamable HTTP transport). A request whose Origin is present but matches neither this list nor the server's own origin is rejected with 403. The server's own origin counts only for localhost, IP addresses and the host names the server is bound to (Urls); a browser page served under any other host name must be listed here. Requests without an Origin header (e.g. server-to-server, desktop and IDE clients) are allowed.
       //
       "AllowedOrigins": [],
       //
@@ -3286,16 +3319,19 @@ Replace `3.21.0` with your desired version number.
       "ForwardHeaders": true,
       //
       // Headers to exclude from forwarding to the proxy target.
+      // The caller's credentials (Cookie, Authorization, Proxy-Authorization) are excluded by default so a user's session
+      // cookie or bearer token is not sent to the upstream host. Remove "Authorization" to forward bearer tokens to a trusted internal service.
       //
-      "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding"],
+      "ExcludeHeaders": ["Host", "Content-Length", "Transfer-Encoding", "Cookie", "Authorization", "Proxy-Authorization"],
       //
       // When true, forward response headers from proxy back to client.
       //
       "ForwardResponseHeaders": true,
       //
       // Response headers to exclude from forwarding back to client.
+      // Set-Cookie is excluded by default so the upstream host cannot set cookies on this application's origin.
       //
-      "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length"],
+      "ExcludeResponseHeaders": ["Transfer-Encoding", "Content-Length", "Set-Cookie"],
       //
       // Default name for the proxy response status code parameter.
       //

@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/9_http_calls_sql_file/sql/login.sql
+// SQL file: ./9_http_calls_sql_file/sql/login.sql
 //
 // HTTP POST
 // @login
@@ -17,7 +17,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/9_http_calls_sql_file/sql/financial-dashboard.sql
+// SQL file: ./9_http_calls_sql_file/sql/financial-dashboard.sql
 //
 // HTTP GET /financial-dashboard
 // @authorize
@@ -27,15 +27,12 @@ content-type: application/json
 // @param $4 _vs_currencies_csv text
 // @param $5 _exchange_rate_response example_9.exchange_rate_api
 // @param $6 _crypto_response example_9.crypto_price_api
-//  @skip
-//  @result dashboard
 //  @single
-//  @returns example_9.financial_dashboard_result
 GET {{host}}/financial-dashboard?_base_currency=ABC&_target_currencies_csv=XYZ&_crypto_ids_csv=IJK&_vs_currencies_csv=ABC&_exchange_rate_response=XYZ&_crypto_response=IJK
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/9_http_calls_sql_file/sql/logout.sql
+// SQL file: ./9_http_calls_sql_file/sql/logout.sql
 //
 //  HTTP POST
 //  @logout

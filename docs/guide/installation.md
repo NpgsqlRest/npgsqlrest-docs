@@ -122,9 +122,66 @@ npgsqlrest --validate
 - List all supported SQL comment annotations:
 
 ```bash
-# All supported annotations as a JSON array
+# Everything that is read from comments, as a JSON array: core annotations, and the annotations and
+# custom parameters of every plugin and handler (upload, table formats, tsclient, dartclient, mcp,
+# openapi), of SQL test files and of HTTP Custom Types
 npgsqlrest --annotations
 ```
+
+Each entry has `name`, `aliases`, `syntax` and `description`, and (since 4.0.0) `owner` (who reads it), `form` (`keyword`, `key_value`, `keyword_or_key_value` or `line`), `contexts` (`routine`, `sql_file`, `sql_file_statement`, `test_file`, `type_comment`), `valueKind`, and where they apply `values`, `default` and `example`. Editors use it for completion and validation.
+
+- List the endpoints the current configuration creates, and what each comment did:
+
+```bash
+# Needs the database: endpoints are built, printed as JSON, and the process exits
+npgsqlrest --endpoints
+```
+
+Besides the method, path, routine, parameters and settings, each endpoint lists (since 4.0.0) `routine.sourceFile` (the file of a SQL file endpoint), `annotations` (the comment lines read as annotations), `commentLines` (the prose, which OpenAPI and MCP publish as the description), `unknownAnnotations` (lines written as `@name ...` that nothing reads), `unknownCustomParameters` (`key = value` keys that nothing reads) and `diagnostics` (the warnings logged about that endpoint's comment).
+
+- Find out why something is **not** an endpoint, and what was generated for each endpoint (since 4.1.0):
+
+```bash
+# Needs the database, like --endpoints. Prints one JSON object: endpoints, notExposed, generatedFiles
+npgsqlrest --inspect
+```
+
+`notExposed` lists every routine and SQL file that was looked at and did not become an endpoint, with a `reason` and a `message` that says what to change:
+
+| `reason` | What it means |
+|---|---|
+| `no_comment` | It has no comment, and the `CommentsMode` creates endpoints only for annotated routines. |
+| `no_http_annotation` | Its comment (for a SQL file, its comments) has no `HTTP` line. |
+| `unprefixed_annotations` | Its `HTTP` line is written without `@` and [`RequireAtPrefix`](./annotations#requiring-the-prefix) is on. |
+| `disabled` | Its comment has the `disabled` annotation. |
+| `tag_mismatch` | Its `HTTP` line comes after a `for <tags>` line that does not name this routine. |
+| `excluded_by_filter` | A schema, name or language setting leaves it out; the message names the setting. Only routines whose comment has an `HTTP` line are reported. |
+| `sql_error` | A SQL file that PostgreSQL does not accept or the parser rejects; `diagnostics` has the error. |
+| `empty_file` | A SQL file without a statement. |
+
+Like `--endpoints` and like a normal start, `--inspect` runs the enabled generators (it writes the client, HTTP and OpenAPI files; that is how it knows their lines). An endpoint without an HTTP route, such as an MCP-only tool, has `"internalOnly": true`.
+
+A SQL file that is in neither list was never read: it is not matched by `SqlFileSource:FilePattern`, or it is matched by `SkipPattern`. `--inspect` keeps going when a SQL file has an error, so one broken file does not hide the others.
+
+Each endpoint also has a `generated` list (in `--endpoints` too): the files written for it by the TypeScript client and its hooks, the Dart client, HTTP files and OpenAPI, with the name it has there (`symbol`) and the line where it begins in the file as written (`line`). `generatedFiles` lists every generated file once.
+
+```json
+"generated": [
+  { "generator": "tsclient", "file": "/app/src/api/orders.ts", "role": "client", "symbol": "getOrders", "line": 42 },
+  { "generator": "httpfiles", "file": "/app/http/public.http", "role": "requests", "symbol": "GET {{host}}/api/orders", "line": 7 }
+]
+```
+
+- See how a comment is read, without a database (since 4.1.0):
+
+```bash
+# The comments of a SQL file, as the SQL file source reads them ('-' reads standard input)
+npgsqlrest --parse=sql/orders.sql
+# The comment of a function, procedure, table or view (the text of COMMENT ON ... IS)
+npgsqlrest --parse-comment=comment.txt
+```
+
+The output lists every comment line with its number and its `kind`: `annotation` (with the canonical `name`, the `owner` that reads it and its `form`), `text` (the description) or `unknown_annotation` (written with `@`, read by nothing). `endpoint` says whether the text would become an endpoint, and when not, `reason` and `message` say why. `RequireAtPrefix` and `CommentsMode` are taken from the configuration. What depends on the routine itself (parameters, tags, types) needs the database: use `--inspect` for that.
 
 - Install the [Claude Code skill](./claude-code-skill) matching your version:
 
@@ -271,7 +328,7 @@ In the [July 2026 benchmark](/blog/benchmarks-2026-07/npgsqlrest), JIT and AOT t
 
 **Available JIT image tags:**
 - `vbilopav/npgsqlrest:latest-jit` - Latest version with JIT
-- `vbilopav/npgsqlrest:3.21.0-jit` - Specific version with JIT
+- `vbilopav/npgsqlrest:v4.1.0-jit` - Specific version with JIT
 
 ### ARM64 Image
 
@@ -289,7 +346,7 @@ The ARM64 build is compiled natively on GitHub's ARM64 runners for optimal perfo
 
 **Available ARM64 image tags:**
 - `vbilopav/npgsqlrest:latest-arm` - Latest version for ARM64
-- `vbilopav/npgsqlrest:3.21.0-arm` - Specific version for ARM64
+- `vbilopav/npgsqlrest:v4.1.0-arm` - Specific version for ARM64
 
 ### Bun Runtime Image
 
@@ -307,7 +364,7 @@ This image includes the Bun JavaScript runtime alongside NpgsqlRest, enabling [p
 
 **Available Bun image tags:**
 - `vbilopav/npgsqlrest:latest-bun` - Latest version with Bun
-- `vbilopav/npgsqlrest:3.21.0-bun` - Specific version with Bun
+- `vbilopav/npgsqlrest:v4.1.0-bun` - Specific version with Bun
 
 ## Building From Source
 

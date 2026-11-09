@@ -30,6 +30,7 @@ Caching configuration for PostgreSQL routines.
     "Enabled": false,
     "Type": "Memory",
     "MemoryCachePruneIntervalSeconds": 60,
+    "MemoryCacheMaxEntries": 100000,
     "RedisConfiguration": "localhost:6379,abortConnect=false,ssl=false,connectTimeout=10000,syncTimeout=5000,connectRetry=3",
     "MaxCacheableRows": 1000,
     "UseHashedCacheKeys": false,
@@ -82,6 +83,7 @@ Caching configuration for PostgreSQL routines.
 | `Enabled` | bool | `false` | Enable caching for routines. |
 | `Type` | string | `"Memory"` | Cache type: `"Memory"`, `"Redis"`, or `"Hybrid"`. |
 | `MemoryCachePruneIntervalSeconds` | int | `60` | How often to prune expired items from memory cache (in seconds). |
+| `MemoryCacheMaxEntries` | int | `100000` | Maximum number of entries in the memory cache. Cache keys contain request values, so this bounds memory use. Once full, responses for new keys are returned without being cached; existing entries keep serving and expire normally. `0` = no limit. *(4.0.0+)* |
 | `RedisConfiguration` | string | *(see below)* | Redis connection string. Used when `Type` is `"Redis"`, or when `Type` is `"Hybrid"` with `HybridCacheUseRedisBackend: true`. |
 | `MaxCacheableRows` | int? | `1000` | Maximum number of rows that can be cached for set-returning functions. If a result set exceeds this limit, it will not be cached (but will still be returned). Set to `0` to disable caching for sets entirely. Set to `null` for unlimited (use with caution). |
 | `UseHashedCacheKeys` | bool | `false` | When `true`, cache keys longer than `HashKeyThreshold` characters are hashed to a fixed-length SHA256 string. This reduces memory usage for long cache keys and improves Redis performance with large keys. |
@@ -110,7 +112,7 @@ In-memory caching on the application server:
 }
 ```
 
-The `MemoryCachePruneIntervalSeconds` setting controls how frequently expired cache entries are removed.
+The `MemoryCachePruneIntervalSeconds` setting controls how frequently expired cache entries are removed. `MemoryCacheMaxEntries` (default `100000`) caps the number of entries: every distinct combination of cached parameter values is its own entry, so without a cap callers could grow memory by sending different values.
 
 ### Redis Cache
 

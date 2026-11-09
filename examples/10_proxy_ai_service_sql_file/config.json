@@ -9,7 +9,7 @@
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
-    "CookieValidDays": 1,
+    "CookieValid": "1 day",
     "CookieName": "example_10_auth"
   },
 

@@ -154,11 +154,11 @@ Content-Type: application/json
 - **Request line:** `[HTTP] METHOD /path[?query] [HTTP/x]` — method is `GET`/`POST`/`PUT`/`DELETE`; the path must equal the endpoint's full path **including `UrlPathPrefix`** (default `/api`). A block comment whose first line is not a valid request line is an ordinary comment — ignored.
 - **Headers:** `Name: Value` lines after the request line.
 - **Directives** (before the body): [`# @claim name=value`](../annotations/test-claim) sets the acting principal (repeatable; no `@claim` = anonymous), [`# @response name`](../annotations/test-response) names the captured response table.
-- **Body:** everything after the first **blank line**, verbatim.
+- **Body:** everything after the first **blank line**, with leading and trailing whitespace trimmed.
 
 An HTTP block is an **act** step, not an assertion — the assertions are the SQL statements that follow it. One request per block; use multiple blocks for multiple calls.
 
-Endpoint kinds that cannot work in-process are rejected with a clear error: **SSE**, **upload**, **login/logout** (inject the principal with `# @claim` instead), and **outbound proxy/HTTP-type** endpoints (tests must not call external services). A request whose path matches **no endpoint** still runs — a test may assert a 404 deliberately — but logs a warning, since the most common cause is a path typo or a missing `/api` prefix.
+Endpoint kinds that cannot work in-process are rejected with a clear error: **SSE**, **upload**, **login/logout** (inject the principal with `# @claim` instead), and **outbound proxy/HTTP-type** endpoints (tests must not call external services; an [HTTP Custom Type](./http-types) that calls another server counts since 4.0.0, one that calls this application's own endpoints is fine). A request whose path matches **no endpoint** still runs — a test may assert a 404 deliberately — but logs a warning, since the most common cause is a path typo or a missing `/api` prefix.
 
 ### The response table
 
@@ -279,7 +279,7 @@ Four header annotations (leading `--` comments before the first statement) confi
 | [`-- @connection Name`](../annotations/test-connection) | Run this file (SQL + endpoint calls) on a named connection. |
 | [`-- @tag name [name ...]`](../annotations/test-tag) | Tag the file for `Tag`/`ExcludeTag` filtering. |
 
-All are repeatable; names may be whitespace- or comma-separated; steps run in written order.
+All are repeatable; names may be whitespace- or comma-separated; steps run in written order. `@connection` takes one name: when it is repeated, the last one wins.
 
 ## Setup, Teardown, and named steps
 

@@ -25,7 +25,7 @@ Complete reference documentation for all NpgsqlRest configuration options.
 For an introduction to how configuration works (sources, precedence, environment variables, command-line arguments), see the [Configuration Guide](../guide/configuration).
 
 ::: tip Latest Default Configuration
-See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 3.21.0.
+See the [Latest Default Configuration](./latest) for a complete reference of all default settings for version 4.1.0.
 :::
 
 ## Reference Sections

@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-clear.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/cache-clear.sql
 //
 // HTTP DELETE /cache/clear
 // @authorize
@@ -9,7 +9,7 @@ DELETE {{host}}/cache/clear
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-analyze.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/ai-analyze.sql
 //
 // HTTP POST /ai/analyze
 // @authorize
@@ -21,10 +21,7 @@ DELETE {{host}}/cache/clear
 // @param $5 _proxy_body text default null
 // @param $6 _proxy_success boolean default null
 // @param $7 _proxy_error_message text default null
-//  @skip
-//  @returns json
 //  @single
-//  @result result
 POST {{host}}/ai/analyze
 content-type: application/json
 
@@ -40,7 +37,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/login.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/login.sql
 //
 // HTTP POST
 // @login
@@ -57,7 +54,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-stats.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/cache-stats.sql
 //
 // HTTP GET /cache/stats
 // @authorize
@@ -65,7 +62,7 @@ GET {{host}}/cache/stats
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-summarize.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/ai-summarize.sql
 //
 // HTTP POST /ai/summarize
 // @authorize
@@ -76,10 +73,7 @@ GET {{host}}/cache/stats
 // @param $4 _proxy_body text default null
 // @param $5 _proxy_success boolean default null
 // @param $6 _proxy_error_message text default null
-//  @skip
-//  @returns json
 //  @single
-//  @result result
 POST {{host}}/ai/summarize
 content-type: application/json
 
@@ -94,7 +88,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-health.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/ai-health.sql
 //
 //  HTTP GET /ai/health
 //  @proxy
@@ -103,7 +97,7 @@ GET {{host}}/ai/health
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/cache-entries.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/cache-entries.sql
 //
 // HTTP GET /cache/entries
 // @authorize
@@ -112,7 +106,7 @@ GET {{host}}/cache/entries?_limit=1
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/ai-sentiment.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/ai-sentiment.sql
 //
 // HTTP POST /ai/sentiment
 // @authorize
@@ -122,10 +116,7 @@ GET {{host}}/cache/entries?_limit=1
 // @param $3 _proxy_body text default null
 // @param $4 _proxy_success boolean default null
 // @param $5 _proxy_error_message text default null
-//  @skip
-//  @returns json
 //  @single
-//  @result result
 POST {{host}}/ai/sentiment
 content-type: application/json
 
@@ -139,7 +130,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/10_proxy_ai_service_sql_file/sql/logout.sql
+// SQL file: ./10_proxy_ai_service_sql_file/sql/logout.sql
 //
 //  HTTP POST
 //  @logout

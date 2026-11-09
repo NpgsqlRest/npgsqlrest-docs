@@ -7,29 +7,10 @@
 // returns bytea
 //
 // comment on function example_6.get_image is 'HTTP GET
-// raw
-// tsclient = false
+// @raw
+// @tsclient = false
 // content_type: {_mime_type}';
 GET {{host}}/api/example-6/get-image?oid=1&mimeType=XYZ
-
-###
-
-// function example_6.get_my_uploads(
-//     _user_id integer DEFAULT NULL::integer
-// )
-// returns table(
-//     id integer,
-//     user_id integer,
-//     file_name text,
-//     content_type text,
-//     file_size bigint,
-//     oid bigint,
-//     file_path text,
-//     uploaded_at timestamp with time zone
-// )
-//
-// comment on function example_6.get_my_uploads is 'HTTP GET
-GET {{host}}/api/example-6/get-my-uploads?userId=1
 
 ###
 
@@ -48,6 +29,7 @@ GET {{host}}/api/example-6/get-my-uploads?userId=1
 // )
 //
 // comment on function example_6.get_my_uploads is 'HTTP GET
+// @authorize';
 GET {{host}}/api/example-6/get-my-uploads?userId=ABC
 
 ###
@@ -63,8 +45,8 @@ GET {{host}}/api/example-6/get-my-uploads?userId=ABC
 // )
 //
 // comment on function example_6.login is 'HTTP POST
-// login
-// anonymous';
+// @login
+// @anonymous';
 POST {{host}}/api/example-6/login
 content-type: application/json
 
@@ -79,8 +61,8 @@ content-type: application/json
 // returns void
 //
 // comment on function example_6.logout is 'HTTP POST
-// logout
-// authorize';
+// @logout
+// @authorize';
 POST {{host}}/api/example-6/logout
 
 ###
@@ -100,12 +82,12 @@ POST {{host}}/api/example-6/logout
 // )
 //
 // comment on function example_6.upload_to_combined is 'HTTP POST
-// upload for large_object, file_system
-// param _meta is upload metadata
-// check_image = true
-// path = ./6_image_uploads/public/uploads
-// unique_name = true
-// create_path = true';
+// @upload for large_object, file_system
+// @param _meta is upload metadata
+// @check_image = true
+// @path = ./6_image_uploads/public/uploads
+// @unique_name = true
+// @create_path = true';
 POST {{host}}/api/example-6/upload-to-combined?userId=ABC&meta=%7B%7D
 
 ###
@@ -125,12 +107,12 @@ POST {{host}}/api/example-6/upload-to-combined?userId=ABC&meta=%7B%7D
 // )
 //
 // comment on function example_6.upload_to_file_system is 'HTTP POST
-// upload for file_system
-// param _meta is upload metadata
-// check_image = true
-// path = ./6_image_uploads/public/uploads
-// unique_name = true
-// create_path = true';
+// @upload for file_system
+// @param _meta is upload metadata
+// @check_image = true
+// @path = ./6_image_uploads/public/uploads
+// @unique_name = true
+// @create_path = true';
 POST {{host}}/api/example-6/upload-to-file-system?userId=ABC&meta=%7B%7D
 
 ###
@@ -150,9 +132,9 @@ POST {{host}}/api/example-6/upload-to-file-system?userId=ABC&meta=%7B%7D
 // )
 //
 // comment on function example_6.upload_to_large_object is 'HTTP POST
-// upload for large_object
-// param _meta is upload metadata
-// check_image = true';
+// @upload for large_object
+// @param _meta is upload metadata
+// @check_image = true';
 POST {{host}}/api/example-6/upload-to-large-object?userId=ABC&meta=%7B%7D
 
 ###

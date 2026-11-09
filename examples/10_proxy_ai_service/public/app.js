@@ -137,7 +137,7 @@ async function checkHealth() {
     aiStatusSpan.textContent = "Offline";
     showElement(healthResult);
     healthResult.textContent = `Error: ${result.status}
-${formatResult(result.error)}`;
+${await result.text()}`;
   }
 }
 function updateAuthUI(loggedIn, username) {

@@ -146,6 +146,22 @@ The `LoginCommand` receives up to five parameters:
 | `$4` | text/json/jsonb | Raw JSON data from the OAuth provider |
 | `$5` | text/json/jsonb | Browser analytics data (screen size, timezone, etc.) |
 
+### Email verification and stable user ids
+
+Since 4.0.0, a login is rejected with `403` when the provider's user info reports the email address as **not verified** (`"email_verified": false`, or Google's older `verified_email`). Anyone can register a provider account with someone else's address; signing them in by that address would hand over that person's account. Providers that only return verified addresses (GitHub, Facebook, LinkedIn's email endpoint) send no flag and are not affected.
+
+::: warning Microsoft accounts
+Microsoft's user info has no verification flag, and the email of a work or school account is a directory attribute that the account's own tenant administrator can set to any address (the "nOAuth" issue). Do not identify Microsoft users by `$2` alone. Use the stable subject id from the user info JSON, `($4::json)->>'sub'`, stored next to the user, and look users up by provider + subject:
+
+```sql
+select id into _user_id
+from user_logins
+where provider = _provider and subject = (_data::json)->>'sub';
+```
+
+NpgsqlRest logs a startup warning while Microsoft login is enabled as a reminder.
+:::
+
 ### Result Set Conventions
 
 The command must return a named record (table). The result is processed using the same rules as login endpoints:

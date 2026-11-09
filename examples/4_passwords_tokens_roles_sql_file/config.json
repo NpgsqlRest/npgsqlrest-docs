@@ -18,13 +18,13 @@
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
-    "CookieValidDays": 1,
+    "CookieValid": "1 day",
     "CookieName": "example_4_auth",
 
     // see https://npgsqlrest.github.io/config/auth.html#microsoft-bearer-token-authentication
     "BearerTokenAuth": true,
     "BearerTokenAuthScheme": "token",
-    "BearerTokenExpireHours": 1,
+    "BearerTokenExpire": "1 hour",
     "BearerTokenRefreshPath": "/api/token/refresh",
 
     // see https://npgsqlrest.github.io/config/auth.html#jwt-authentication
@@ -33,8 +33,8 @@
     "JwtSecret": "your-secret-key-at-least-32-characters-long",
     "JwtIssuer": "example_4",
     "JwtAudience": "example_4",
-    "JwtExpireMinutes": 60,
-    "JwtRefreshExpireDays": 7,
+    "JwtExpire": "60 minutes",
+    "JwtRefreshExpire": "7 days",
     "JwtValidateIssuer": true,
     "JwtValidateAudience": true,
     "JwtValidateLifetime": true,

@@ -151,6 +151,7 @@ create type example_9.crypto_price_api as (
 
 comment on type example_9.crypto_price_api is 'GET https://api.coingecko.com/api/v3/simple/price?ids={_crypto_ids_csv}&vs_currencies={_vs_currencies_csv}
 Accept: application/json
+User-Agent: NpgsqlRest-Example/1.0
 @timeout 10s';
 ```
 

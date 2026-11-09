@@ -13,7 +13,7 @@
 // )
 //
 // comment on function example_4.get_users is 'HTTP GET
-// authorize admin';
+// @authorize admin';
 GET {{host}}/api/example-4/get-users
 
 ###
@@ -33,8 +33,8 @@ GET {{host}}/api/example-4/get-users
 // )
 //
 // comment on function example_4.login is 'HTTP POST
-// login
-// anonymous';
+// @login
+// @anonymous';
 POST {{host}}/api/example-4/login
 content-type: application/json
 
@@ -50,8 +50,8 @@ content-type: application/json
 // returns void
 //
 // comment on function example_4.logout is 'HTTP POST
-// logout
-// authorize';
+// @logout
+// @authorize';
 POST {{host}}/api/example-4/logout
 
 ###
@@ -60,7 +60,7 @@ POST {{host}}/api/example-4/logout
 // returns record
 //
 // comment on function example_4.who_am_i is 'HTTP GET
-// authorize';
+// @authorize';
 GET {{host}}/api/example-4/who-am-i
 
 ###

@@ -80,7 +80,7 @@ The step runs once, immediately before this file (after the run-level `Setup`). 
 
 ## Header semantics
 
-The header ends at the first SQL statement or HTTP block. An included file (`\i`/`\ir`) that contains **only comments** (an *annotation profile*) continues the header — its annotations count as if written in-place — so a shared profile can carry `@setup`/`@teardown`/`@connection`/`@tag` for many test files.
+The header ends at the first line that is not blank, not a `--` comment and not an include: a SQL statement, an HTTP block, or an ordinary `/* ... */` comment. An included file (`\i`/`\ir`) that contains **only comments** (an *annotation profile*) continues the header — its annotations count as if written in-place — so a shared profile can carry `@setup`/`@teardown`/`@connection`/`@tag` for many test files.
 
 ::: tip Watch the prose
 Everything after the step names on the line is treated as more step names. Write explanatory text on its own comment line, not after the names.

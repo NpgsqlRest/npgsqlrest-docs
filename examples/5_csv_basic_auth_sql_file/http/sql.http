@@ -1,6 +1,6 @@
 @host=https://localhost:8080;http://localhost:8081
 
-// SQL file: ../../npgsqlrest-docs/examples/5_csv_basic_auth_sql_file/sql/sales-report.sql
+// SQL file: ./5_csv_basic_auth_sql_file/sql/sales-report.sql
 //
 // HTTP GET
 // @raw

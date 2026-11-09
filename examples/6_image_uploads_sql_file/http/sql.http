@@ -19,7 +19,7 @@ POST {{host}}/api/upload-to-file-system?_user_id=ABC&_meta=%7B%7D
 //
 // HTTP POST
 // @login
-// @@anonymous
+// @allow_anonymous
 // @param $1 username
 // @param $2 password
 POST {{host}}/api/login
@@ -38,7 +38,6 @@ content-type: application/json
 // @raw
 // @tsclient = false
 // @param $1 oid bigint
-// @define_param mimeType
 // content_type: {mimeType}
 GET {{host}}/api/get-image?oid=1&mimeType=XYZ
 

@@ -61,7 +61,7 @@ Configuration for generating OpenAPI specification files and endpoints for Npgsq
 | `DocumentTitle` | string | `null` | API title in the `info` section. Uses database name if `null`. |
 | `DocumentVersion` | string | `"1.0.0"` | API version in the `info` section. |
 | `DocumentDescription` | string | `null` | API description in the `info` section. |
-| `SpecVersion` | string | `"3.0"` | OpenAPI specification version of the generated document: `"3.0"` emits `openapi: 3.0.3` (default, backward compatible), `"3.1"` emits `openapi: 3.1.1` (JSON Schema 2020-12 alignment). This is the spec version, not your API version (that is `DocumentVersion`). Any other value fails at startup. Available since 3.20.0. |
+| `SpecVersion` | string | `"3.0"` | OpenAPI specification version of the generated document: `"3.0"` emits `openapi: 3.0.3` (default, backward compatible), `"3.1"` emits `openapi: 3.1.1` (JSON Schema 2020-12 alignment), `"3.2"` emits `openapi: 3.2.0` and documents [HTTP QUERY](../annotations/http) endpoints under the `query` key of their path (since 4.0.0; 3.0 and 3.1 cannot describe that method, so those endpoints are left out with a warning; check that your tools read 3.2 before choosing it). This is the spec version, not your API version (that is `DocumentVersion`). Any other value fails at startup. Available since 3.20.0. |
 | `AddCurrentServer` | bool | `true` | Include current server in the `servers` section. |
 | `Servers` | array | `[]` | Additional server entries for the `servers` section. |
 | `SecuritySchemes` | array | `[]` | Security schemes for authentication documentation. |

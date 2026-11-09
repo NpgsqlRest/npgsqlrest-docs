@@ -121,7 +121,7 @@ The API name goes through the same `NameConverter` routine parameters use (`:fro
 - **Repetition collapses**: the same name used multiple times — including across statements in a multi-command file — is **one** parameter (`where :user_id = author_id or :user_id = editor_id` takes a single `userId` value).
 - **Claim mappings hook up by placeholder name**: `select :_user_id` under `@authorize` + `@user_parameters` binds the mapped claim with zero annotations.
 - **Annotations match by name** where still needed: `@param from_date default null` (defaults), `@param :from_date timestamptz` (type hint), or the retype-without-rename form `@param from_date type is timestamptz`.
-- **The tokenizer knows SQL**: strings, comments, and dollar-quoted bodies are untouched; `::int` casts, `:=` calls, and numeric slice bounds (`a[1:3]`) never match. One caveat: an array slice with a *variable* bound must be written with a space (`a[1 : n]`).
+- **The tokenizer knows SQL**: strings (also `E'...'` escape strings), quoted identifiers (`"a;b"`), comments, and dollar-quoted bodies are untouched (quoted identifiers and escape strings since 4.1.0); `::int` casts, `:=` calls, and numeric slice bounds (`a[1:3]`) never match. One caveat: an array slice with a *variable* bound must be written with a space (`a[1 : n]`).
 - Mixing `$N` and `:name` in one file is rejected at startup. (JDBC-style `?` is deliberately not supported — `?`, `?|`, `?&`, `@?` are PostgreSQL's own jsonb operators.)
 
 ### Positional Parameters (`$N`)

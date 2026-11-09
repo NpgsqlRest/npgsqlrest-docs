@@ -134,8 +134,39 @@ Common PostgreSQL connection string parameters:
 | `Connection Idle Lifetime` | Seconds before idle connection is closed | `300` |
 | `Connection Lifetime` | Maximum connection lifetime in seconds | `0` (unlimited) |
 | `Timeout` | Connection timeout in seconds | `15` |
+| `No Reset On Close` | Overrides whether connections are reset between requests, see [below](#connection-reset-between-requests) | `true`, `false` |
 
 For a complete list, see the [Npgsql Connection String Parameters](https://www.npgsql.org/doc/connection-string-parameters.html).
+
+### Connection Reset Between Requests
+
+*Since 4.0.0.*
+
+Connections come from a pool and are reused by one request after another. A request can leave *session-level* settings on its connection, and if nothing clears them, the next request on that connection can read them.
+
+Most requests leave nothing. The request context ([`user_context`](/annotations/user-context), [`request_headers context`](/annotations/request-headers-mode)) of functions, tables, views and single-statement SQL files is sent to PostgreSQL together with the routine, as settings local to that one transaction ([how](/annotations/user-context#how-the-context-reaches-postgresql)). A few kinds of endpoints cannot do that and set their context at session level, with `set_config(..., false)`.
+
+So the `npgsqlrest` client resets a connection when it returns to the pool, **when that is needed**:
+
+| Your application | Connections are reset |
+|---|---|
+| `user_context` or `request_headers context` on a **procedure**, an **upload**, **login** or **logout** endpoint, a **SQL file** with several statements or with a statement that is not a query or data change, or a routine returning a single `bytea` value | **Yes**, after every request, for all endpoints |
+| An upload endpoint sets the upload metadata context key, or `BeforeRoutineCommands` are configured | **Yes**, after every request, for all endpoints |
+| Any of the above, with [`WrapInTransaction`](/config/npgsqlrest#wrapintransaction) enabled | **No**: the settings are local to the request's transaction |
+| `user_context` or `request_headers context` only on functions, tables, views and single-statement SQL files | **No**: the context is local to the request |
+| None of these features | **No**: nothing NpgsqlRest does stays on a connection |
+| The connection string contains `No Reset On Close` | As you set it: `true` never, `false` always |
+
+[`NpgsqlRest.AuthenticationOptions.UseUserContext: true`](/config/claims-mapping#user-context-postgresql-context-variables) turns the context on for every endpoint, login and logout endpoints included, which is the first row. Putting the [`user_context`](/annotations/user-context) annotation only on the endpoints that read the context avoids that.
+
+The decision is made at startup, once the endpoints are built, and is logged at debug level.
+
+The reset travels with the next command, so there is no extra round trip, but PostgreSQL runs it on every request (measured: 11-15% fewer small requests per second at full load). It clears settings (`RESET ALL`), the role, temporary tables, advisory locks, listeners and cursors. It keeps cached query plans, so PL/pgSQL functions are not planned again on every request; Npgsql's standard reset, `DISCARD ALL`, discards them.
+
+Two things to know:
+
+- **Session state left behind by your own SQL** (a `set_config(..., false)` inside a function, a temporary table, `SET ROLE`) is only cleared when connections are reset. If your routines depend on that and no endpoint uses the features above, add `No Reset On Close=false` to the connection string.
+- **`No Reset On Close=true` is never reset.** NpgsqlRest logs a warning at startup when that is combined with endpoints that set `user_context` or `request_headers context` at session level (the first row of the table) without `WrapInTransaction`.
 
 ## Connection Settings
 

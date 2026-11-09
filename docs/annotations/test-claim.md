@@ -56,7 +56,7 @@ Content-Type: application/json
 
 {"id": 42}
 */
-select status = 200, 'admin can delete' from _response;
+select status = 200, 'admin can delete' from _response_1;
 
 /*
 POST /api/admin/delete-user

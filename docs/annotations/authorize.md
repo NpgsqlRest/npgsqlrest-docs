@@ -33,7 +33,17 @@ Require authentication for the endpoint. Optionally restrict access by roles, us
 @authorize <value1>, <value2>, <value3>, ...
 ```
 
-Values can be role names, user names, or user IDs. Space-separated lists are also valid: `@authorize admin editor john`
+Each value is one of:
+
+- a **role name**, matched against the role claim (`DefaultRoleClaimType`): `@authorize admin`;
+- `user:<name>`, matched against the user name claim (`DefaultNameClaimType`): `@authorize user:john`;
+- `id:<id>`, matched against the user id claim (`DefaultUserIdClaimType`): `@authorize id:user123`.
+
+Space-separated lists are also valid: `@authorize admin editor user:john`
+
+::: warning Changed in 4.0.0
+Before 4.0.0 a plain value matched the role, the user name **and** the user id claim. So a user who could choose a user name equal to a role name (for example registering as `admin`) was granted that role. Plain values now match roles only. Use the `user:` and `id:` prefixes to authorize specific users. A plain numeric or GUID value logs a startup warning, because it was most likely meant as a user id.
+:::
 
 ## Examples
 
@@ -108,10 +118,10 @@ end;
 
 comment on function get_my_profile() is
 'HTTP GET
-@authorize john';
+@authorize user:john';
 ```
 
-Only the user with user name `john` can access this endpoint. Matches against the `DefaultNameClaimType` claim.
+Only the user with user name `john` can access this endpoint. Matches against the `DefaultNameClaimType` claim (case-insensitive). Before 4.0.0 this was written without the prefix (`@authorize john`).
 
 ### Authorize by User ID
 
@@ -128,10 +138,10 @@ end;
 
 comment on function get_account() is
 'HTTP GET
-@authorize user123';
+@authorize id:user123';
 ```
 
-Only the user with user ID `user123` can access this endpoint. Matches against the `DefaultUserIdClaimType` claim.
+Only the user with user ID `user123` can access this endpoint. Matches against the `DefaultUserIdClaimType` claim (case-insensitive). Before 4.0.0 this was written without the prefix (`@authorize user123`).
 
 ### Multiple Roles
 

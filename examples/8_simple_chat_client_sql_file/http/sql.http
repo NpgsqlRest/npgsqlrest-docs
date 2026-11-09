@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/get-messages.sql
+// SQL file: ./8_simple_chat_client_sql_file/sql/get-messages.sql
 //
 //  HTTP GET
 //  @authorize
@@ -8,7 +8,7 @@ GET {{host}}/api/get-messages
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/send-message.sql
+// SQL file: ./8_simple_chat_client_sql_file/sql/send-message.sql
 //
 // HTTP POST
 // @authorize
@@ -30,7 +30,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/login.sql
+// SQL file: ./8_simple_chat_client_sql_file/sql/login.sql
 //
 // HTTP POST
 // @login
@@ -47,7 +47,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/8_simple_chat_client_sql_file/sql/logout.sql
+// SQL file: ./8_simple_chat_client_sql_file/sql/logout.sql
 //
 //  HTTP POST
 //  @logout

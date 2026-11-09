@@ -9,7 +9,7 @@
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
-    "CookieValidDays": 1,
+    "CookieValid": "1 day",
     "CookieName": "example_7_auth"
   },
 
@@ -50,7 +50,7 @@
 
         // Enable Excel handler
         "ExcelUploadEnabled": true,
-        "ExcelUploadKey": "excel",
+        "ExcelKey": "excel",
         "ExcelAllSheets": true,
         "ExcelDateFormat": "yyyy-MM-dd",
         "ExcelTimeFormat": "HH:mm:ss",

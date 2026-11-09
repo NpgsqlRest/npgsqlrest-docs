@@ -41,7 +41,7 @@ This is the conceptual walkthrough. For the exact directive grammar and every op
 
 ## How it works
 
-A composite **type** whose comment starts with (or contains) an HTTP request line becomes an HTTP Custom Type. When a routine declares a parameter of that type, NpgsqlRest performs the request **before** the routine runs and fills the type's fields with the response:
+A composite **type** whose comment starts with an HTTP request line becomes an HTTP Custom Type (only directive lines such as `@timeout` and `#` comment lines may come before the request line). When a routine declares a parameter of that type, NpgsqlRest performs the request **before** the routine runs and fills the type's fields with the response:
 
 ```mermaid
 flowchart TD
@@ -159,7 +159,7 @@ Your function reads the response through the type's fields with the `(_param).fi
 | `success` | `boolean` | `true` for any `2xx` status. |
 | `content_type` | `text` | The `Content-Type` header value. |
 | `headers` | `json` | All response headers as a JSON object. |
-| `error_message` | `text` | Set when the call itself failed (timeout, DNS, connection) — otherwise `null`. |
+| `error_message` | `text` | Set when the call itself failed (timeout, DNS, connection) — otherwise `null`. A response with an error status (4xx, 5xx) is not a failed call: `error_message` stays `null`, read `status_code` and `success`. When a retry succeeds, it is `null` too. |
 
 Errors are reported through `success`/`error_message`, **not** raised as exceptions — so always branch on `(_response).success` before using the body. You only need to declare the fields you actually use:
 
@@ -205,7 +205,7 @@ Accept: application/json';
 
 | Directive | What it does |
 |-----------|--------------|
-| `@timeout 10s` | Per-request timeout. Interval format (`30`, `30s`, `2min`, `00:00:30`). |
+| `@timeout 10s` | Per-request timeout. Interval format (`30`, `30s`, `2min`, `00:00:30`). Without it, a call times out after 30 seconds. |
 | `@retry_delay 1s, 2s, 5s` | Retry on failure. The list sets **both** the number of retries and the delay before each (here: 3 retries). Add `on 429, 503` to retry only those status codes. |
 | `@cache 5m` | Cache the response for the given TTL. **GET only, `2xx` only.** Concurrent requests for the same key coalesce into one outbound call (stampede protection). |
 
@@ -225,6 +225,7 @@ Accept: application/json
 
 comment on type crypto_price_api is 'GET https://api.coingecko.com/api/v3/simple/price?ids={_crypto_ids_csv}&vs_currencies={_vs_currencies_csv}
 Accept: application/json
+User-Agent: NpgsqlRest-Example/1.0
 @timeout 10s';
 
 create function get_financial_dashboard(
@@ -253,6 +254,8 @@ HTTP GET /financial-dashboard
 ## Self-calls: composing your own endpoints
 
 If the request URL is **relative** (e.g. `GET /api/users`), NpgsqlRest treats it as a **self-call** to another of your own endpoints — handled in-process, with **no HTTP round trip**. Combined with parallel execution, this lets one endpoint compose several others cheaply:
+
+A self-call behaves like any other call of the type: `{placeholders}` are resolved in the URL, the header values and the body, and `@timeout` applies (since 4.0.0 for header values and the timeout; a called endpoint that is still running when the time is up is cancelled). The caller's identity is **not** passed on: the called endpoint sees an anonymous request unless the type's headers carry credentials, exactly as it would over HTTP.
 
 ```sql
 create type api_users  as (body json);

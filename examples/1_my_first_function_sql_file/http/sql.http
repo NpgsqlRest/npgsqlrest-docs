@@ -1,10 +1,8 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/1_my_first_function_sql_file/sql/my-first-query.sql
+// SQL file: ./1_my_first_function_sql_file/sql/my-first-query.sql
 //
 //  HTTP GET
-//  @result first
-//  @result second
 //  @single
 GET {{host}}/api/my-first-query
 

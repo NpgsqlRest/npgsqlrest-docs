@@ -11,7 +11,7 @@
 begin;
 set constraints all deferred;
 insert into example_20.users (id, email, full_name, password_hash, role_id)
-    values (9201, 'login-success@example.com', 'Login Success', crypt('s3cret', gen_salt('bf')), 9201);
+    values (9201, 'login-success@example.com', 'Login Success', example_20.crypt('s3cret', example_20.gen_salt('bf')), 9201);
 insert into example_20.roles (id, name) values (9201, 'tester');
 
 /*

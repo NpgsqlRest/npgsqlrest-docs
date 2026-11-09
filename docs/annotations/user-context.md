@@ -2,7 +2,7 @@
 outline: [2, 3]
 title: "USER_CONTEXT Annotation"
 titleTemplate: NpgsqlRest
-description: "Pass authenticated user claims to PostgreSQL session context variables. Access user info in SQL functions via current_setting()."
+description: "Pass authenticated user claims to PostgreSQL context variables. Access user info in SQL functions via current_setting()."
 head:
   - - meta
     - name: keywords
@@ -140,7 +140,7 @@ comment on function get_user_context_and_headers() is '
 
 ## Behavior
 
-- Sets authenticated user claims into PostgreSQL session context variables before executing the function
+- Sets authenticated user claims into PostgreSQL context variables (settings) for the function to read
 - Claims are accessible via `current_setting('context_key', true)` in PostgreSQL
 - The second parameter `true` prevents errors when the setting doesn't exist
 - Default behavior for all endpoints can be configured via [UseUserContext](../config/claims-mapping#user-context-postgresql-context-variables)
@@ -160,6 +160,42 @@ comment on function get_user_context_and_headers() is '
 | Context Key | Config Option | Description |
 |-------------|---------------|-------------|
 | *(configurable)* | `ClaimsJsonContextKey` | All claims serialized as JSON |
+
+## How the Context Reaches PostgreSQL
+
+The context keys are PostgreSQL settings: NpgsqlRest sets them with `set_config()` and your SQL reads them with `current_setting()`. How they are set depends on the endpoint.
+
+### Together with the routine
+
+*Since 4.0.0.* For **functions, tables and views, and SQL files with a single query or data-changing statement**, the context is sent to PostgreSQL together with the routine, in the same round trip:
+
+```sql
+select set_config($1, $2, true) is null, set_config($3, $4, true) is null;  -- the request context
+select public.personalized_data($1);                                        -- the routine
+```
+
+Both statements run in one transaction, and the settings are local to it (`is_local = true`): the routine sees them, and they are gone when the request ends. Setting the context costs no extra round trip, and nothing is left on the pooled connection.
+
+### Before the routine, at session level
+
+The other endpoints set the context with a separate command before the routine runs, as *session-level* settings:
+
+- **procedures**: a procedure can `COMMIT`, which would end transaction-local settings while it is still running
+- **SQL files with several statements**, or with a statement that is not a query or a data change (`CALL`, `DO`, ...)
+- **upload**, **login** and **logout** endpoints
+- routines that return a single `bytea` value
+- every endpoint, when [`BeforeRoutineCommands`](/config/npgsqlrest#beforeroutinecommands) are configured
+
+Session-level settings stay on the connection after the request. When an application has such endpoints, the `npgsqlrest` client resets its connections between requests so that the next request cannot read them; see [Connection Reset Between Requests](/config/connection#connection-reset-between-requests). With [`WrapInTransaction`](/config/npgsqlrest#wrapintransaction) every request runs in one explicit transaction and the context is always local to it.
+
+::: tip
+[`UseUserContext: true`](../config/claims-mapping#user-context-postgresql-context-variables) turns the context on for *every* endpoint, including login and logout endpoints, so such an application keeps the connection reset. Putting `@user_context` only on the endpoints that read the context avoids that.
+:::
+
+### In both cases
+
+- **Anonymous requests** set every user key to NULL (the IP address key is still set), so a `user_context` endpoint never sees a previous caller's identity.
+- Once a database session has used a setting, PostgreSQL returns an **empty string**, not NULL, for it when it is not set. If your SQL casts the value, write `nullif(current_setting('request.user_id', true), '')::int` rather than `current_setting('request.user_id', true)::int`; the plain cast fails for anonymous requests.
 
 ## Related
 

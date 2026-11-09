@@ -83,7 +83,7 @@ Note: by default, function endpoints are created only if the function comment co
 
 ```
 ❯ ./npgsqlrest --connectionstrings:default="Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=postgres"                                                                                
-[12:32:26.087 INF] Started in 00:00:00.0575787, listening on http://localhost:8080, version 3.21.0.0 [NpgsqlRest]
+[12:32:26.087 INF] Started in 00:00:00.0575787, listening on http://localhost:8080, version 4.1.0.0 [NpgsqlRest]
 ```
 
 Note: NpgsqlRest supports multiple connection strings and if not configured otherwise, it uses the first available connection string.
@@ -114,7 +114,7 @@ Alternatively, we can disable the authorization requirement on the command line 
 
 ```
 ❯ ./npgsqlrest --connectionstrings:default="Host=localhost;Port=5432;Database=mydb;Username=postgres;Password=postgres" --npgsqlrest:requiresauthorization=false
-[12:47:53.288 INF] Started in 00:00:00.0517179, listening on http://localhost:8080, version 3.21.0.0 [NpgsqlRest]
+[12:47:53.288 INF] Started in 00:00:00.0517179, listening on http://localhost:8080, version 4.1.0.0 [NpgsqlRest]
 ```
 
 Also, since we are in development mode, let's enable debug logging with `--log:minimallevels:npgsqlrest=debug` to see what is happening under the hood and to make sure our endpoint is created:
@@ -131,7 +131,7 @@ Also, since we are in development mode, let's enable debug logging with `--log:m
 [12:49:29.998 DBG] Function public.my_first_function mapped to GET /api/my-first-function has set HTTP by the comment annotation to GET /api/my-first-function [NpgsqlRest]
 [12:49:29.998 DBG] Function public.my_first_function mapped to GET /api/my-first-function has set ALLOW ANONYMOUS by the comment annotation. [NpgsqlRest]
 [12:49:29.999 DBG] Created endpoint GET /api/my-first-function [NpgsqlRest]
-[12:49:30.002 INF] Started in 00:00:00.0760485, listening on http://localhost:8080, version 3.21.0.0 [NpgsqlRest]
+[12:49:30.002 INF] Started in 00:00:00.0760485, listening on http://localhost:8080, version 4.1.0.0 [NpgsqlRest]
 ```
 
 Finally, let's test our endpoint again:
@@ -192,7 +192,7 @@ Now you can start NpgsqlRest without any command line arguments:
 [12:55:09.778 DBG] Using DataSource with schema 'public' for metadata queries. [NpgsqlRest]
 [12:55:09.817 DBG] Function public.my_first_function mapped to GET /api/my-first-function has set HTTP by the comment annotation to GET /api/my-first-function [NpgsqlRest]
 [12:55:09.818 DBG] Created endpoint GET /api/my-first-function [NpgsqlRest]
-[12:55:09.821 INF] Started in 00:00:00.0850561, listening on http://localhost:8080, version 3.21.0.0 [NpgsqlRest]
+[12:55:09.821 INF] Started in 00:00:00.0850561, listening on http://localhost:8080, version 4.1.0.0 [NpgsqlRest]
 ```
 
 ## Next Steps

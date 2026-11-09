@@ -35,7 +35,7 @@ Placed in the file's **header** — the leading `--` line comments before the fi
 ```
 
 - Names may be **whitespace- or comma-separated**; the annotation is **repeatable**; steps run in the **order written**.
-- Every name must exist in the `TestRunner.Steps` registry.
+- A name that is not in the `TestRunner.Steps` registry is logged as a warning and skipped; teardown is best-effort and never fails the file (unlike `@setup`, where an unknown name is an error).
 - Runs after the file's own connection is disposed, so it can safely `drop database ... with (force)` on an admin connection.
 
 ## Example

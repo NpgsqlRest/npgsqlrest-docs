@@ -11,6 +11,13 @@ module.exports = {
 
     afterPrefix: "A",
     recursiveDirs: true,
+
+    /*
+    pgmigrations skips every file whose path matches this pattern, and its default is "scrap" - which also
+    matches the example directories 16_scrap_demo, 17_scrap_demo_2 and 18_scrap_proxy_demo, so their
+    migrations were never applied. Skip only a directory that is named exactly "scrap".
+    */
+    skipPattern: "[\\\\/]scrap[\\\\/]",
     
     /*
     When using multiple versioned migration directories, you can append

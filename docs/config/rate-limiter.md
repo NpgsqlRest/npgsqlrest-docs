@@ -31,6 +31,7 @@ Rate limiting configuration to control the number of requests from clients. Appl
     "StatusCode": 429,
     "StatusMessage": "Too many requests. Please try again later.",
     "DefaultPolicy": null,
+    "RetryAfterHeader": true,
     "Policies": {
       "fixed": {
         "Type": "FixedWindow",
@@ -123,6 +124,7 @@ Rate limiting configuration to control the number of requests from clients. Appl
 | `StatusCode` | int | `429` | HTTP status code returned when rate limit is exceeded. |
 | `StatusMessage` | string | `"Too many requests. Please try again later."` | Response message when rate limit is exceeded. |
 | `DefaultPolicy` | string | `null` | Name of the default policy to apply to all endpoints. |
+| `RetryAfterHeader` | bool | `true` | Send the `Retry-After` header with a rejected request. See [Retry-After](#retry-after). Since 4.0.0. |
 | `Policies` | object | `{}` | Named rate limiting policies, keyed by policy name. Assign a policy to an endpoint using the [rate_limiter_policy](../annotations/rate-limiter-policy) annotation. |
 
 ## Policy Types
@@ -330,6 +332,29 @@ The classic use case is **per-user throttling**: each authenticated user gets th
 **Behavior is unchanged for policies without a `Partition` block.** Each non-partitioned policy still uses a single global bucket.
 
 Each `Sources` entry is validated at startup — invalid entries (e.g., `Claim` without `Name`, unknown `Type`) are logged at `Warning` and skipped. If a `Partition` block has no usable sources and `BypassAuthenticated` is false, the partition is dropped (with a Warning) and the policy reverts to a single global bucket.
+
+## Retry-After
+
+::: tip New in 4.0.0
+:::
+
+A rejected request carries the `Retry-After` header: the number of seconds, rounded up, until the limiter will let a request through again.
+
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+
+Too many requests. Please try again later.
+```
+
+| Policy type | What the header says |
+|-------------|----------------------|
+| Fixed window | The time until the window ends. |
+| Sliding window | The time until a used permit leaves the window. |
+| Token bucket | The time until the next token arrives. |
+| Concurrency | No header: the limiter cannot know when a running request will finish. |
+
+With a [Partition](#per-user-rate-limiting-partition), the time is the one of the caller's own bucket. A policy's own `StatusCode` and `StatusMessage` are unaffected; the header is added to whatever the policy answers. Set `RetryAfterHeader` to `false` to send rejections without it.
 
 ## Per-Policy Status Code and Message
 

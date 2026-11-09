@@ -10,7 +10,7 @@
 // )
 //
 // comment on function example_8.get_messages is 'HTTP GET
-// authorize';
+// @authorize';
 GET {{host}}/api/example-8/get-messages
 
 ###
@@ -26,8 +26,8 @@ GET {{host}}/api/example-8/get-messages
 // )
 //
 // comment on function example_8.login is 'HTTP POST
-// login
-// anonymous';
+// @login
+// @anonymous';
 POST {{host}}/api/example-8/login
 content-type: application/json
 
@@ -42,7 +42,7 @@ content-type: application/json
 // returns void
 //
 // comment on function example_8.logout is 'HTTP POST
-// logout';
+// @logout';
 POST {{host}}/api/example-8/logout
 
 ###
@@ -54,10 +54,10 @@ POST {{host}}/api/example-8/logout
 // )
 // returns void
 //
-// comment on function example_8.send_message is 'HTTP POST
-// authorize
-// sse
-// sse_scope authorize';
+// comment on procedure example_8.send_message is 'HTTP POST
+// @authorize
+// @sse
+// @sse_scope authorize';
 POST {{host}}/api/example-8/send-message
 content-type: application/json
 

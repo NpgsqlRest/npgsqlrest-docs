@@ -1,6 +1,6 @@
 @host=http://127.0.0.1:8080
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/csv-upload.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/csv-upload.sql
 //
 // HTTP POST
 // @authorize
@@ -13,7 +13,7 @@ POST {{host}}/api/csv-upload?meta=%7B%7D
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/excel-upload.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/excel-upload.sql
 //
 // HTTP POST
 // @authorize
@@ -26,7 +26,7 @@ POST {{host}}/api/excel-upload?meta=%7B%7D
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/login.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/login.sql
 //
 // HTTP POST
 // @login
@@ -43,7 +43,7 @@ content-type: application/json
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/combined-upload.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/combined-upload.sql
 //
 // HTTP POST
 // @authorize
@@ -57,7 +57,7 @@ POST {{host}}/api/combined-upload?meta=%7B%7D
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/get-upload-data.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/get-upload-data.sql
 //
 // HTTP GET
 // @authorize
@@ -67,7 +67,7 @@ GET {{host}}/api/get-upload-data?type=ABC&_user_id=XYZ
 
 ###
 
-// SQL file: ../../npgsqlrest-docs/examples/7_csv_excel_uploads_sql_file/sql/logout.sql
+// SQL file: ./7_csv_excel_uploads_sql_file/sql/logout.sql
 //
 //  HTTP POST
 //  @logout

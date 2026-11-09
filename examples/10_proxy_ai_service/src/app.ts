@@ -77,7 +77,8 @@ async function checkHealth() {
         aiStatusSpan.className = "status offline";
         aiStatusSpan.textContent = "Offline";
         showElement(healthResult);
-        healthResult.textContent = `Error: ${result.status}\n${formatResult(result.error)}`;
+        // result is the fetch Response itself here (passthrough), so read the upstream body as text
+        healthResult.textContent = `Error: ${result.status}\n${await result.text()}`;
     }
 }
 

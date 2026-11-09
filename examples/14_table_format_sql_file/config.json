@@ -6,7 +6,7 @@
   // Passkey settins doesnt work with IP addresses, use localhost or domain name
 
   "StaticFiles": {
-    "RootPath": "../../npgsqlrest-docs/examples/14_table_format_sql_file/public"
+    "RootPath": "./14_table_format_sql_file/public"
   },
   
   "Stats": {
@@ -19,7 +19,7 @@
   "Auth": {
     "CookieAuth": true,
     "CookieAuthScheme": "cookies",
-    "CookieValidDays": 1,
+    "CookieValid": "1 day",
     "CookieName": "example_14_auth"
   },
 
@@ -43,15 +43,15 @@
 
     "SqlFileSource": {
       "Enabled": true,
-      "FilePattern": "../../npgsqlrest-docs/examples/14_table_format_sql_file/sql/**/*.sql"
+      "FilePattern": "./14_table_format_sql_file/sql/**/*.sql"
     },
 
     "HttpFileOptions": {
-      "NamePattern": "../../npgsqlrest-docs/examples/14_table_format_sql_file/http/{1}"
+      "NamePattern": "./14_table_format_sql_file/http/{1}"
     },
 
     "ClientCodeGen": {
-      "FilePath": "../../npgsqlrest-docs/examples/14_table_format_sql_file/src/{0}Api.ts"
+      "FilePath": "./14_table_format_sql_file/src/{0}Api.ts"
     }
   }
 }

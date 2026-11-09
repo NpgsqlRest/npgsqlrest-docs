@@ -1,5 +1,5 @@
 // src/example4Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+var baseUrl = "";
 async function getUsers(parseRequest = (request) => request) {
   const response = await fetch(baseUrl + "/api/example-4/get-users", parseRequest({
     method: "GET",

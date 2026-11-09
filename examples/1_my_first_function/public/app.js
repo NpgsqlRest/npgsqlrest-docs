@@ -1,5 +1,5 @@
 // src/example1Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+var baseUrl = "";
 async function myFirstFunction() {
   const response = await fetch(baseUrl + "/api/example-1/my-first-function", {
     method: "GET",

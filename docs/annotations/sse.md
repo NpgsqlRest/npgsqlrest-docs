@@ -238,7 +238,7 @@ language plpgsql as $$
 begin
     -- ... do the role update ...
     raise info 'roles updated'
-        using hint = format('authorize %s', _target_user_id);
+        using hint = format('authorize id:%s', _target_user_id);
 end;
 $$;
 
@@ -283,7 +283,7 @@ declare
 begin
     -- ... do the role update ...
     raise info 'roles updated'
-        using hint = format('authorize %s', _target_user_id);
+        using hint = format('authorize id:%s', _target_user_id);
 end;
 $$;
 ```

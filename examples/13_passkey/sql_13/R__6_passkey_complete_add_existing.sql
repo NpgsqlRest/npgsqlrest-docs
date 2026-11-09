@@ -32,7 +32,7 @@ begin
     end if;
 
     -- Verify user exists
-    if not exists (select 1 from example_13.users where _user_id = _user_id) then
+    if not exists (select 1 from example_13.users where user_id = _user_id) then
         return query select 404, 'User not found'::text;
         return;
     end if;

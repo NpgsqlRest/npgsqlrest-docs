@@ -46,7 +46,7 @@ All parameters support [dynamic placeholders](./custom-parameters#dynamic-parame
 |-----------|-------------|
 | `table_format` | Sets the table format renderer for the endpoint. Values: `html` (render as HTML table), `excel` (render as `.xlsx` download). If the value is not a recognized format, a warning is logged and the endpoint falls back to the default JSON response. |
 | `excel_file_name` | Sets the download filename for Excel table format output. Only applies when `table_format` is `excel`. If omitted, defaults to the routine name. |
-| `excel_sheet` | Sets the worksheet name for Excel table format output. Only applies when `table_format` is `excel`. If omitted, defaults to the routine name (max 31 characters). |
+| `excel_sheet` | Sets the worksheet name for Excel table format output. Only applies when `table_format` is `excel`. If omitted, defaults to the `ExcelSheetName` setting, else to the routine name (max 31 characters). |
 
 ## Examples
 

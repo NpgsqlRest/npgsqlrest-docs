@@ -227,11 +227,15 @@ raise notice 'System maintenance in 5 minutes' using hint = 'all';
 -- only admins
 raise notice '%' using hint = 'authorize admin', message;
 
--- only specific users, by username or id
-raise info 'Your report is ready' using hint = format('authorize %s', _user_id);
+-- only specific users: user:<name> or id:<user id>
+raise info 'Your report is ready' using hint = format('authorize id:%s', _user_id);
 ```
 
-This is what makes per-user notifications possible: an endpoint that processes a job can notify *just the user who owns it* with `using hint = format('authorize %s', _user_id)`, even though the broadcaster is shared.
+This is what makes per-user notifications possible: an endpoint that processes a job can notify *just the user who owns it* with `using hint = format('authorize id:%s', _user_id)`, even though the broadcaster is shared.
+
+::: warning Changed in 4.0.0
+In an `authorize` hint (and in `authorize` / `sse_scope authorize` annotations), a plain value is a **role**. Target a user with `id:<user id>` or `user:<user name>`. Before 4.0.0 a plain value also matched user names and ids, so a user named like a role (for example `admin`) received that role's events. Hints written as `format('authorize %s', _user_id)` must become `format('authorize id:%s', _user_id)`.
+:::
 
 ::: info Request correlation
 When a request carries an execution-id header (`ExecutionIdHeaderName`, default `X-NpgsqlRest-ID`) and an `EventSource` includes the same id as a query parameter, events are also filtered to that execution id — useful for streaming the progress of one specific long-running call back to its initiator.
@@ -260,7 +264,7 @@ language plpgsql as $$
 begin
     -- ... perform the role update ...
     raise info 'roles updated'
-        using hint = format('authorize %s', _target_user_id);
+        using hint = format('authorize id:%s', _target_user_id);
 end;
 $$;
 
@@ -304,7 +308,7 @@ declare
 begin
     -- ... perform the role update ...
     raise info 'roles updated'
-        using hint = format('authorize %s', _target_user_id);
+        using hint = format('authorize id:%s', _target_user_id);
 end;
 $$;
 

@@ -15,6 +15,7 @@ import HomeNews from './components/HomeNews.vue'
 import SqlFileShowcase from './components/SqlFileShowcase.vue'
 import FunctionShowcase from './components/FunctionShowcase.vue'
 import SlideDeck from './components/SlideDeck.vue'
+import GitHubStars from './components/GitHubStars.vue'
 
 export default {
   extends: DefaultTheme,
@@ -49,6 +50,7 @@ export default {
     )
 
     return h(DefaultTheme.Layout, null, {
+      'nav-bar-content-after': () => h(GitHubStars),
       'home-hero-image': () => frontmatter.value.layout === 'home' ? h(HeroTerminal) : null,
       'home-features-before': () => frontmatter.value.layout === 'home' ? h(HomeNews) : null,
       'layout-bottom': () => frontmatter.value.layout === 'home' ? h(Chatbot) : null,

@@ -394,7 +394,10 @@ ${items}
           text: 'Changelog',
           items: [
             { text: 'Overview', link: '/guide/changelog/' },
-            { text: 'v3.21.0 (Latest)', link: '/guide/changelog/v3.21.0' },
+            { text: 'v4.1.0 (Latest)', link: '/guide/changelog/v4.1.0' },
+            { text: 'v4.0.1', link: '/guide/changelog/v4.0.1' },
+            { text: 'v4.0.0', link: '/guide/changelog/v4.0.0' },
+            { text: 'v3.21.0', link: '/guide/changelog/v3.21.0' },
             { text: 'v3.20.0', link: '/guide/changelog/v3.20.0' },
             { text: 'v3.19.0', link: '/guide/changelog/v3.19.0' },
             { text: 'v3.18.2', link: '/guide/changelog/v3.18.2' },
@@ -732,8 +735,8 @@ ${items}
       ]
     },
 
+    // The GitHub repo link lives in the navbar star button (theme/components/GitHubStars.vue)
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/NpgsqlRest/NpgsqlRest' },
       {
         icon: {
           svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M7.655 14.916v-.001h-.002l-.006-.003-.018-.01a22.066 22.066 0 0 1-3.744-2.584C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002a.75.75 0 0 1-.69 0Z"/></svg>'

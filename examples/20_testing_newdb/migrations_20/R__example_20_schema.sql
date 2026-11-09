@@ -6,7 +6,10 @@
 
 drop schema if exists example_20 cascade;
 create schema example_20;
-create extension if not exists pgcrypto;   -- crypt()/gen_salt() for password hashing
+-- crypt()/gen_salt() for password hashing. Installed in this example's schema, like the other examples do,
+-- so the migration also works in the shared examples database where pgcrypto lives in another schema.
+drop extension if exists pgcrypto cascade;
+create extension pgcrypto with schema example_20;
 
 -- Reference tables.
 create table example_20.countries (
@@ -51,9 +54,9 @@ insert into example_20.roles (id, name) values
     (2, 'user');
 
 insert into example_20.users (id, email, full_name, password_hash, role_id) values
-    (1, 'ada@example.com',   'Ada Lovelace', crypt('ada-secret',   gen_salt('bf')), 1),
-    (2, 'alan@example.com',  'Alan Turing',  crypt('alan-secret',  gen_salt('bf')), 2),
-    (3, 'grace@example.com', 'Grace Hopper', crypt('grace-secret', gen_salt('bf')), 2);
+    (1, 'ada@example.com',   'Ada Lovelace', example_20.crypt('ada-secret',   example_20.gen_salt('bf')), 1),
+    (2, 'alan@example.com',  'Alan Turing',  example_20.crypt('alan-secret',  example_20.gen_salt('bf')), 2),
+    (3, 'grace@example.com', 'Grace Hopper', example_20.crypt('grace-secret', example_20.gen_salt('bf')), 2);
 
 insert into example_20.addresses (id, user_id, country_id, line1, city) values
     (1, 1, 2, '1 Analytical Way', 'London'),

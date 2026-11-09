@@ -17,7 +17,7 @@
 // returns record
 //
 // comment on function example_9.get_financial_dashboard is 'HTTP GET /financial-dashboard
-// authorize';
+// @authorize';
 GET {{host}}/financial-dashboard?baseCurrency=ABC&targetCurrenciesCsv=XYZ&cryptoIdsCsv=IJK&vsCurrenciesCsv=ABC&exchangeRateResponseBody=%7B%7D&exchangeRateResponseStatusCode=6&exchangeRateResponseSuccess=false&exchangeRateResponseErrorMessage=XYZ&cryptoResponseBody=%7B%7D&cryptoResponseStatusCode=10&cryptoResponseSuccess=false&cryptoResponseErrorMessage=IJK
 
 ###
@@ -33,8 +33,8 @@ GET {{host}}/financial-dashboard?baseCurrency=ABC&targetCurrenciesCsv=XYZ&crypto
 // )
 //
 // comment on function example_9.login is 'HTTP POST
-// login
-// anonymous';
+// @login
+// @anonymous';
 POST {{host}}/api/example-9/login
 content-type: application/json
 
@@ -49,7 +49,7 @@ content-type: application/json
 // returns void
 //
 // comment on function example_9.logout is 'HTTP POST
-// logout';
+// @logout';
 POST {{host}}/api/example-9/logout
 
 ###

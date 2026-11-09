@@ -30,10 +30,11 @@ Mark endpoint as a file upload handler.
 
 ```
 @upload
-@upload for <handler_type>
+@upload for <handler_type> [, <handler_type> ...]
+@upload <parameter> as metadata
 ```
 
-If no handler is specified (only `upload` annotation without `for`), then the default handler will be used. The default handler is `large_object` unless configured otherwise via `DefaultUploadHandler` setting.
+If no handler is specified (only `upload` annotation without `for`), then the default handler will be used. The default handler is `large_object` unless configured otherwise via `DefaultUploadHandler` setting. Handler names are matched in any case. `@upload <parameter> as metadata` turns the upload on and names the parameter that receives the [upload metadata](#upload-metadata), the same as `@param <parameter> is upload metadata`.
 
 ## Handler Types
 
@@ -48,20 +49,27 @@ There are 4 handler types available:
 
 ## Shared Annotation Options
 
-These options are available for all handler types:
+These options are read for every handler:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `stop_after_first_success` | bool | `false` | Stop upload after first successful upload when multiple handlers are used. Subsequent files will have status `Ignored`. |
-| `included_mime_types` | string | `null` | CSV string of MIME type patterns to include. Set to `null` to allow all. |
-| `excluded_mime_types` | string | `null` | CSV string of MIME type patterns to exclude. Set to `null` to exclude none. |
-| `buffer_size` | int | `null` | Buffer size in bytes for raw content uploads (`large_object` and `file_system`). |
-| `check_text` | bool | `false` | Validate file is a text file (not binary). Set to `true` to accept only text files. |
-| `check_image` | bool/string | `false` | Validate file is an image. Set to `true` to accept only images, or CSV of allowed types: `jpg`, `png`, `gif`, `bmp`, `tiff`, `webp`. |
-| `test_buffer_size` | int | `4096` | Buffer size in bytes when checking text files. |
-| `non_printable_threshold` | int | `5` | Maximum non-printable characters allowed in test buffer to consider a valid text file. |
-| `check_format` | bool | `false` | Validate the file format before processing. When `true` and validation fails, the `fallback_handler` is used if configured. |
-| `fallback_handler` | string | `null` | Handler name to delegate to if format validation fails (e.g., `large_object`, `file_system`, `csv`, `excel`). When a handler's format validation fails and a `fallback_handler` is configured, processing is automatically delegated to the named handler. |
+| `included_mime_types` | string | none | Comma-separated MIME type patterns (`*` and `?` are wildcards); a file must match one of them. Without it, every type is accepted. |
+| `excluded_mime_types` | string | none | Comma-separated MIME type patterns; a file that matches one is rejected. |
+| `buffer_size` | int | `8192` | Buffer size in bytes for raw content uploads (`large_object` and `file_system`). |
+| `fallback_handler` | string | none | Only `csv` and `excel` use it: the handler that takes over when they cannot process the file (e.g., `large_object`, `file_system`). `csv` hands over whenever the file was not processed (its format check failed, or its MIME type was not accepted); `excel` when the workbook cannot be read. The fallback's result is then the result of the upload. |
+
+These checks are read by some handlers only:
+
+| Option | Type | Default | Handlers | Description |
+|--------|------|---------|----------|-------------|
+| `check_text` | bool | `false` | `large_object`, `file_system` | Accept only text files (reject binary content). |
+| `check_image` | bool/string | `false` | `large_object`, `file_system` | Accept only images: `true` for any supported type, or a comma-separated list of `jpg`, `jpeg`, `png`, `gif`, `bmp`, `tiff`, `webp`. |
+| `check_format` | bool | `true` | `csv` | Check that the file is text with at least one line break before it is processed. |
+| `test_buffer_size` | int | `4096` | `large_object`, `file_system`, `csv` | How many bytes of the file the text check reads. |
+| `non_printable_threshold` | int | `5` | `large_object`, `file_system`, `csv` | How many non-printable bytes the text check tolerates before the file counts as binary. |
+
+Every option can be prefixed with its handler's name (`csv_delimiters`, `excel_sheet_name`, `file_system_path`), which is how two handlers on one endpoint get different values. When both the plain and the prefixed key are present, **the plain key wins**. Keys are matched in any case (since 4.0.0).
 
 ## Upload Metadata
 
@@ -242,7 +250,7 @@ All shared options plus:
 |--------|-------------|
 | `path` | Directory path for uploaded file |
 | `file` | File name to use |
-| `unique_name` | Generate unique file name (bool) |
+| `unique_name` | Generate unique file name (bool). When `true` (the default), only the extension of `file` is kept. |
 | `create_path` | Create directory if not exists (bool) |
 | `file_system_included_mime_types` | Handler-specific MIME types to include |
 | `file_system_excluded_mime_types` | Handler-specific MIME types to exclude |
@@ -462,13 +470,13 @@ This will use comma (`,`) and semicolon (`;`) as delimiters. Use `\t` for tab.
 
 ### CSV Annotation Options
 
-All shared options (except `buffer_size`, `check_text`, `check_image`) plus:
+The shared options, `test_buffer_size` and `non_printable_threshold`, plus:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `row_command` | string | - | PostgreSQL command to process each row (required) |
+| `row_command` | string | `call process_csv_row($1,$2,$3,$4)` | PostgreSQL command run for each row: `$1` the row number (from 1), `$2` the fields as `text[]`, `$3` the previous row's result, `$4` the upload metadata. Executed exactly as written: `{placeholders}` are **not** substituted here (since 4.0.0; request values in SQL text would be SQL injection). The default comes from the `CsvUploadRowCommand` setting. |
 | `delimiters` | string | `,` | Delimiter character(s) |
-| `check_format` | bool | `false` | Validate file is text before processing |
+| `check_format` | bool | `true` | Validate file is text before processing |
 | `has_fields_enclosed_in_quotes` | bool | `true` | Fields may be enclosed in quotes |
 | `set_white_space_to_null` | bool | `true` | Convert whitespace-only values to NULL |
 
@@ -640,11 +648,11 @@ The `$2` parameter becomes JSON like:
 
 ### Excel Annotation Options
 
-All shared options (except `buffer_size`, `check_text`, `check_image`, `test_buffer_size`, `non_printable_threshold`) plus:
+The shared options plus:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `row_command` | string | - | PostgreSQL command to process each row (required) |
+| `row_command` | string | `call process_excel_row($1,$2,$3,$4)` | PostgreSQL command run for each non-empty row: `$1` the row number, `$2` the cells, `$3` the previous row's result, `$4` the upload metadata. Executed exactly as written: `{placeholders}` are **not** substituted here (since 4.0.0). The default comes from the `ExcelUploadRowCommand` setting. |
 | `sheet_name` | string | `null` | Specific sheet name to process (first sheet if null) |
 | `all_sheets` | bool | `false` | Process all sheets in the workbook |
 | `time_format` | string | `HH:mm:ss` | Format for time values |
@@ -708,8 +716,8 @@ Upload handlers accept [custom parameters](./custom-parameters) using the `@key 
 | `stop_after_first_success` | When `true`, stops processing after the first successful upload handler. |
 | `included_mime_types` | Comma-separated list of MIME type patterns to include for upload processing. |
 | `excluded_mime_types` | Comma-separated list of MIME type patterns to exclude from upload processing. |
-| `check_format` | When `true`, validates the file format before processing. If validation fails, `fallback_handler` is used. |
-| `fallback_handler` | Handler name to delegate to if format validation fails (e.g., `csv`, `large_object`). Available on all upload handlers. |
+| `buffer_size` | Buffer size in bytes for `large_object` and `file_system` (default `8192`). |
+| `fallback_handler` | For `csv` and `excel`: the handler that takes over when they cannot process the file. |
 
 ### Large Object Upload Handler
 

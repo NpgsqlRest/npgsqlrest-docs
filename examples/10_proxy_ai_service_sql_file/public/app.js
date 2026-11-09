@@ -13,14 +13,10 @@ async function aiAnalyze(request) {
 }
 async function aiHealth() {
   const response = await fetch(baseUrl + "/ai/health", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    }
+    method: "GET"
   });
   return {
     status: response.status,
-    response: response.ok ? await response.json() : undefined,
     error: !response.ok && response.headers.get("content-length") !== "0" ? await response.json() : undefined
   };
 }

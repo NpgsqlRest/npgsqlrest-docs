@@ -88,12 +88,63 @@ HTTP GET
 Custom parameters with `@` prefix are stored without the prefix (e.g., `@my_param = value` is stored as `my_param`).
 
 ::: tip
-The `@` prefix is purely optional. All existing code without `@` continues to work unchanged. Choose whichever style you prefer, or mix them freely.
+By default the `@` prefix is optional. All existing code without `@` continues to work unchanged. Writing it always is the form that is read the same under every setting, and that can never be mistaken for a sentence.
 :::
 
-::: info HTTP Headers Don't Use @
-HTTP RFC standard annotations (headers with `Name: value` syntax like `Content-Type: application/json`) do **not** use the `@` prefix - they follow the standard HTTP header format.
+::: info Response headers
+A response header line (`Name: value`, like `Content-Type: application/json`) follows the HTTP header format and needs no prefix. It can be written with one (`@Content-Type: application/json`); the `@` is not part of the header name (since 4.1.0, earlier it was).
 :::
+
+### Requiring the Prefix
+
+::: tip New in 4.1.0
+:::
+
+A comment is also where the description of an endpoint is written, and a sentence can begin with a word that is an annotation:
+
+```sql
+comment on function get_report() is '
+HTTP GET
+Login for staff only.
+Note: see the wiki
+';
+```
+
+Here the second line is the `login` annotation and the third a response header named `Note`. With [`RequireAtPrefix`](../config/npgsqlrest#requireatprefix) on, only a line that begins with `@` is an annotation, and every other line is text, whatever word it begins with:
+
+```json
+{
+  "NpgsqlRest": {
+    "RequireAtPrefix": true
+  }
+}
+```
+
+```sql
+comment on function get_report() is '
+@http get
+@authorize admin
+@timeout = 30s
+@Content-Type: text/csv
+Login for staff only.
+Note: see the wiki
+';
+```
+
+| With `RequireAtPrefix: true` | |
+|---|---|
+| Built-in annotations | `@http get`, `@authorize`, `@cached` ... The `HTTP` line needs the prefix too. |
+| `key = value` | `@timeout = 30s`, `@tsclient_module = orders` |
+| Response headers | `@Content-Type: text/csv` |
+| Tags | `@for function` |
+| Plugin annotations | `@mcp`, `@openapi hide` |
+| SQL files | `@returns`, `@result`, `@single`, `@skip`, `@param`, `@define_param` |
+| HTTP Custom Type comments | The directives: `@timeout`, `@retry_delay`, `@cache`. The request line and the headers are HTTP syntax and take no prefix. |
+| SQL test files | Unchanged: their annotations have always needed the `@`. |
+
+The default is `false`. Turning it on for a project written in the short form is safe in one direction: a comment whose `HTTP` line has no `@` creates **no endpoint** (with a warning, and reason `unprefixed_annotations` in [`npgsqlrest --inspect`](./installation#command-line-basic-commands)), instead of an endpoint without its restrictions. In a comment that is partly converted, a line without `@` that begins with an annotation that restricts access (`authorize`, `disabled`, `internal`, `login`, `logout`, `basic_auth`, `security_sensitive`) is logged as a warning.
+
+To see how a comment is read under the current settings without starting the server, use `npgsqlrest --parse-comment=<file>` or, for a SQL file, `npgsqlrest --parse=<file.sql>`.
 
 ### Simple Example
 

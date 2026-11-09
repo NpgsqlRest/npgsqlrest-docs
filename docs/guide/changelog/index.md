@@ -10,7 +10,42 @@ Note: The changelog for versions older than 3.0 can be found here: [Changelog Ar
 
 ---
 
-## Version 3.21 (Latest)
+## Version 4.1 (Latest)
+
+| Version | Date |
+|---------|------|
+| [v4.1.0](/guide/changelog/v4.1.0) | 2026-11-21 |
+
+- New: **`npgsqlrest --inspect`** — everything that was looked at and did **not** become an endpoint, with the reason (no HTTP annotation, disabled, a tag that does not match, left out by a filter, a SQL error ...) and what to change; and for each endpoint the files generated for it (TypeScript client and hooks, Dart client, HTTP files, OpenAPI) with the generated name and its line
+- New: **`npgsqlrest --parse`** and **`--parse-comment`** — how the comments of a SQL file or of a routine are read, line by line (annotation, text, unknown annotation), by the parsers the server runs, without a database
+- New: **`RequireAtPrefix`** (default `false`) — an optional strict reading in which only a line that begins with `@` is an annotation and every other line is text, including `@http`, `key = value` lines, response headers, the SQL file source's lines and HTTP Custom Type directives
+- **Npgsql 11**; performance equal to 4.0.1 (measured as JIT and native AOT). `Multiplexing` in a connection string is now an error; the pool name in Npgsql's metrics is the application name
+- Fix: **an upload request could end the server process** (an Excel file and a CSV file in one request to an `upload for excel` endpoint with `fallback_handler = csv`); a tab between the words of an annotation (`@authorize<TAB>admin` gave the endpoint no authorization); quoted identifiers, escape strings and `$1$2` in SQL files; logout without a valid token in a JWT-only application; `NpgsqlRest.Mcp` is on NuGet for the first time
+
+---
+
+## Version 4.0
+
+| Version | Date |
+|---------|------|
+| [v4.0.1](/guide/changelog/v4.0.1) | 2026-11-20 |
+| [v4.0.0](/guide/changelog/v4.0.0) | 2026-11-20 |
+
+- **4.0.1** (patch): fixes a 4.0.0 regression where password login answered `404` on endpoints that use user parameters; JWT sign-ins keep their claim names (`authorize <role>` answered `403`); logout with a JWT no longer answers `500`; typed defaults of SQL file parameters; TypeScript client typing fixes. Everyone on 4.0.0 should take it
+- **Major version: read the [upgrade notes](/guide/changelog/v4.0.0#upgrade-notes-read-this-first) first.** The release contains breaking changes, most of them security fixes
+- Security: a full review of the codebase. One critical issue in password login (a login could succeed without a verified password), and fixes in external login, passkeys, proxies, antiforgery, uploads, SSE, static files, MCP and the cache; `authorize` values are roles (users need `user:` / `id:`), the client IP is no longer read from forwarding headers unless `ForwardedHeaders` is enabled, proxies no longer forward credentials
+- Platform: the `npgsqlrest` executable and Docker images run on **.NET 11**; the library and every plugin target both `net10.0` and `net11.0`
+- Performance: 21–24% more row requests per second with 28–36% less CPU and a half to a quarter of the memory; endpoints with `user_context` send their context with the routine in one round trip (41–69% more requests per second); pooled connections are reset only when an endpoint leaves something on them
+- New: **a complete annotation reference for tools** — `npgsqlrest --annotations` lists every annotation and custom parameter of core, plugins, upload handlers, SQL test files and HTTP Custom Types as data; `--endpoints` says per endpoint what was read from its comment, what was not, and the warnings; unknown `@` lines are no longer published and misspelt `@key = value` lines warn
+- New: **Zstandard response compression** (`ResponseCompression:UseZstandard`), **OpenAPI 3.2** (`SpecVersion: "3.2"`, documents HTTP QUERY endpoints), **`Retry-After`** on rate-limited requests
+- Fix: SQL file comments that begin with "Returns" or "result" are no longer taken for annotations; custom parameter keys, upload handler names and table format names match in any case; HTTP Custom Type self-calls honor the timeout; and more
+
+> During development this release was called 3.22.0.
+
+---
+
+## Version 3.21
+
 
 | Version | Date |
 |---------|------|

@@ -56,7 +56,6 @@ async function sendMessage(request, onMessage, id = undefined, closeAfterMs = 10
     });
     return {
       status: response.status,
-      response: response.ok ? await response.json() : undefined,
       error: !response.ok && response.headers.get("content-length") !== "0" ? await response.json() : undefined
     };
   } finally {

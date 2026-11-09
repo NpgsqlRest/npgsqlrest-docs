@@ -13,4 +13,4 @@ select u.id, u.email, u.full_name as name, r.name as role
 from example_20.users u
 join example_20.roles r on r.id = u.role_id
 where u.email = :email
-  and u.password_hash = crypt(:password, u.password_hash);
+  and u.password_hash = example_20.crypt(:password, u.password_hash);

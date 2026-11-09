@@ -231,7 +231,7 @@ Field names are configurable via [HTTP Client Options](../config/http-client).
 
 ## Timeout Directives
 
-Timeout uses [interval format](./interval-format):
+Without a timeout directive, an outbound call times out after **30 seconds** (the type's `status_code` is then `408` and `error_message` is set). Timeout uses [interval format](./interval-format):
 
 | Format | Example |
 |--------|---------|
@@ -279,6 +279,8 @@ Placeholders work in:
 - URL path and query string
 - Header values
 - Request body
+
+In the **URL**, values that come from the request (function parameters, including resolved parameters) are percent-encoded, so each one stays inside its own path segment or query value: `_q = 'x&limit=1000'` in `?q={_q}&limit=5` sends `?q=x%26limit%3D1000&limit=5`, and `../admin` in a path segment cannot walk the path. Environment variable values are inserted as they are (they are operator configuration, such as a base URL). Header values and the body are inserted unencoded — format the body for its content type (for JSON, pass values that are already valid JSON strings or build the body in SQL).
 
 ## Retry Logic
 

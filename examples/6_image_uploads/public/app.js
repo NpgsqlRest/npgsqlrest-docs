@@ -1,5 +1,5 @@
 // src/example6Api.ts
-var baseUrl = "http://127.0.0.1:8080";
+var baseUrl = "";
 var parseQuery = (query) => "?" + Object.keys(query ? query : {}).map((key) => {
   const value = query[key] != null ? query[key] : "";
   if (Array.isArray(value)) {

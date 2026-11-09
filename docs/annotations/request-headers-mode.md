@@ -91,8 +91,9 @@ select json_build_object('data', $1, 'headers', $2);
 ## Behavior
 
 - Default mode is configured in `NpgsqlRest.RequestHeadersMode`
-- `context` mode uses the key from `RequestHeadersContextKey` setting
+- `context` mode uses the key from `RequestHeadersContextKey` setting. The value is set the same way as the [user context](./user-context#how-the-context-reaches-postgresql): for functions, tables, views and single-statement SQL files it is sent together with the routine and is local to the request (since 4.0.0)
 - `parameter` mode uses the parameter name from the `RequestHeadersParameterName` setting (default `_headers`); the parameter must be `json` or `text` and must have a default value
+- In `parameter` mode the headers only fill the parameter when the request does not supply it: a client can send its own `headers` value instead. Don't base trust decisions on it (e.g. identity headers added by an authenticating gateway) — use `context` mode, which the client cannot override, or user claims.
 
 ## Related
 

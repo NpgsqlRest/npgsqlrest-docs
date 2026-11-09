@@ -363,7 +363,7 @@ Enable CSV and Excel handlers in `config.json`:
         "CsvUploadSetWhiteSpaceToNull": true,
 
         "ExcelUploadEnabled": true,
-        "ExcelUploadKey": "excel",
+        "ExcelKey": "excel",
         "ExcelAllSheets": true,
         "ExcelDateFormat": "yyyy-MM-dd",
         "ExcelTimeFormat": "HH:mm:ss",

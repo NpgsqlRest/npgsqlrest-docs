@@ -326,6 +326,10 @@ NpgsqlRest calls your SQL functions at specific points in each flow.
 | `status` | int | HTTP status code (200 = success). |
 | `message` | text | Error message when status ≠ 200. |
 
+::: tip `user_context` cannot be tampered with
+The `userContext` object that the options endpoint returns to the browser contains a sealed copy of itself in a `_protected` property, encrypted and signed with ASP.NET Core Data Protection. The seal is tied to the challenge and, when a passkey is added to an existing account, to the signed-in user. Send the object back unchanged. The completion endpoint rejects a missing or invalid seal with `invalid_request` ("Invalid user context"), and `$7` always receives the server-issued copy, never the client-supplied one. So the completion command can trust `user_context`, including a user id in it. *(Since 4.0.0.)*
+:::
+
 ### CompleteAuthenticateCommand
 
 **When executed:** After successful signature verification during login

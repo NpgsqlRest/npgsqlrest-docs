@@ -129,7 +129,9 @@ The named policy must be **registered on the host** — `AddRateLimiter(o => o.A
 - Type: `string[]`
 - Default: `[]`
 
-Allowed values of the HTTP `Origin` header — DNS-rebinding protection required by the Streamable HTTP transport. A request whose `Origin` is present but matches neither this list nor the server's own origin is rejected with **403**. Requests without an `Origin` header (e.g. server-to-server) are allowed. Empty (default) = only same-origin browser requests pass.
+Allowed values of the HTTP `Origin` header — DNS-rebinding protection required by the Streamable HTTP transport. A request whose `Origin` is present but matches neither this list nor the server's own origin is rejected with **403**. Requests without an `Origin` header (e.g. server-to-server, desktop and IDE clients) are allowed.
+
+Since 4.0.0 the server's own origin counts only for `localhost`, IP addresses and the host names the server is bound to (`Urls`). Under DNS rebinding an attacker's page reaches the server under the attacker's own host name, so `Origin` and `Host` would always match; a browser page served under any other host name (e.g. `https://app.example.com` calling its own `/mcp`) must therefore be listed here.
 
 Use it for short, shared context that should ride along with every tool the agent inspects — e.g. `"Read-only Acme CRM."` or `"Amounts in USD."`. Unlike [`Instructions`](#instructions) (returned once at `initialize`, and which some clients don't surface prominently), a description suffix is attached to each tool, so the model sees it whenever it considers that tool.
 

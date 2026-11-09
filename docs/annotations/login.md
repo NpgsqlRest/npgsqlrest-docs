@@ -318,7 +318,9 @@ When a `hash` column is present, NpgsqlRest:
 1. Reads the hash value from that column.
 2. Identifies the **password parameter** — the first parameter whose name contains `PasswordParameterNameContains` (default `pass`).
 3. Verifies the submitted password against the hash.
-4. On failure, returns **404 Not Found** and the row's claims are discarded.
+4. On failure, returns **401 Unauthorized** (since 4.0.0; previously 404) and the row's claims are discarded — the same response as an unknown user (no row), so callers cannot tell which accounts exist. A missing password, a NULL stored hash or a missing hasher also fail.
+
+When the routine returns **no row** but its result has the `hash` column, NpgsqlRest still verifies the submitted password against a throwaway hash, so an unknown user takes as long as a wrong password.
 
 The **hash column name** and the **password-parameter substring** are set in [`AuthenticationOptions`](../config/authentication-options#login-response-columns) — these are the defaults:
 
