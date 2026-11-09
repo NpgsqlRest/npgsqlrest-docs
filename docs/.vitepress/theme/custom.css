@@ -881,3 +881,50 @@ div[class*="language-mermaid"] .shiki {
   font-family: var(--vp-font-family-mono);
   color: var(--vp-c-text-3);
 }
+
+/* Navbar room for the GitHub stars button (components/GitHubStars.vue).
+   Between 768px and ~1050px VitePress' menu already fills the bar (it even
+   overflowed at 768-820px before the button existed), so the search box
+   collapses to an icon, as it does on phones, and the menu tightens up. */
+@media (min-width: 768px) and (max-width: 1049px) {
+  .VPNavBar .DocSearch-Button {
+    justify-content: center;
+    padding: 0;
+    width: 40px;
+  }
+
+  .VPNavBar .DocSearch-Button .DocSearch-Search-Icon {
+    top: 0;
+    margin-right: 0;
+  }
+
+  .VPNavBar .DocSearch-Button .DocSearch-Button-Placeholder,
+  .VPNavBar .DocSearch-Button .DocSearch-Button-Keys {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 959px) {
+  .VPNavBar .content-body .VPNavBarSearch {
+    padding-left: 16px;
+  }
+
+  .VPNavBar .content-body .VPNavBarMenuLink,
+  .VPNavBar .content-body .VPNavBarMenu .VPFlyout .button {
+    padding: 0 8px;
+  }
+}
+
+/* Narrow phones: title + stars + search + hamburger share ~300px */
+@media (max-width: 399px) {
+  .VPNavBar .container .content-body {
+    column-gap: 4px;
+  }
+}
+
+@media (max-width: 359px) {
+  .VPNavBar .DocSearch-Button,
+  .VPNavBar .content-body .VPNavBarHamburger {
+    width: 44px;
+  }
+}
